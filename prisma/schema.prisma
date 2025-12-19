@@ -1,0 +1,46 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+}
+
+model User {
+  id         String    @id @default(uuid())
+  clerkId    String    @unique
+  email      String    @unique
+  name       String?
+  role       Role      @default(STUDENT)
+  university String?   // e.g., "KNUST", "UG"
+  createdAt  DateTime  @default(now())
+  products   Product[]
+}
+
+enum Role {
+  STUDENT
+  VENDOR
+  ADMIN
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  category    Category
+  imageUrl    String?  // Cloudinary link
+  location    String?  // For Geofencing (e.g., "Bush Canteen")
+  vendorId    String
+  vendor      User     @relation(fields: [vendorId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+enum Category {
+  FOOD
+  BOOK
+  LESSON
+  SERVICE
+}
