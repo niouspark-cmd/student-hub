@@ -5,9 +5,10 @@ import { prisma } from '@/lib/db/prisma';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -22,7 +23,7 @@ export async function GET(
         }
 
         const order = await prisma.order.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 product: true,
                 student: {
@@ -68,9 +69,10 @@ export async function GET(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -87,7 +89,7 @@ export async function PATCH(
         const { status } = await request.json();
 
         const order = await prisma.order.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: { product: true }
         });
 
@@ -101,7 +103,7 @@ export async function PATCH(
         }
 
         const updatedOrder = await prisma.order.update({
-            where: { id: params.id },
+            where: { id },
             data: { status }
         });
 

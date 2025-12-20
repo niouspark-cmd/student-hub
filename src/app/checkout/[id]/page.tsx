@@ -8,7 +8,7 @@ import Script from 'next/script';
 export default async function CheckoutPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
     const { userId } = await auth();
     const { id } = await params;
