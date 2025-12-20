@@ -1,4 +1,4 @@
-// src/lib/db/prisma.ts
+// src/lib/db/prisma.ts - Updated with SystemConfig
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';

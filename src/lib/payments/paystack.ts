@@ -191,3 +191,27 @@ export function verifyWebhookSignature(
 
     return hash === signature;
 }
+
+/**
+ * Verify a standard transaction by its reference (for Paystack Inline)
+ */
+export async function verifyTransaction(
+    reference: string
+): Promise<any> {
+    const response = await fetch(
+        `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+            },
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Paystack verification error: ${error.message || response.statusText}`);
+    }
+
+    return response.json();
+}

@@ -50,21 +50,21 @@ export default function NewProductPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+        <div className="min-h-screen bg-background py-8 transition-colors duration-300">
             <div className="max-w-2xl mx-auto px-4">
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-white mb-2">
+                    <h1 className="text-4xl font-black text-foreground mb-2 uppercase tracking-tighter">
                         ➕ Add New Product
                     </h1>
-                    <p className="text-purple-200">
+                    <p className="text-foreground/40 text-[10px] font-black uppercase tracking-widest">
                         List your product on the marketplace
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="bg-surface border border-surface-border rounded-[2.5rem] p-8 space-y-6">
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-medium text-purple-200 mb-2">
+                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">
                             Product Title *
                         </label>
                         <input
@@ -73,13 +73,13 @@ export default function NewProductPage() {
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             placeholder="e.g., Indomie Noodles"
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground placeholder-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                         />
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium text-purple-200 mb-2">
+                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">
                             Description *
                         </label>
                         <textarea
@@ -88,14 +88,14 @@ export default function NewProductPage() {
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Describe your product..."
                             rows={4}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground placeholder-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                         />
                     </div>
 
                     {/* Price */}
                     <div>
-                        <label className="block text-sm font-medium text-purple-200 mb-2">
-                            Price (GH₵) *
+                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">
+                            Price (₵) *
                         </label>
                         <input
                             type="number"
@@ -105,23 +105,23 @@ export default function NewProductPage() {
                             value={formData.price}
                             onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                             placeholder="5.00"
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground placeholder-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-black text-xl"
                         />
                     </div>
 
                     {/* Category */}
                     <div>
-                        <label className="block text-sm font-medium text-purple-200 mb-2">
+                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">
                             Category *
                         </label>
                         <select
                             required
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-black uppercase tracking-widest text-xs"
                         >
                             {categories.map((cat) => (
-                                <option key={cat} value={cat}>
+                                <option key={cat} value={cat} className="bg-background text-foreground">
                                     {cat}
                                 </option>
                             ))}
@@ -130,17 +130,17 @@ export default function NewProductPage() {
 
                     {/* Hotspot */}
                     <div>
-                        <label className="block text-sm font-medium text-purple-200 mb-2">
+                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">
                             Location (Hotspot)
                         </label>
                         <select
                             value={formData.hotspot}
                             onChange={(e) => setFormData({ ...formData, hotspot: e.target.value })}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-black uppercase tracking-widest text-xs"
                         >
-                            <option value="">Select location...</option>
+                            <option value="" className="bg-background text-foreground">Select location...</option>
                             {hotspots.map((hotspot) => (
-                                <option key={hotspot} value={hotspot}>
+                                <option key={hotspot} value={hotspot} className="bg-background text-foreground">
                                     📍 {hotspot}
                                 </option>
                             ))}
@@ -149,7 +149,7 @@ export default function NewProductPage() {
 
                     {/* Product Image */}
                     <div>
-                        <label className="block text-sm font-medium text-purple-200 mb-2">
+                        <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">
                             Product Image
                         </label>
                         <ImageUpload
@@ -163,14 +163,14 @@ export default function NewProductPage() {
                         <button
                             type="button"
                             onClick={() => router.back()}
-                            className="flex-1 px-6 py-3 bg-white/5 border border-white/20 hover:bg-white/10 text-white rounded-lg font-semibold transition-colors"
+                            className="flex-1 px-6 py-4 bg-foreground/5 border border-surface-border hover:bg-foreground/10 text-foreground rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50"
+                            className="flex-1 px-6 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-50 omni-glow active:scale-95"
                         >
                             {loading ? 'Creating...' : 'Create Product'}
                         </button>

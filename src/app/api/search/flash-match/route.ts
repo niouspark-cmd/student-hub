@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
                     },
                 },
             },
-            take: 50, // Limit results
+            take: Math.min(parseInt(searchParams.get('take') || '50'), 200), // Dynamic limit with safety cap
         });
 
         // Apply Flash-Match algorithm
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         );
 
         // Add metadata to results
-        const results = sortedProducts.map(product => ({
+        const results = (sortedProducts as any[]).map(product => ({
             id: product.id,
             title: product.title,
             description: product.description,

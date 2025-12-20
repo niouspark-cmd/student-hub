@@ -16,6 +16,11 @@ model User {
   role         Role      @default(STUDENT)
   university   String?   // e.g., "KNUST", "UG"
   
+  // Vendor-specific fields
+  shopName       String?
+  shopLandmark   String?
+  vendorStatus   VendorStatus @default(NOT_APPLICABLE)
+  
   // Runner Mode fields
   isRunner     Boolean   @default(false)
   runnerStatus String?   // "IDLE", "DELIVERING"
@@ -26,6 +31,7 @@ model User {
   currentHotspot String? // e.g., "Balme Library", "Night Market", "Pent Hostel"
   lastActive     DateTime @default(now())
   
+  onboarded     Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   
@@ -34,12 +40,20 @@ model User {
   orders       Order[]   @relation("StudentOrders")
   deliveries   Order[]   @relation("RunnerDeliveries")
   vendorOrders Order[]   @relation("VendorOrders")
+  stories      Story[]    @relation("VendorStories")
 }
 
 enum Role {
   STUDENT
   VENDOR
   ADMIN
+}
+
+enum VendorStatus {
+  NOT_APPLICABLE
+  PENDING
+  ACTIVE
+  SUSPENDED
 }
 
 model Product {
@@ -79,7 +93,8 @@ model Order {
   // Escrow payment tracking
   escrowStatus    EscrowStatus @default(PENDING)
   paystackRef     String?     @unique // Paystack payment reference
-  qrCodeValue     String?     @unique // The unique key for Escrow release
+
+  releaseKey      String?     // The 6-digit Secure Release Key (e.g., 882-104)
   amount          Float
   
   // Product and customer info
@@ -98,6 +113,8 @@ model Order {
   runnerEarnings  Float?      // Runner's cut
   runnerXpAwarded Int?        // XP awarded to runner
   
+  fulfillmentType FulfillmentType @default(PICKUP)
+  
   // Timestamps
   createdAt       DateTime    @default(now())
   paidAt          DateTime?
@@ -107,6 +124,11 @@ model Order {
   @@index([vendorId])
   @@index([status])
   @@index([escrowStatus])
+}
+
+enum FulfillmentType {
+  PICKUP
+  DELIVERY
 }
 
 enum OrderStatus {
@@ -125,4 +147,38 @@ enum EscrowStatus {
   HELD         // Payment received, held in escrow
   RELEASED     // Released to vendor after QR scan
   REFUNDED     // Refunded to student
+}
+
+model Story {
+  id          String   @id @default(uuid())
+  title       String?
+  videoUrl    String
+  thumbnail   String?
+  vendorId    String
+  vendor      User     @relation("VendorStories", fields: [vendorId], references: [id])
+  
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime // Delete/hide after 24h
+  
+  @@index([vendorId])
+}
+
+model SystemConfig {
+  id              String   @id @default("GLOBAL_CONFIG")
+  deliveryFee     Float    @default(5.0)
+  platformFee     Float    @default(2.0)
+  maintenanceMode Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
 }

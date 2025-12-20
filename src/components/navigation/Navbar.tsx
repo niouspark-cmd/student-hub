@@ -5,21 +5,40 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs';
 
+import { useState, useEffect } from 'react';
+import ThemeToggle from './ThemeToggle';
+
 export default function Navbar() {
     const pathname = usePathname();
-    const { user } = useUser();
+    const { user, isLoaded: clerkLoaded } = useUser();
+    const [dbUser, setDbUser] = useState<{ role: string; vendorStatus: string; isRunner: boolean; onboarded: boolean } | null>(null);
+
+    useEffect(() => {
+        if (clerkLoaded && user) {
+            fetch('/api/users/me')
+                .then(res => res.json())
+                .then(data => setDbUser(data))
+                .catch(() => setDbUser(null));
+        } else if (clerkLoaded && !user) {
+            setDbUser(null);
+        }
+    }, [clerkLoaded, user, pathname]);
 
     const isActive = (path: string) => pathname === path;
 
     return (
-        <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-white/10">
+        <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-surface-border transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <span className="text-2xl">🎓</span>
-                        <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                            Student Hub
+                        <img
+                            src="/OMNI-LOGO.png"
+                            alt="OMNI"
+                            className="h-8 w-auto transition-transform group-hover:scale-110"
+                        />
+                        <span className="text-xl font-black text-foreground tracking-tighter">
+                            OMNI
                         </span>
                     </Link>
 
@@ -32,33 +51,47 @@ export default function Navbar() {
                             <NavLink href="/orders" isActive={isActive('/orders')}>
                                 📦 My Orders
                             </NavLink>
-                            <NavLink href="/runner" isActive={isActive('/runner')}>
-                                🏃 Runner Mode
-                            </NavLink>
-                            <NavLink href="/dashboard/vendor" isActive={isActive('/dashboard/vendor')}>
-                                📊 Vendor
-                            </NavLink>
+
+                            {dbUser?.isRunner && (
+                                <NavLink href="/runner" isActive={isActive('/runner')}>
+                                    🏃 Runner Mode
+                                </NavLink>
+                            )}
+
+                            {dbUser?.role === 'VENDOR' && (
+                                <NavLink href="/dashboard/vendor" isActive={isActive('/dashboard/vendor')}>
+                                    📊 Vendor Terminal
+                                </NavLink>
+                            )}
+
+                            {dbUser?.role === 'ADMIN' && (
+                                <NavLink href="/dashboard/admin" isActive={isActive('/dashboard/admin')}>
+                                    ⚡ OMNI Command
+                                </NavLink>
+                            )}
                         </SignedIn>
                     </div>
 
-                    {/* Auth Section */}
-                    <div className="flex items-center gap-4">
+                    {/* Auth & Theme Section */}
+                    <div className="flex items-center gap-6">
+                        <ThemeToggle />
+
                         <SignedOut>
                             <SignInButton mode="modal">
-                                <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors">
+                                <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95">
                                     Sign In
                                 </button>
                             </SignInButton>
                         </SignedOut>
                         <SignedIn>
                             <div className="flex items-center gap-3">
-                                <span className="hidden md:block text-sm text-purple-200">
-                                    {user?.firstName || 'User'}
+                                <span className="hidden md:block text-xs font-black text-foreground/40 uppercase tracking-widest">
+                                    {dbUser?.role || 'STUDENT'}
                                 </span>
                                 <UserButton
                                     appearance={{
                                         elements: {
-                                            avatarBox: "w-10 h-10"
+                                            avatarBox: "w-9 h-9 border-2 border-primary/20"
                                         }
                                     }}
                                 />
@@ -69,19 +102,28 @@ export default function Navbar() {
 
                 {/* Mobile Navigation */}
                 <SignedIn>
-                    <div className="md:hidden flex gap-2 pb-3 overflow-x-auto">
+                    <div className="md:hidden flex gap-2 pb-3 overflow-x-auto no-scrollbar">
                         <MobileNavLink href="/marketplace" isActive={isActive('/marketplace')}>
-                            🛍️ Shop
+                            🛍️ Marketplace
                         </MobileNavLink>
                         <MobileNavLink href="/orders" isActive={isActive('/orders')}>
                             📦 Orders
                         </MobileNavLink>
-                        <MobileNavLink href="/runner" isActive={isActive('/runner')}>
-                            🏃 Runner
-                        </MobileNavLink>
-                        <MobileNavLink href="/dashboard/vendor" isActive={isActive('/dashboard/vendor')}>
-                            📊 Vendor
-                        </MobileNavLink>
+                        {dbUser?.isRunner && (
+                            <MobileNavLink href="/runner" isActive={isActive('/runner')}>
+                                🏃 Runner
+                            </MobileNavLink>
+                        )}
+                        {dbUser?.role === 'VENDOR' && (
+                            <MobileNavLink href="/dashboard/vendor" isActive={isActive('/dashboard/vendor')}>
+                                📊 Vendor
+                            </MobileNavLink>
+                        )}
+                        {dbUser?.role === 'ADMIN' && (
+                            <MobileNavLink href="/dashboard/admin" isActive={isActive('/dashboard/admin')}>
+                                ⚡ Admin
+                            </MobileNavLink>
+                        )}
                     </div>
                 </SignedIn>
             </div>
@@ -101,9 +143,9 @@ function NavLink({
     return (
         <Link
             href={href}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${isActive
-                    ? 'bg-purple-600 text-white'
-                    : 'text-purple-200 hover:bg-white/10 hover:text-white'
+            className={`px-4 py-2 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${isActive
+                ? 'bg-primary text-primary-foreground shadow-[0_0_15px_rgba(57,255,20,0.2)]'
+                : 'text-foreground/60 hover:bg-surface hover:text-primary'
                 }`}
         >
             {children}
@@ -123,9 +165,9 @@ function MobileNavLink({
     return (
         <Link
             href={href}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${isActive
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white/5 text-purple-200 hover:bg-white/10'
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${isActive
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-surface/50 text-foreground/40 hover:bg-surface border border-surface-border'
                 }`}
         >
             {children}

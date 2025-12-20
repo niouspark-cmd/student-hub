@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
+import { ensureUserExists } from '@/lib/auth/sync';
 
 // GET - List all products or vendor's products
 export async function GET(request: NextRequest) {
@@ -60,12 +61,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { clerkId: userId },
-        });
+        const user = await ensureUserExists();
 
         if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Unauthorized or User not found' }, { status: 401 });
         }
 
         const body = await request.json();

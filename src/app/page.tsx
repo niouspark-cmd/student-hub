@@ -3,91 +3,103 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-      <main className="max-w-4xl mx-auto px-6 py-16 text-center">
-        {/* Hero Section */}
-        <div className="mb-12">
-          <h1 className="text-6xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-            Student Hub
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center relative overflow-hidden transition-colors duration-500">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,var(--primary)/0.03,transparent_50%)] pointer-events-none"></div>
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+
+      <main className="max-w-6xl mx-auto px-6 py-16 text-center relative z-10">
+        {/* Logo and Tagline */}
+        <div className="mb-20">
+          <div className="flex justify-center mb-12">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-primary/20 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+              <img src="/OMNI-LOGO.png" alt="OMNI" className="relative w-32 h-32 object-contain dark:invert-0" />
+            </div>
+          </div>
+          <h1 className="text-8xl md:text-9xl font-black mb-6 uppercase tracking-[-0.05em] leading-[0.8] animate-in fade-in slide-in-from-bottom duration-700">
+            THE<br /><span className="text-primary omni-glow">FUTURE</span>
           </h1>
-          <p className="text-2xl text-purple-200 mb-2">
-            The Everything Store for Ghanaian University Students
-          </p>
-          <p className="text-lg text-purple-300">
-            🔥 Flash-Match • 🔒 QR-Escrow • 🏃 Runner Mode
-          </p>
-        </div>
-
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 hover:border-purple-500/50 transition-all">
-            <div className="text-4xl mb-3">⚡</div>
-            <h3 className="text-xl font-bold text-white mb-2">Flash-Match</h3>
-            <p className="text-purple-200 text-sm">
-              Find nearby vendors in seconds. Same hostel, same lecture hall.
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-[12px] font-black text-foreground/40 uppercase tracking-[0.8em] mb-4">
+              University Commerce Redefined
             </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 hover:border-purple-500/50 transition-all">
-            <div className="text-4xl mb-3">🔒</div>
-            <h3 className="text-xl font-bold text-white mb-2">QR-Escrow</h3>
-            <p className="text-purple-200 text-sm">
-              Pay safely. Money held until you scan the QR code at delivery.
-            </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 hover:border-purple-500/50 transition-all">
-            <div className="text-4xl mb-3">🏃</div>
-            <h3 className="text-xl font-bold text-white mb-2">Runner Mode</h3>
-            <p className="text-purple-200 text-sm">
-              Earn money delivering orders. Gamified with XP and badges.
-            </p>
+            <div className="h-[2px] w-24 bg-primary/30"></div>
           </div>
         </div>
 
-        {/* CTAs */}
-        <SignedIn>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/marketplace"
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-purple-500/50"
-            >
-              🛍️ Browse Marketplace
-            </Link>
-            <Link
-              href="/dashboard/vendor"
-              className="px-8 py-4 bg-white/10 backdrop-blur-lg border border-white/20 hover:border-purple-500/50 text-white rounded-xl font-bold text-lg transition-all"
-            >
-              📊 Vendor Dashboard
-            </Link>
-          </div>
-        </SignedIn>
+        {/* Features Matrix */}
+        <div className="grid md:grid-cols-3 gap-8 mb-20 max-w-5xl mx-auto">
+          {[
+            {
+              icon: "⚡",
+              title: "Flash-Match",
+              desc: "Hyper-local detection. Find assets in your immediate proximity."
+            },
+            {
+              icon: "🛡️",
+              title: "Shield Escrow",
+              desc: "Immutable transaction security. Funds released only upon key validation."
+            },
+            {
+              icon: "🏃",
+              title: "Shadow Runner",
+              desc: "Deploy as a high-speed logistics entity. Earn GH₵ on every transit."
+            }
+          ].map((f, i) => (
+            <div key={i} className="bg-surface/50 backdrop-blur-3xl border border-surface-border rounded-[2.5rem] p-10 hover:bg-surface hover:border-primary/30 transition-all group group-hover:-translate-y-2">
+              <div className="text-5xl mb-8 group-hover:scale-110 transition-transform duration-500">{f.icon}</div>
+              <h3 className="text-xl font-black text-foreground mb-4 uppercase tracking-tighter">{f.title}</h3>
+              <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest leading-loose">
+                {f.desc}
+              </p>
+            </div>
+          ))}
+        </div>
 
-        <SignedOut>
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8">
-            <p className="text-purple-200 mb-4">
-              Sign in to start shopping or selling
-            </p>
-          </div>
-        </SignedOut>
+        {/* Action Center */}
+        <div className="flex flex-col items-center gap-12">
+          <SignedIn>
+            <div className="flex flex-col sm:flex-row gap-6">
+              <Link
+                href="/marketplace"
+                className="px-12 py-6 bg-primary text-primary-foreground rounded-[2rem] font-black text-[10px] uppercase tracking-[0.4em] transition-all omni-glow hover:scale-105 active:scale-95"
+              >
+                Initialize Acquisition
+              </Link>
+              <Link
+                href="/dashboard/vendor"
+                className="px-12 py-6 bg-surface border border-surface-border text-foreground rounded-[2rem] font-black text-[10px] uppercase tracking-[0.4em] transition-all hover:bg-surface/80 active:scale-95"
+              >
+                Supply Terminal
+              </Link>
+            </div>
+          </SignedIn>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-3 gap-8">
-          <div>
-            <div className="text-3xl font-bold text-white">5min</div>
-            <div className="text-sm text-purple-300">Avg. Delivery Time</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-white">100%</div>
-            <div className="text-sm text-purple-300">Scam Protection</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-white">24/7</div>
-            <div className="text-sm text-purple-300">Campus Coverage</div>
+          <SignedOut>
+            <div className="p-8 bg-surface/50 border border-surface-border rounded-[2rem]">
+              <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Awaiting Uplink Initialization</p>
+            </div>
+          </SignedOut>
+
+          {/* Network Stats */}
+          <div className="pt-12 grid grid-cols-2 md:grid-cols-3 gap-12 border-t border-surface-border w-full max-w-4xl">
+            <div>
+              <div className="text-4xl font-black text-foreground tracking-tighter">~5M</div>
+              <div className="text-[8px] font-black text-foreground/20 uppercase tracking-[0.4em] mt-1">Operational Speed</div>
+            </div>
+            <div>
+              <div className="text-4xl font-black text-foreground tracking-tighter">100%</div>
+              <div className="text-[8px] font-black text-foreground/20 uppercase tracking-[0.4em] mt-1">Escrow Efficiency</div>
+            </div>
+            <div className="hidden md:block">
+              <div className="text-4xl font-black text-foreground tracking-tighter">24/7</div>
+              <div className="text-[8px] font-black text-foreground/20 uppercase tracking-[0.4em] mt-1">Sector Coverage</div>
+            </div>
           </div>
         </div>
       </main>
     </div>
   );
 }
-

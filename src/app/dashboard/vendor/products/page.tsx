@@ -40,20 +40,20 @@ export default function VendorProductsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+        <div className="min-h-screen bg-background py-8 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-4xl font-bold text-white mb-2">
+                        <h1 className="text-4xl font-black text-foreground mb-2 uppercase tracking-tighter">
                             📦 My Products
                         </h1>
-                        <p className="text-purple-200">
+                        <p className="text-foreground/40 text-[10px] font-black uppercase tracking-widest">
                             Manage your marketplace listings
                         </p>
                     </div>
                     <Link
                         href="/products/new"
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all"
+                        className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95"
                     >
                         ➕ Add Product
                     </Link>
@@ -61,21 +61,21 @@ export default function VendorProductsPage() {
 
                 {loading ? (
                     <div className="text-center py-12">
-                        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-500 border-r-transparent"></div>
-                        <p className="mt-4 text-purple-200">Loading products...</p>
+                        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+                        <p className="mt-4 text-foreground/40 text-[10px] font-black uppercase tracking-widest">Loading products...</p>
                     </div>
                 ) : products.length === 0 ? (
-                    <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-12 text-center">
-                        <div className="text-6xl mb-4">📦</div>
-                        <h2 className="text-2xl font-bold text-white mb-2">
+                    <div className="bg-surface border border-surface-border rounded-[2.5rem] p-12 text-center">
+                        <div className="text-6xl mb-4"> Deserted 📦 </div>
+                        <h2 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">
                             No products yet
                         </h2>
-                        <p className="text-purple-200 mb-6">
+                        <p className="text-foreground/40 text-[10px] font-black uppercase tracking-widest mb-6">
                             Start selling by adding your first product
                         </p>
                         <Link
                             href="/products/new"
-                            className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all"
+                            className="inline-block px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95"
                         >
                             Add Your First Product
                         </Link>
@@ -85,52 +85,53 @@ export default function VendorProductsPage() {
                         {products.map((product) => (
                             <div
                                 key={product.id}
-                                className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all"
+                                className="bg-surface border border-surface-border rounded-[2rem] overflow-hidden hover:border-primary/50 transition-all group"
                             >
                                 {/* Product Image */}
-                                <div className="h-48 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                                <div className="h-48 bg-primary/5 flex items-center justify-center relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent"></div>
                                     {product.imageUrl ? (
                                         <img
                                             src={product.imageUrl}
                                             alt={product.title}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                     ) : (
-                                        <span className="text-6xl">📦</span>
+                                        <span className="text-6xl group-hover:scale-110 transition-transform duration-500">📦</span>
                                     )}
                                 </div>
 
                                 {/* Product Info */}
-                                <div className="p-4">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <h3 className="text-lg font-bold text-white">
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
                                             {product.title}
                                         </h3>
-                                        <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                                        <span className="px-2 py-1 bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest rounded-full border border-primary/20">
                                             {product.category}
                                         </span>
                                     </div>
 
-                                    <p className="text-sm text-purple-200 mb-3 line-clamp-2">
+                                    <p className="text-xs text-foreground/40 mb-5 line-clamp-2 font-medium">
                                         {product.description}
                                     </p>
 
                                     {product.hotspot && (
-                                        <div className="flex items-center gap-2 mb-3 text-sm text-purple-300">
+                                        <div className="flex items-center gap-2 mb-5 text-[10px] font-black text-primary uppercase tracking-widest">
                                             <span>📍</span>
                                             <span>{product.hotspot}</span>
                                         </div>
                                     )}
 
                                     <div className="flex items-center justify-between">
-                                        <span className="text-2xl font-bold text-white">
-                                            GH₵{product.price.toFixed(2)}
+                                        <span className="text-2xl font-black text-foreground tracking-tighter">
+                                            ₵{product.price.toFixed(2)}
                                         </span>
                                         <div className="flex gap-2">
-                                            <button className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-semibold transition-colors">
+                                            <button className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
                                                 Edit
                                             </button>
-                                            <button className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-semibold transition-colors">
+                                            <button className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/20">
                                                 Delete
                                             </button>
                                         </div>

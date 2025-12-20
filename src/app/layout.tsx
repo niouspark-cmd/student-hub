@@ -16,21 +16,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ghana Student Hub",
-  description: "The everything store for Ghanaian university students",
+  title: "OMNI",
+  description: "The everything store for university students",
 };
+
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import OnboardingCheck from "@/components/providers/OnboardingCheck";
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <Navbar />
-          <main>{children}</main>
+      <html lang="en" data-theme="omni" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
+        >
+          <ThemeProvider>
+            <OnboardingCheck />
+            <Navbar />
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

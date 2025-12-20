@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-border: #e2e8f0;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --accent: #8b5cf6;
+  --primary-glow: rgba(79, 70, 229, 0.2);
+  --omni-green: #39FF14;
+}
+
+[data-theme="omni"] {
+  --background: #050505;
+  --foreground: #ffffff;
+  --surface: #0d1117;
+  --surface-border: rgba(255, 255, 255, 0.05);
+  --primary: #39FF14;
+  --primary-foreground: #000000;
+  --accent: #39FF14;
+  --primary-glow: rgba(57, 255, 20, 0.4);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-border: var(--surface-border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-omni-green: var(--omni-green);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.omni-glow {
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.omni-glow-hover:hover {
+  box-shadow: 0 0 30px var(--primary-glow);
+}
+
+@layer utilities {
+  @keyframes gradient-x {
+
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient-x {
+    animation: gradient-x 3s ease infinite;
+  }
 }

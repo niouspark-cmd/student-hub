@@ -27,17 +27,37 @@
   - Vendor activity tracking
   - Combined scoring (60% proximity + 40% activity)
 
-#### 3. **Runner Mode (Delivery Economy)** ✅
-- **Status**: UI Complete, API Pending
+3. **Runner Mode (Delivery Economy)** ✅
+- **Status**: Fully Implemented (Backend + Frontend)
 - **What it does**: Students earn money delivering orders with gamification
 - **Files**:
   - `src/app/runner/page.tsx` - Runner dashboard
-  - Database schema includes XP, levels, badges
+  - `src/app/api/runner/toggle/route.ts` - Online status
+  - `src/app/api/runner/deliveries/route.ts` - Fetch jobs
+  - `src/app/api/runner/claim/route.ts` - Claim job
 - **Features**:
-  - Online/offline toggle
+  - Online/offline toggle with persistent status
+  - Real-time delivery fetching (polling)
+  - Instant job claiming
   - XP and level progression
   - Earnings tracking
   - Badge system (ready for implementation)
+
+#### 4. **Campus Pulse (TikTok-Style Feed)** ✅
+- **Status**: Fully Implemented
+- **What it does**: Vendors share 24h video stories to boost engagement
+- **Files**:
+  - `src/app/stories/page.tsx` - Feed UI with vertical scroll
+  - `src/app/stories/new/page.tsx` - Create story UI
+  - `src/app/api/stories/route.ts` - Story APIs (Feed & Create)
+  - `src/components/stories/VideoPlayer.tsx` - Vertical player
+  - `src/components/stories/VideoUpload.tsx` - Video uploader
+- **Features**:
+  - Vertical full-screen video player
+  - Auto-play with intersection observer
+  - 24-hour expiry logic
+  - Like & Share UI
+  - Native video upload support
 
 ---
 
@@ -187,17 +207,17 @@ Create a few products with:
 
 ## 🚀 What's Next (Future Phases)
 
-### Phase 4: Runner Mode APIs
-- [ ] `/api/runner/toggle` - Go online/offline
-- [ ] `/api/runner/deliveries` - Fetch nearby deliveries
-- [ ] `/api/runner/claim` - Claim a delivery
-- [ ] `/api/runner/complete` - Complete delivery & award XP
+### Phase 4: Runner Mode APIs ✅ (COMPLETE)
+- [x] `/api/runner/toggle` - Go online/offline
+- [x] `/api/runner/deliveries` - Fetch nearby deliveries
+- [x] `/api/runner/claim` - Claim a delivery
+- [ ] `/api/runner/complete` - Complete delivery & award XP (Next)
 
-### Phase 5: Campus Pulse (Video Feed)
-- [ ] `/api/stories/create` - Upload vendor story
-- [ ] `/api/stories/feed` - TikTok-style feed
-- [ ] Vertical video player component
-- [ ] Story creation page
+### Phase 5: Campus Pulse (Video Feed) ✅ (COMPLETE)
+- [x] `/api/stories` - Create & Feed APIs
+- [x] TikTok-style feed UI
+- [x] Vertical video player component
+- [x] Story creation page
 
 ### Phase 6: Offline-First
 - [ ] TanStack Query setup
@@ -240,8 +260,8 @@ Create a few products with:
 ⚠️ QR code generation (needs order creation)
 
 **What's Missing**:
-❌ Runner Mode backend APIs
-❌ Campus Pulse video feed
+✅ Runner Mode backend APIs
+✅ Campus Pulse video feed
 ❌ Offline-first functionality
 ❌ WhatsApp integration
 ❌ React Native mobile app
