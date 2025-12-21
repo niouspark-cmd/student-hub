@@ -6,6 +6,8 @@ import { prisma } from '@/lib/db/prisma';
  * Publicly accessible system configuration check.
  * Used to block UI features during maintenance.
  */
+export const runtime = 'edge';
+
 export async function GET() {
     try {
         const config = await prisma.systemConfig.findUnique({

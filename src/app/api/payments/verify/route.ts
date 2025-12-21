@@ -7,6 +7,8 @@ import { prisma } from '@/lib/db/prisma';
  * Verify a Paystack payment and generate the Secure Release Key for escrow release
  * This endpoint should be called after the student completes payment
  */
+export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();

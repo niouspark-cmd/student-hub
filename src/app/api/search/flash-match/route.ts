@@ -7,6 +7,8 @@ import { sortByFlashMatch, isVendorActive } from '@/lib/geo/distance';
  * Flash-Match search algorithm
  * Finds products based on proximity and vendor availability
  */
+export const runtime = 'edge';
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);

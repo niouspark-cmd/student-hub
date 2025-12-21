@@ -5,6 +5,8 @@ import CheckoutForm from '@/components/checkout/CheckoutForm';
 import { redirect } from 'next/navigation';
 import Script from 'next/script';
 
+export const runtime = 'edge';
+
 export default async function CheckoutPage({
     params,
 }: {

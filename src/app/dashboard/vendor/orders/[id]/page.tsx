@@ -6,6 +6,8 @@ import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
+export const runtime = 'edge';
+
 interface OrderDetail {
     id: string;
     status: string;

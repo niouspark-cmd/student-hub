@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db/prisma';
 import { ensureUserExists } from '@/lib/auth/sync';
 
 // GET - List all products or vendor's products
+export const runtime = 'edge';
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
@@ -53,6 +55,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Create new product
+export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
     try {
         const { userId } = await auth();

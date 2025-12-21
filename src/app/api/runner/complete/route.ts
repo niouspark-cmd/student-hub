@@ -8,6 +8,8 @@ type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0
 /**
  * Complete a delivery and award XP to the runner
  */
+export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
     try {
         const { userId } = await auth();

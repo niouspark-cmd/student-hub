@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
+export const runtime = 'edge';
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center relative overflow-hidden transition-colors duration-500">
