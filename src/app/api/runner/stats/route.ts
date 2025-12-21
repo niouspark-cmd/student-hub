@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 /**
  * Get runner statistics (earnings, completed deliveries, etc.)
  */
+
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {

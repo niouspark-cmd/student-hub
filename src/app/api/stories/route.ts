@@ -39,8 +39,6 @@ export async function GET() {
     }
 }
 
-export const runtime = 'edge';
-
 export async function POST(request: NextRequest) {
     try {
         const { userId } = await auth();

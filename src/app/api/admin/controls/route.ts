@@ -5,6 +5,7 @@ import { isAuthorizedAdmin } from '@/lib/auth/admin';
 import { logAdminAction } from '@/lib/admin/audit';
 
 // Get global config
+
 export const runtime = 'edge';
 
 export async function GET() {
@@ -30,7 +31,6 @@ export async function GET() {
 }
 
 // Update global config
-export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
     if (!await isAuthorizedAdmin()) {

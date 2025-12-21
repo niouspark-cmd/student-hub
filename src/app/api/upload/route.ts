@@ -1,8 +1,6 @@
 
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
-
 // Function to generate SHA-1 signature using Web Crypto API (Edge compatible)
 async function generateSignature(params: Record<string, string>, apiSecret: string) {
     const sortedKeys = Object.keys(params).sort();
@@ -12,6 +10,8 @@ async function generateSignature(params: Record<string, string>, apiSecret: stri
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+export const runtime = 'edge';
 
 export async function POST(request: Request) {
     try {

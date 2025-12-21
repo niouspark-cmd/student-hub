@@ -5,6 +5,7 @@ import { isAuthorizedAdmin } from '@/lib/auth/admin';
 import { logAdminAction } from '@/lib/admin/audit';
 
 // Get all pending vendors
+
 export const runtime = 'edge';
 
 export async function GET() {
@@ -25,7 +26,6 @@ export async function GET() {
 }
 
 // Update vendor status
-export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
     if (!await isAuthorizedAdmin()) {
