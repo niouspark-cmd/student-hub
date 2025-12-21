@@ -1,5 +1,4 @@
 // src/lib/payments/paystack.ts
-import crypto from 'crypto';
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
@@ -176,20 +175,32 @@ export async function createCustomer(
     return { customer_code: result.data.customer_code };
 }
 
+
 /**
  * Verify webhook signature from Paystack
  * Use this to validate webhook events
  */
-export function verifyWebhookSignature(
+export async function verifyWebhookSignature(
     payload: string,
     signature: string
-): boolean {
-    const hash = crypto
-        .createHmac('sha512', PAYSTACK_SECRET_KEY)
-        .update(payload)
-        .digest('hex');
+): Promise<boolean> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(PAYSTACK_SECRET_KEY);
+    const data = encoder.encode(payload);
 
-    return hash === signature;
+    const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-512' },
+        false,
+        ['sign']
+    );
+
+    const hashBuffer = await crypto.subtle.sign('HMAC', key, data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    return hashHex === signature;
 }
 
 /**
