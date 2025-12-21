@@ -47,15 +47,15 @@ export async function GET(request: NextRequest) {
             take: Math.min(parseInt(searchParams.get('take') || '50'), 200), // Dynamic limit with safety cap
         });
 
-        // Apply Flash-Match algorithm
+        // Define type for products with vendor relations BEFORE sorting
+        type ProductWithVendor = typeof products[number];
+
+        // Apply Flash-Match algorithm (cast to maintain type)
         const sortedProducts = sortByFlashMatch(
             products,
             userHotspot,
             maxInactiveMinutes
-        );
-
-        // Define type for products with vendor relations
-        type ProductWithVendor = typeof sortedProducts[number];
+        ) as ProductWithVendor[];
 
         // Add metadata to results
         const results = sortedProducts.map((product: ProductWithVendor) => ({
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
                 currentHotspot: product.vendor.currentHotspot,
             },
             createdAt: product.createdAt,
-        }));
+        }));;
 
         return NextResponse.json({
             success: true,
