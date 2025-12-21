@@ -2,10 +2,16 @@
 import { PrismaClient } from '@prisma/client/edge';
 import { withAccelerate } from '@prisma/extension-accelerate';
 
+
 const prismaClientSingleton = () => {
+    const accelerateUrl = process.env.PRISMA_ACCELERATE_URL;
+    if (!accelerateUrl) {
+        throw new Error('PRISMA_ACCELERATE_URL is not set');
+    }
     return new PrismaClient({
         log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    }).$extends(withAccelerate());
+        datasources: { db: { url: accelerateUrl } },
+    } as any).$extends(withAccelerate());
 };
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
