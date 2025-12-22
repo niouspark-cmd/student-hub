@@ -28,7 +28,8 @@ export default function GatekeeperPage() {
             if (res.ok && data.success) {
                 setStatus('SUCCESS');
                 setTimeout(() => {
-                    router.push('/dashboard/admin');
+                    // Force navigation to ensure cookies are refreshed
+                    window.location.href = '/dashboard/admin';
                 }, 1500);
             } else {
                 setStatus('ERROR');

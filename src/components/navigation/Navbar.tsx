@@ -33,13 +33,10 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
                         <img
-                            src="/OMNI-LOGO.png"
+                            src="/OMNI-LOGO.ico"
                             alt="OMNI"
-                            className="h-8 w-auto transition-transform group-hover:scale-110"
+                            className="h-16 w-auto transition-transform group-hover:scale-110 invert-on-light"
                         />
-                        <span className="text-xl font-black text-foreground tracking-tighter">
-                            OMNI
-                        </span>
                     </Link>
 
                     {/* Desktop Navigation */}

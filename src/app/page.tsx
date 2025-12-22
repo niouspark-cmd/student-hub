@@ -17,14 +17,14 @@ export default function Home() {
           <div className="flex justify-center mb-12">
             <div className="relative group">
               <div className="absolute -inset-1 bg-primary/20 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
-              <img src="/OMNI-LOGO.png" alt="OMNI" className="relative w-32 h-32 object-contain dark:invert-0" />
+              <img src="/OMNI-LOGO.ico" alt="OMNI" className="relative w-32 h-32 object-contain invert-on-light" />
             </div>
           </div>
           <h1 className="text-8xl md:text-9xl font-black mb-6 uppercase tracking-[-0.05em] leading-[0.8] animate-in fade-in slide-in-from-bottom duration-700">
             THE<br /><span className="text-primary omni-glow">FUTURE</span>
           </h1>
           <div className="flex flex-col items-center gap-4">
-            <p className="text-[12px] font-black text-foreground/40 uppercase tracking-[0.8em] mb-4">
+            <p className="text-[12px] font-black text-foreground/60 uppercase tracking-[0.8em] mb-4">
               University Commerce Redefined
             </p>
             <div className="h-[2px] w-24 bg-primary/30"></div>
@@ -53,7 +53,7 @@ export default function Home() {
             <div key={i} className="bg-surface/50 backdrop-blur-3xl border border-surface-border rounded-[2.5rem] p-10 hover:bg-surface hover:border-primary/30 transition-all group group-hover:-translate-y-2">
               <div className="text-5xl mb-8 group-hover:scale-110 transition-transform duration-500">{f.icon}</div>
               <h3 className="text-xl font-black text-foreground mb-4 uppercase tracking-tighter">{f.title}</h3>
-              <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest leading-loose">
+              <p className="text-foreground/60 text-xs font-bold uppercase tracking-widest leading-loose">
                 {f.desc}
               </p>
             </div>
@@ -89,15 +89,15 @@ export default function Home() {
           <div className="pt-12 grid grid-cols-2 md:grid-cols-3 gap-12 border-t border-surface-border w-full max-w-4xl">
             <div>
               <div className="text-4xl font-black text-foreground tracking-tighter">~5M</div>
-              <div className="text-[8px] font-black text-foreground/20 uppercase tracking-[0.4em] mt-1">Operational Speed</div>
+              <div className="text-[8px] font-black text-foreground/40 uppercase tracking-[0.4em] mt-1">Operational Speed</div>
             </div>
             <div>
               <div className="text-4xl font-black text-foreground tracking-tighter">100%</div>
-              <div className="text-[8px] font-black text-foreground/20 uppercase tracking-[0.4em] mt-1">Escrow Efficiency</div>
+              <div className="text-[8px] font-black text-foreground/40 uppercase tracking-[0.4em] mt-1">Escrow Efficiency</div>
             </div>
             <div className="hidden md:block">
               <div className="text-4xl font-black text-foreground tracking-tighter">24/7</div>
-              <div className="text-[8px] font-black text-foreground/20 uppercase tracking-[0.4em] mt-1">Sector Coverage</div>
+              <div className="text-[8px] font-black text-foreground/40 uppercase tracking-[0.4em] mt-1">Sector Coverage</div>
             </div>
           </div>
         </div>

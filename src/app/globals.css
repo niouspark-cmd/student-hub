@@ -68,3 +68,8 @@ body {
     animation: gradient-x 3s ease infinite;
   }
 }
+
+/* Logo Auto-Invert Logic */
+html:not([data-theme='omni']) .invert-on-light {
+  filter: brightness(0);
+}
