@@ -4,7 +4,11 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 
 
 const prismaClientSingleton = () => {
-    const url = process.env.PRISMA_ACCELERATE_URL || process.env.DATABASE_URL || 'prisma://accelerate.prisma-data.net/?api_key=dummy_build_key';
+    const url = process.env.PRISMA_ACCELERATE_URL || process.env.DATABASE_URL;
+
+    if (!url || !url.startsWith('prisma://')) {
+        console.error('CRITICAL: Missing or Invalid Prisma Accelerate URL. Ensure DATABASE_URL starts with "prisma://". Current value:', url ? 'Set (Hidden)' : 'Unset');
+    }
 
     return new PrismaClient({
         accelerateUrl: url,
