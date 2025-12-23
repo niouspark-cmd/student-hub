@@ -51,6 +51,9 @@ export default function Navbar() {
                             <NavLink href="/stories" isActive={isActive('/stories')}>
                                 📱 Campus Pulse
                             </NavLink>
+                            <NavLink href="/stories/my-pulse" isActive={isActive('/stories/my-pulse')}>
+                                📹 My Pulse
+                            </NavLink>
 
                             {dbUser?.isRunner && (
                                 <NavLink href="/runner" isActive={isActive('/runner')}>
@@ -111,6 +114,9 @@ export default function Navbar() {
                         </MobileNavLink>
                         <MobileNavLink href="/stories" isActive={isActive('/stories')}>
                             📱 Pulse
+                        </MobileNavLink>
+                        <MobileNavLink href="/stories/my-pulse" isActive={isActive('/stories/my-pulse')}>
+                            📹 My Pulse
                         </MobileNavLink>
                         {dbUser?.isRunner && (
                             <MobileNavLink href="/runner" isActive={isActive('/runner')}>

@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
+    middlewareClientMaxBodySize: '100mb', // Allow large video uploads
   },
   // Bypass TypeScript and ESLint warnings for Cloudflare deployment
   typescript: {

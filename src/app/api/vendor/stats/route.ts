@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             success: true,
             vendor: {
-                status: user.vendorStatus,
+                vendorStatus: user.vendorStatus,
                 role: user.role,
                 shopName: user.shopName,
                 shopLandmark: user.shopLandmark,

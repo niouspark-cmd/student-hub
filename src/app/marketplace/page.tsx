@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 import StoriesFeed from '@/components/marketplace/StoriesFeed';
+import BentoCategories from '@/components/marketplace/BentoCategories';
 import { motion } from 'framer-motion';
 
 interface Product {
@@ -84,7 +85,7 @@ export default function MarketplacePage() {
     };
 
     const handleOrder = (productId: string) => {
-        window.location.href = `/checkout/${productId}`;
+        window.location.href = `/products/${productId}`;
     };
 
     return (
@@ -167,6 +168,9 @@ export default function MarketplacePage() {
                                 </div>
                             </div>
 
+                            {/* Bento Categories Grid */}
+                            <BentoCategories />
+
                             {/* Products Grid */}
                             {loading ? (
                                 <div className="text-center py-24">
@@ -189,7 +193,8 @@ export default function MarketplacePage() {
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                className="bg-surface border border-surface-border rounded-[2.5rem] overflow-hidden hover:border-primary/30 transition-all group relative"
+                                                onClick={() => handleOrder(product.id)}
+                                                className="bg-surface border border-surface-border rounded-[2.5rem] overflow-hidden hover:border-primary/30 transition-all group relative cursor-pointer"
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
@@ -241,10 +246,13 @@ export default function MarketplacePage() {
                                                             </span>
                                                         </div>
                                                         <button
-                                                            onClick={() => handleOrder(product.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOrder(product.id);
+                                                            }}
                                                             className="px-8 py-4 bg-foreground text-background hover:bg-primary hover:text-primary-foreground rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl hover:shadow-primary/20"
                                                         >
-                                                            Acquire
+                                                            View Details
                                                         </button>
                                                     </div>
                                                 </div>

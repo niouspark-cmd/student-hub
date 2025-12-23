@@ -43,6 +43,8 @@ model User {
   vendorOrders Order[]   @relation("VendorOrders")
   stories      Story[]   @relation("VendorStories")
   payoutRequests PayoutRequest[]
+  storyLikes   StoryLike[] @relation("UserStoryLikes")
+  storyFavorites StoryFavorite[] @relation("UserStoryFavorites")
   
   // Financials
   balance      Float     @default(0.0)
@@ -182,11 +184,41 @@ model Story {
   views       Int      @default(0)
   likes       Int      @default(0)
   
+  likedBy     StoryLike[] @relation("StoryLikes")
+  favoritedBy StoryFavorite[] @relation("StoryFavorites")
+  
   createdAt   DateTime @default(now())
   expiresAt   DateTime // Delete/hide after 24h
   
   @@index([vendorId])
 }
+
+model StoryLike {
+  id        String   @id @default(uuid())
+  storyId   String
+  story     Story    @relation("StoryLikes", fields: [storyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("UserStoryLikes", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([storyId, userId])
+  @@index([storyId])
+  @@index([userId])
+}
+
+model StoryFavorite {
+  id        String   @id @default(uuid())
+  storyId   String
+  story     Story    @relation("StoryFavorites", fields: [storyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("UserStoryFavorites", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([storyId, userId])
+  @@index([storyId])
+  @@index([userId])
+}
+
 
 model SystemConfig {
   id              String   @id @default("GLOBAL_CONFIG")

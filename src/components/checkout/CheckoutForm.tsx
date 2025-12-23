@@ -112,8 +112,8 @@ export default function CheckoutForm({
     };
 
     return (
-        <div className="bg-surface border border-surface-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden transition-colors duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
+        <div className="glass-strong rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden border-2 border-surface-border/50 hover:border-primary/30 transition-all">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full animate-pulse-glow"></div>
 
             {/* Fulfillment Toggle */}
             <div className="flex bg-background rounded-2xl p-1.5 mb-8 border border-surface-border">

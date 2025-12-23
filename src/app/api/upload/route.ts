@@ -1,17 +1,16 @@
 
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
-// Function to generate SHA-1 signature using Web Crypto API (Edge compatible)
-async function generateSignature(params: Record<string, string>, apiSecret: string) {
+// Function to generate SHA-1 signature using Node.js crypto
+function generateSignature(params: Record<string, string>, apiSecret: string) {
     const sortedKeys = Object.keys(params).sort();
     const toSign = sortedKeys.map(key => `${key}=${params[key]}`).join('&') + apiSecret;
-    const msgBuffer = new TextEncoder().encode(toSign);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return crypto.createHash('sha1').update(toSign).digest('hex');
 }
 
-export const runtime = 'edge';
+// Use Node.js runtime for large file uploads (videos can be >10MB)
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
     try {
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
             timestamp,
         };
 
-        const signature = await generateSignature(paramsToSign, apiSecret);
+        const signature = generateSignature(paramsToSign, apiSecret);
 
         // Prepare upload form data
         const uploadFormData = new FormData();

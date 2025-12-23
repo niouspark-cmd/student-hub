@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
+/* ========================================
+   🎨 OMNI DESIGN SYSTEM v2.0
+   World-Class Glassmorphism & Bento Grid
+   Inspired by Linear.app & Raycast.com
+   ======================================== */
+
 :root {
+  /* Light Mode Palette */
   --background: #f8fafc;
   --foreground: #0f172a;
   --surface: #ffffff;
@@ -10,9 +17,20 @@
   --accent: #8b5cf6;
   --primary-glow: rgba(79, 70, 229, 0.2);
   --omni-green: #39FF14;
+  
+  /* Glassmorphism Variables */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --blur-amount: 16px;
+  
+  /* Bento Spacing */
+  --bento-gap: 1.5rem;
+  --bento-radius: 2rem;
 }
 
 [data-theme="omni"] {
+  /* Dark Mode Palette (OMNI Theme) */
   --background: #050505;
   --foreground: #ffffff;
   --surface: #0d1117;
@@ -21,6 +39,12 @@
   --primary-foreground: #000000;
   --accent: #39FF14;
   --primary-glow: rgba(57, 255, 20, 0.4);
+  
+  /* Dark Glassmorphism */
+  --glass-bg: rgba(13, 17, 23, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --blur-amount: 20px;
 }
 
 @theme inline {
@@ -39,9 +63,169 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ========================================
+   ✨ GLASSMORPHISM UTILITIES
+   ======================================== */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ========================================
+   🎯 BENTO GRID SYSTEM
+   ======================================== */
+
+.bento-grid {
+  display: grid;
+  gap: var(--bento-gap);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.bento-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--bento-radius);
+  padding: 2rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.bento-card:hover::before {
+  opacity: 0.05;
+}
+
+.bento-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Bento Size Variants */
+.bento-lg {
+  grid-column: span 2;
+}
+
+.bento-xl {
+  grid-column: span 3;
+}
+
+@media (max-width: 768px) {
+  .bento-lg,
+  .bento-xl {
+    grid-column: span 1;
+  }
+}
+
+/* ========================================
+   💫 PREMIUM ANIMATIONS
+   ======================================== */
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes gradient-y {
+  0%, 100% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--primary-glow);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-gradient-y {
+  animation: gradient-y 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ========================================
+   🌟 GLOW EFFECTS
+   ======================================== */
 
 .omni-glow {
   box-shadow: 0 0 20px var(--primary-glow);
@@ -51,25 +235,224 @@ body {
   box-shadow: 0 0 30px var(--primary-glow);
 }
 
-@layer utilities {
-  @keyframes gradient-x {
+.omni-glow-strong {
+  box-shadow: 0 0 40px var(--primary-glow), 0 0 80px var(--primary-glow);
+}
 
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
+.neon-border {
+  border: 2px solid var(--primary);
+  box-shadow: 
+    0 0 10px var(--primary-glow),
+    inset 0 0 10px var(--primary-glow);
+}
 
-    50% {
-      background-position: 100% 50%;
-    }
-  }
+/* ========================================
+   🎨 GRADIENT UTILITIES
+   ======================================== */
 
-  .animate-gradient-x {
-    animation: gradient-x 3s ease infinite;
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+.gradient-mesh {
+  background: 
+    radial-gradient(at 40% 20%, rgba(79, 70, 229, 0.3) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(57, 255, 20, 0.2) 0px, transparent 50%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========================================
+   📱 FLOATING NAVIGATION (iOS Style)
+   ======================================== */
+
+.floating-nav {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 2rem;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .floating-nav {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    transform: none;
   }
 }
 
-/* Logo Auto-Invert Logic */
+/* ========================================
+   🎯 TRUST BADGES
+   ======================================== */
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trust-badge::before {
+  content: '✓';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 50%;
+  font-size: 0.75rem;
+}
+
+/* ========================================
+   🔥 MISSION CARD (Vendor Dashboard)
+   ======================================== */
+
+.mission-card {
+  position: relative;
+  background: var(--surface);
+  border: 2px solid var(--surface-border);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.mission-card.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 30px var(--primary-glow);
+}
+
+.mission-card.urgent {
+  border-color: #ef4444;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   📊 CHART GLOW EFFECTS
+   ======================================== */
+
+.chart-glow {
+  filter: drop-shadow(0 0 8px var(--primary-glow));
+}
+
+/* ========================================
+   🎭 THEATER MODE (Campus Pulse)
+   ======================================== */
+
+.theater-mode {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theater-mode video {
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+}
+
+/* ========================================
+   🎨 RESPONSIVE UTILITIES
+   ======================================== */
+
+@media (max-width: 640px) {
+  :root {
+    --bento-gap: 1rem;
+    --bento-radius: 1.5rem;
+  }
+  
+  .bento-card {
+    padding: 1.5rem;
+  }
+}
+
+/* ========================================
+   🌓 LOGO AUTO-INVERT
+   ======================================== */
+
 html:not([data-theme='omni']) .invert-on-light {
   filter: brightness(0);
+}
+
+/* ========================================
+   ⚡ SCROLL BEHAVIOR
+   ======================================== */
+
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   🎯 FAB (Floating Action Button)
+   ======================================== */
+
+.fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px var(--primary-glow);
+  transition: all 0.3s ease;
+  z-index: 40;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 30px var(--primary-glow);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .fab {
+    bottom: 5rem;
+    right: 1.5rem;
+  }
 }

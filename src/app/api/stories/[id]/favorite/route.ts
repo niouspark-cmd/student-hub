@@ -16,7 +16,6 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get user from database
         const user = await prisma.user.findUnique({
             where: { clerkId: userId },
         });
@@ -25,8 +24,8 @@ export async function POST(
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // Check if user already liked this story
-        const existingLike = await prisma.storyLike.findUnique({
+        // Check if already favorited
+        const existingFavorite = await prisma.storyFavorite.findUnique({
             where: {
                 storyId_userId: {
                     storyId,
@@ -35,56 +34,36 @@ export async function POST(
             },
         });
 
-        let liked: boolean;
-        let newLikeCount: number;
+        let favorited: boolean;
 
-        if (existingLike) {
-            // Unlike: Remove the like and decrement counter
-            await prisma.storyLike.delete({
-                where: { id: existingLike.id },
+        if (existingFavorite) {
+            // Unfavorite
+            await prisma.storyFavorite.delete({
+                where: { id: existingFavorite.id },
             });
-
-            const story = await prisma.story.update({
-                where: { id: storyId },
-                data: {
-                    likes: { decrement: 1 },
-                },
-            });
-
-            liked = false;
-            newLikeCount = story.likes;
+            favorited = false;
         } else {
-            // Like: Create like record and increment counter
-            await prisma.storyLike.create({
+            // Favorite
+            await prisma.storyFavorite.create({
                 data: {
                     storyId,
                     userId: user.id,
                 },
             });
-
-            const story = await prisma.story.update({
-                where: { id: storyId },
-                data: {
-                    likes: { increment: 1 },
-                },
-            });
-
-            liked = true;
-            newLikeCount = story.likes;
+            favorited = true;
         }
 
         return NextResponse.json({
             success: true,
-            liked,
-            likes: newLikeCount,
+            favorited,
         });
     } catch (error) {
-        console.error('Like story error:', error);
-        return NextResponse.json({ error: 'Failed to like story' }, { status: 500 });
+        console.error('Favorite story error:', error);
+        return NextResponse.json({ error: 'Failed to favorite story' }, { status: 500 });
     }
 }
 
-// GET endpoint to check if user has liked a story
+// GET endpoint to check if user has favorited a story
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -94,7 +73,7 @@ export async function GET(
         const { id: storyId } = await params;
 
         if (!userId) {
-            return NextResponse.json({ liked: false });
+            return NextResponse.json({ favorited: false });
         }
 
         const user = await prisma.user.findUnique({
@@ -102,10 +81,10 @@ export async function GET(
         });
 
         if (!user) {
-            return NextResponse.json({ liked: false });
+            return NextResponse.json({ favorited: false });
         }
 
-        const existingLike = await prisma.storyLike.findUnique({
+        const existingFavorite = await prisma.storyFavorite.findUnique({
             where: {
                 storyId_userId: {
                     storyId,
@@ -114,9 +93,9 @@ export async function GET(
             },
         });
 
-        return NextResponse.json({ liked: !!existingLike });
+        return NextResponse.json({ favorited: !!existingFavorite });
     } catch (error) {
-        console.error('Check like error:', error);
-        return NextResponse.json({ liked: false });
+        console.error('Check favorite error:', error);
+        return NextResponse.json({ favorited: false });
     }
 }

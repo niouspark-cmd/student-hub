@@ -17,6 +17,23 @@ export async function ensureUserExists() {
     // Try to find the user in our database
     let user = await prisma.user.findUnique({
         where: { clerkId: userId },
+        select: {
+            id: true,
+            clerkId: true,
+            email: true,
+            name: true,
+            role: true,
+            university: true,
+            onboarded: true,
+            isRunner: true,
+            runnerStatus: true,
+            xp: true,
+            runnerLevel: true,
+            currentHotspot: true,
+            lastActive: true,
+            createdAt: true,
+            updatedAt: true,
+        }
     });
 
     // If not found, create them using Clerk details
@@ -38,6 +55,23 @@ export async function ensureUserExists() {
                 role: 'STUDENT', // Default role
                 university: 'KNUST', // Default for now, can be changed later
             },
+            select: {
+                id: true,
+                clerkId: true,
+                email: true,
+                name: true,
+                role: true,
+                university: true,
+                onboarded: true,
+                isRunner: true,
+                runnerStatus: true,
+                xp: true,
+                runnerLevel: true,
+                currentHotspot: true,
+                lastActive: true,
+                createdAt: true,
+                updatedAt: true,
+            }
         });
 
         console.log(`✅ Synced new user from Clerk: ${email}`);

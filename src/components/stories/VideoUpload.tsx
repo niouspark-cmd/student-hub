@@ -1,129 +1,184 @@
-// src/components/stories/VideoUpload.tsx
 'use client';
 
 import { useState, useRef } from 'react';
 
 interface VideoUploadProps {
-    value?: string;
+    value: string;
     onChange: (url: string) => void;
-    onDurationChange?: (duration: number) => void;
 }
 
-export default function VideoUpload({ value, onChange, onDurationChange }: VideoUploadProps) {
+export default function VideoUpload({ value, onChange }: VideoUploadProps) {
     const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0); // Note: Simple fetch doesn't support progress events easily without XMLHttpRequest
+    const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Basic validation
-        if (file.size > 50 * 1024 * 1024) { // 50MB
-            alert('File too large (max 50MB)');
+        // Validate file type
+        const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please upload a valid video file (MP4, MOV, AVI, or WebM)');
+            return;
+        }
+
+        // Validate file size (100MB max)
+        const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+        if (file.size > maxSize) {
+            alert('Video file is too large. Maximum size is 100MB.');
             return;
         }
 
         setUploading(true);
-        // Simulate progress for UX
-        const interval = setInterval(() => {
-            setUploadProgress(prev => Math.min(prev + 10, 90));
-        }, 500);
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', 'video'); // Tell backend it's a video
+        setProgress(0);
 
         try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const xhr = new XMLHttpRequest();
+
+            // Track upload progress
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    setProgress(percentComplete);
+                }
             });
 
-            const data = await response.json();
-
-            if (data.url) {
-                onChange(data.url);
-                setUploadProgress(100);
-                if (onDurationChange && data.duration) {
-                    onDurationChange(data.duration);
+            // Handle completion
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        onChange(response.url);
+                        setUploading(false);
+                        setProgress(0);
+                    } else {
+                        console.error('Upload failed:', response);
+                        alert(`Upload failed: ${response.error || 'Unknown error'}`);
+                        setUploading(false);
+                        setProgress(0);
+                    }
+                } else {
+                    console.error('Upload failed:', xhr.responseText);
+                    alert('Upload failed. Please try again.');
+                    setUploading(false);
+                    setProgress(0);
                 }
-            } else {
-                console.error('Upload failed:', data.error);
-                alert('Failed to upload video: ' + (data.error || 'Unknown error'));
-            }
+            });
+
+            // Handle errors
+            xhr.addEventListener('error', () => {
+                console.error('Upload error');
+                alert('Upload failed. Please check your connection and try again.');
+                setUploading(false);
+                setProgress(0);
+            });
+
+            // Send to our API endpoint
+            xhr.open('POST', '/api/cloudinary-upload');
+            xhr.send(formData);
+
         } catch (error) {
-            console.error('Error uploading video:', error);
-            alert('Error uploading video');
-        } finally {
-            clearInterval(interval);
+            console.error('Upload error:', error);
+            alert('Upload failed. Please try again.');
             setUploading(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+            setProgress(0);
+        }
+    };
+
+    const handleRemove = () => {
+        onChange('');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
     return (
-        <div>
-            <input
-                type="file"
-                accept="video/mp4,video/mov,video/avi,video/webm"
-                onChange={handleFileChange}
-                className="hidden"
-                ref={fileInputRef}
-            />
-            {value ? (
-                <div className="relative">
-                    <video
-                        src={value}
-                        controls
-                        className="w-full h-96 object-cover rounded-lg border-2 border-white/20"
+        <div className="space-y-4">
+            {!value ? (
+                /* Upload Button */
+                <div>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                        onChange={handleFileSelect}
+                        disabled={uploading}
+                        className="hidden"
+                        id="video-upload-input"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                    <label
+                        htmlFor="video-upload-input"
+                        className={`block w-full py-16 border-2 border-dashed border-surface-border rounded-2xl hover:border-primary/50 transition-all group relative overflow-hidden ${uploading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                            }`}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="relative z-10 text-center">
+                            <div className="text-6xl mb-4 animate-float">
+                                {uploading ? '⏳' : '📹'}
+                            </div>
+                            <p className="text-foreground font-black text-lg uppercase tracking-tight mb-2">
+                                {uploading ? `Uploading... ${progress}%` : 'Upload Video'}
+                            </p>
+                            <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest">
+                                {uploading ? 'Please wait...' : 'Click to select video'}
+                            </p>
+                            <p className="text-foreground/20 text-[10px] font-bold uppercase tracking-widest mt-2">
+                                MP4, MOV, AVI, WEBM • Max 100MB
+                            </p>
+                        </div>
+
+                        {/* Progress Bar */}
+                        {uploading && (
+                            <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/20">
+                                <div
+                                    className="h-full bg-gradient-to-r from-[#39FF14] to-[#2ecc71] transition-all duration-300 shadow-[0_0_10px_#39FF14]"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        )}
+                    </label>
+                </div>
+            ) : (
+                /* Video Preview */
+                <div className="space-y-4">
+                    <div className="relative rounded-2xl overflow-hidden bg-black border-2 border-surface-border">
+                        <video
+                            src={value}
+                            controls
+                            className="w-full max-h-96 object-contain"
+                        />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <label
+                            htmlFor="video-upload-input"
+                            className="flex-1 px-6 py-3 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all cursor-pointer text-center"
                         >
                             Change Video
-                        </button>
+                        </label>
                         <button
                             type="button"
-                            onClick={() => onChange('')}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+                            onClick={handleRemove}
+                            className="flex-1 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
                         >
                             Remove
                         </button>
                     </div>
-                </div>
-            ) : (
-                <div>
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="w-full h-96 border-2 border-dashed border-surface-border rounded-[2rem] flex flex-col items-center justify-center gap-4 hover:border-primary/50 transition-all disabled:opacity-50 bg-surface/50 group"
-                    >
-                        <div className="text-6xl group-hover:scale-110 transition-transform">🎥</div>
-                        <div className="text-foreground font-black uppercase tracking-tighter text-2xl">
-                            {uploading ? `Uplink Active: ${uploadProgress}%` : 'Upload Story Video'}
-                        </div>
-                        <div className="text-[10px] text-primary font-black uppercase tracking-[0.2em] max-w-xs text-center leading-loose">
-                            Vertical Format (9:16) • Max 50MB
-                        </div>
-                    </button>
 
-                    {uploading && (
-                        <div className="mt-8">
-                            <div className="w-full bg-surface border border-surface-border rounded-full h-3 overflow-hidden p-0.5">
-                                <div
-                                    className="bg-primary h-full rounded-full transition-all duration-300 omni-glow"
-                                    style={{ width: `${uploadProgress}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                        onChange={handleFileSelect}
+                        disabled={uploading}
+                        className="hidden"
+                        id="video-upload-input"
+                    />
                 </div>
             )}
         </div>

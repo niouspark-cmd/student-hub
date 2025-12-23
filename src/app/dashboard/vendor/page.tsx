@@ -8,6 +8,8 @@ import VendorOnboarding from '@/components/vendor/VendorOnboarding';
 import VendorHeartbeat from '@/components/vendor/VendorHeartbeat';
 import WithdrawModal from '@/components/vendor/WithdrawModal';
 import AnalyticsCharts from '@/components/vendor/AnalyticsCharts';
+import BentoOrderCard from '@/components/vendor/BentoOrderCard';
+import GlowingRevenueChart from '@/components/vendor/GlowingRevenueChart';
 
 interface Order {
     id: string;
@@ -28,7 +30,7 @@ export default function VendorDashboard() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [vendorInfo, setVendorInfo] = useState<{
         role: string;
-        status: string;
+        vendorStatus: string;
         shopName?: string;
         isAcceptingOrders?: boolean;
         balance?: number;
@@ -104,7 +106,7 @@ export default function VendorDashboard() {
     }
 
     // Pending Approval UI
-    if (vendorInfo?.status === 'PENDING') {
+    if (vendorInfo?.vendorStatus === 'PENDING') {
         return (
             <div className="min-h-screen bg-background p-4 md:p-8 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center text-4xl mb-8 omni-glow">
@@ -215,8 +217,11 @@ export default function VendorDashboard() {
                     />
                 </div>
 
-                {/* Analytics */}
-                <AnalyticsCharts salesData={analytics?.salesChart || []} productData={analytics?.topProducts || []} />
+                {/* Glowing Revenue Chart */}
+                <GlowingRevenueChart data={analytics?.salesChart || []} />
+
+                {/* Keep original product chart below if needed */}
+                <AnalyticsCharts salesData={[]} productData={analytics?.topProducts || []} />
 
                 {/* Escrow Alert */}
                 {stats.heldInEscrow > 0 && (
@@ -306,22 +311,38 @@ export default function VendorDashboard() {
                     </div>
 
                     {orders.length === 0 ? (
-                        <div className="text-center py-24 bg-background/20 rounded-[2rem] border border-dashed border-surface-border">
-                            <div className="text-8xl mb-6 opacity-30"> Deserted 🌵 </div>
-                            <h3 className="text-2xl font-black text-foreground/50 uppercase italic tracking-widest">Digital Silence</h3>
-                            <p className="text-foreground/20 font-black text-[10px] uppercase tracking-[0.3em] max-w-xs mx-auto mt-2">The marketplace is waiting. Check your inventory levels.</p>
+                        <div className="text-center py-24 glass rounded-[3rem] border-2 border-dashed border-surface-border relative overflow-hidden">
+                            <div className="absolute inset-0 gradient-mesh opacity-30"></div>
+                            <div className="relative z-10">
+                                <div className="text-8xl mb-6 opacity-30 animate-float">📡</div>
+                                <h3 className="text-2xl font-black text-foreground/50 uppercase tracking-widest mb-4">Digital Silence</h3>
+                                <p className="text-foreground/30 font-bold text-xs uppercase tracking-[0.3em] max-w-xs mx-auto mb-8">
+                                    The marketplace is waiting. Boost your visibility:
+                                </p>
+                                <div className="flex flex-wrap gap-3 justify-center max-w-md mx-auto">
+                                    <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-black uppercase">
+                                        ✓ Post a Story
+                                    </div>
+                                    <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-black uppercase">
+                                        ✓ Add More Products
+                                    </div>
+                                    <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-black uppercase">
+                                        ✓ Enable Rush Mode
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {(() => {
                                 const list = showHistory ? historyOrders : activeOrders;
-                                const ITEMS_PER_PAGE = 5;
+                                const ITEMS_PER_PAGE = 6; // Changed to 6 for better grid layout
                                 const totalPages = Math.ceil(list.length / ITEMS_PER_PAGE);
                                 const currentItems = list.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
                                 if (list.length === 0) {
                                     return (
-                                        <div className="text-center py-12 text-white/20 font-black text-xs uppercase tracking-widest">
+                                        <div className="col-span-full text-center py-12 text-white/20 font-black text-xs uppercase tracking-widest">
                                             No {showHistory ? 'archived' : 'active'} orders found
                                         </div>
                                     );
@@ -330,70 +351,9 @@ export default function VendorDashboard() {
                                 return (
                                     <>
                                         {currentItems.map((order) => (
-                                            <div
-                                                key={order.id}
-                                                className={`group relative overflow-hidden bg-surface border border-surface-border rounded-2xl p-5 hover:border-primary/30 transition-all ${showHistory ? 'opacity-60 grayscale hover:opacity-100 hover:grayscale-0' : ''}`}
-                                            >
-                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-2xl border border-primary/20">
-                                                            📦
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-foreground font-black text-lg uppercase tracking-tight leading-none mb-1">
-                                                                {order.product.title}
-                                                            </h3>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold text-foreground/30 uppercase">Customer:</span>
-                                                                <span className="text-xs font-black text-foreground">{order.student.name || 'Anonymous Student'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between md:justify-end gap-8 w-full md:w-auto">
-                                                        <div className="text-right">
-                                                            <div className="text-xl font-black text-foreground leading-none mb-1">
-                                                                ₵{order.amount.toFixed(2)}
-                                                            </div>
-                                                            <div className="text-[10px] font-black uppercase tracking-widest">
-                                                                {order.escrowStatus === 'HELD' && (
-                                                                    <span className="text-yellow-400">🛡️ Held in Escrow</span>
-                                                                )}
-                                                                {order.escrowStatus === 'RELEASED' && (
-                                                                    <span className="text-green-400">✅ Funds Released</span>
-                                                                )}
-                                                                {order.escrowStatus === 'REFUNDED' && (
-                                                                    <span className="text-red-400">↩️ Refunded</span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-2">
-                                                            {!showHistory && order.status === 'PAID' && (
-                                                                <button className="px-4 py-2 bg-primary hover:bg-primary/80 text-primary-foreground text-[10px] font-black rounded-lg transition-all shadow-lg active:scale-95 uppercase tracking-widest">
-                                                                    Mark Preparing
-                                                                </button>
-                                                            )}
-                                                            <Link
-                                                                href={`/dashboard/vendor/orders/${order.id}`}
-                                                                className="p-3 bg-foreground/5 hover:bg-foreground/10 border border-surface-border rounded-xl transition-all"
-                                                            >
-                                                                👁️
-                                                            </Link>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Status Progress Sparkline */}
-                                                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground/5 overflow-hidden">
-                                                    <div
-                                                        className={`h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-1000 ${order.status === 'COMPLETED' ? 'w-full' :
-                                                            order.status === 'CANCELLED' ? 'w-full bg-red-500' : 'w-1/3'
-                                                            }`}
-                                                    ></div>
-                                                </div>
-                                            </div>
+                                            <BentoOrderCard key={order.id} order={order} />
                                         ))}
+
 
                                         {/* Pagination Controls */}
                                         {totalPages > 1 && (

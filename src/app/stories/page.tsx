@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import VideoPlayer from '@/components/stories/VideoPlayer';
+import TheaterMode from '@/components/stories/TheaterMode';
 import Link from 'next/link';
 
 interface Story {
@@ -20,6 +20,8 @@ export default function StoriesFeedPage() {
     const [stories, setStories] = useState<Story[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeStoryId, setActiveStoryId] = useState<string | null>(null);
+    const [theaterOpen, setTheaterOpen] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -53,7 +55,6 @@ export default function StoriesFeedPage() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
-                    // Get story ID from data attribute
                     const storyId = entry.target.getAttribute('data-story-id');
                     if (storyId) {
                         setActiveStoryId(storyId);
@@ -68,70 +69,42 @@ export default function StoriesFeedPage() {
         return () => {
             elements.forEach((el) => observer.unobserve(el));
         };
-    }, [stories]); // Re-run when stories load
+    }, [stories]);
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-background text-foreground transition-colors duration-300">
-                <div className="flex flex-col items-center">
-                    <div className="h-10 w-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-                    <p className="text-primary font-black uppercase tracking-[0.4em] text-[10px]">Loading Campus Pulse...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
-        <div
-            className="h-[calc(100vh-5rem)] w-full bg-background text-foreground overflow-y-scroll snap-y snap-mandatory transition-colors duration-300"
-            ref={containerRef}
-            style={{ scrollBehavior: 'smooth' }}
-        >
-            {/* Header / Nav Overlay */}
-            <div className="fixed top-20 left-0 right-0 z-40 p-4 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
-                <h1 className="text-xl font-bold text-white drop-shadow-md pointer-events-auto opacity-80">
-                    Campus Pulse ⚡
-                </h1>
-                <Link
-                    href="/stories/new"
-                    className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white font-semibold text-sm hover:bg-white/30 transition pointer-events-auto"
-                >
-                    + New Post
-                </Link>
-            </div>
-
-            {stories.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-white p-6">
-                    <div className="text-4xl mb-4">📹</div>
-                    <h2 className="text-2xl font-bold mb-2">No Stories Yet</h2>
-                    <p className="text-gray-400 text-center mb-6">
-                        Be the first to share what&apos;s happening on campus!
-                    </p>
-                    <Link
-                        href="/stories/new"
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-bold"
-                    >
-                        Create Story
-                    </Link>
+        <div className="relative">
+            {loading ? (
+                <div className="flex items-center justify-center min-h-screen bg-black text-white">
+                    <div className="flex flex-col items-center">
+                        <div className="h-12 w-12 border-4 border-[#39FF14]/20 border-t-[#39FF14] rounded-full animate-spin mb-4 omni-glow"></div>
+                        <p className="text-[#39FF14] font-black uppercase tracking-[0.4em] text-[10px]">Loading Campus Pulse...</p>
+                    </div>
+                </div>
+            ) : stories.length === 0 ? (
+                /* Empty State */
+                <div className="h-screen flex flex-col items-center justify-center text-white p-6 bg-gradient-to-br from-black via-gray-900 to-black">
+                    <div className="glass-strong rounded-[3rem] p-12 max-w-md text-center">
+                        <div className="text-7xl mb-6 animate-float">📹</div>
+                        <h2 className="text-3xl font-black mb-4 uppercase tracking-tight gradient-text">No Stories Yet</h2>
+                        <p className="text-white/60 text-sm mb-8 leading-relaxed">
+                            Be the first to share what's happening on campus! Create a story and let students know about your products.
+                        </p>
+                        <Link
+                            href="/stories/my-pulse"
+                            className="inline-block px-8 py-4 bg-gradient-to-r from-[#39FF14] to-[#2ecc71] text-black font-black rounded-2xl uppercase tracking-wider hover:scale-105 active:scale-95 transition-all omni-glow-strong"
+                        >
+                            Create Story
+                        </Link>
+                    </div>
                 </div>
             ) : (
-                stories.map((story) => (
-                    <div
-                        key={story.id}
-                        data-story-id={story.id}
-                        className="story-container w-full h-full snap-start relative"
-                    >
-                        <VideoPlayer
-                            storyId={story.id}
-                            src={story.videoUrl}
-                            isActive={activeStoryId === story.id}
-                            username={story.vendor?.name || 'User'}
-                            caption={story.title}
-                            likes={story.likes}
-                            vendorClerkId={story.vendor?.clerkId}
-                        />
-                    </div>
-                ))
+                /* Automatic Theater Mode */
+                <TheaterMode
+                    stories={stories}
+                    initialIndex={0}
+                    onClose={() => window.history.back()}
+                />
             )}
         </div>
     );
