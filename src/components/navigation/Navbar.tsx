@@ -92,6 +92,7 @@ export default function Navbar() {
                                     {dbUser?.role || 'STUDENT'}
                                 </span>
                                 <UserButton
+                                    afterSignOutUrl="/"
                                     appearance={{
                                         elements: {
                                             avatarBox: "w-9 h-9 border-2 border-primary/20"

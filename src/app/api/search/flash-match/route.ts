@@ -8,7 +8,7 @@ import { sortByFlashMatch, isVendorActive } from '@/lib/geo/distance';
  * Finds products based on proximity and vendor availability
  */
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
     try {
@@ -98,3 +98,4 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+

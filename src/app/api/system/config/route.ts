@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db/prisma';
  * Used to block UI features during maintenance.
  */
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET() {
     try {
@@ -31,3 +31,4 @@ export async function GET() {
         });
     }
 }
+

@@ -10,6 +10,11 @@ export default function OnboardingPage() {
     const [role, setRole] = useState<'STUDENT' | 'VENDOR' | null>(null);
     const [isRunner, setIsRunner] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    // Vendor specific state
+    const [shopName, setShopName] = useState('');
+    const [shopLandmark, setShopLandmark] = useState('');
+
     const router = useRouter();
 
     useEffect(() => {
@@ -32,13 +37,19 @@ export default function OnboardingPage() {
         }
     };
 
-    const handleComplete = async (selectedRole: 'STUDENT' | 'VENDOR', selectedIsRunner: boolean) => {
+    const handleComplete = async (selectedRole: 'STUDENT' | 'VENDOR', selectedIsRunner: boolean, vendorDetails?: { shopName: string, shopLandmark: string }) => {
         setLoading(true);
         try {
+            const payload = {
+                role: selectedRole,
+                isRunner: selectedIsRunner,
+                ...(vendorDetails && { shopName: vendorDetails.shopName, shopLandmark: vendorDetails.shopLandmark })
+            };
+
             const res = await fetch('/api/auth/onboard', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: selectedRole, isRunner: selectedIsRunner }),
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
@@ -85,7 +96,7 @@ export default function OnboardingPage() {
                                 </button>
 
                                 <button
-                                    onClick={() => handleComplete('VENDOR', false)}
+                                    onClick={() => { setRole('VENDOR'); setStep(3); }}
                                     className="p-10 bg-surface border-2 border-surface-border rounded-[3rem] text-left group hover:border-primary transition-all"
                                 >
                                     <div className="text-5xl mb-6 group-hover:scale-110 transition-transform">🏪</div>
@@ -123,6 +134,59 @@ export default function OnboardingPage() {
                                         className="w-full py-6 bg-surface border border-surface-border text-foreground rounded-3xl font-black text-xs uppercase tracking-[0.3em] hover:bg-surface/80 transition-all"
                                     >
                                         Default Access Only
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {step === 3 && (
+                        <motion.div
+                            key="step3"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-8 text-center"
+                        >
+                            <div className="max-w-md mx-auto">
+                                <div className="text-6xl mb-6">🏪</div>
+                                <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">Setup Terminal</h2>
+                                <p className="text-foreground/40 font-black uppercase tracking-widest text-[10px] leading-loose mb-8">
+                                    Establish your digital storefront presence.
+                                </p>
+
+                                <div className="space-y-4 text-left">
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-foreground/60 mb-2 block">Shop Name</label>
+                                        <input
+                                            type="text"
+                                            value={shopName}
+                                            onChange={(e) => setShopName(e.target.value)}
+                                            className="w-full bg-surface border-2 border-surface-border rounded-xl p-4 font-bold focus:border-primary outline-none transition-colors"
+                                            placeholder="e.g. Mummy's Kitchen"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-foreground/60 mb-2 block">Campus Landmark</label>
+                                        <input
+                                            type="text"
+                                            value={shopLandmark}
+                                            onChange={(e) => setShopLandmark(e.target.value)}
+                                            className="w-full bg-surface border-2 border-surface-border rounded-xl p-4 font-bold focus:border-primary outline-none transition-colors"
+                                            placeholder="e.g. Bush Canteen, Start of Market"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            if (!shopName || !shopLandmark) return;
+                                            handleComplete('VENDOR', false, { shopName, shopLandmark });
+                                        }}
+                                        disabled={!shopName || !shopLandmark}
+                                        className={`w-full py-6 mt-8 rounded-3xl font-black text-xs uppercase tracking-[0.3em] omni-glow hover:scale-105 active:scale-95 transition-all
+                                            ${shopName && shopLandmark ? 'bg-primary text-primary-foreground' : 'bg-surface-border text-foreground/20 cursor-not-allowed'}`}
+                                    >
+                                        Initialize Vendor
                                     </button>
                                 </div>
                             </div>

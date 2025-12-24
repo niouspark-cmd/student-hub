@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export default function Home() {
   return (
@@ -105,3 +105,4 @@ export default function Home() {
     </div>
   );
 }
+

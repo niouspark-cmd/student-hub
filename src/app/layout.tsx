@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/navigation/Navbar";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import OnboardingCheck from "@/components/providers/OnboardingCheck";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,9 +21,6 @@ export const metadata: Metadata = {
   title: "OMNI",
   description: "The everything store for university students",
 };
-
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import OnboardingCheck from "@/components/providers/OnboardingCheck";
 
 export default function RootLayout({
   children,

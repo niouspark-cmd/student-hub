@@ -267,19 +267,32 @@ export default function VideoPlayer({
             </div>
 
             {/* Action Buttons Sidebar (Right) */}
-            <div className="absolute bottom-20 right-3 flex flex-col items-center gap-5 z-30">
+            <div className="absolute bottom-20 right-2 flex flex-col items-center gap-3 z-30 pb-4">
+                {/* User Avatar - Acts as Follow Button */}
+                <div className="relative mb-2 group">
+                    <div className="w-12 h-12 rounded-full border-2 border-white p-0.5 overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-br from-[#39FF14] to-[#2ecc71] flex items-center justify-center font-black text-black text-lg">
+                            {username[0]?.toUpperCase()}
+                        </div>
+                    </div>
+                    {/* Plus Icon Badge */}
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-500 rounded-full w-5 h-5 flex items-center justify-center border border-white">
+                        <span className="text-white text-xs font-bold">+</span>
+                    </div>
+                </div>
+
                 {/* Like Button */}
                 <button
                     onClick={handleLike}
                     className="flex flex-col items-center gap-1 group"
                 >
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md border-2 transition-all duration-300 ${hasLiked
-                        ? 'bg-red-500/80 border-red-400 scale-110 animate-pulse-glow'
-                        : 'bg-black/40 border-white/20 hover:bg-black/60 hover:scale-110'
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${hasLiked
+                        ? 'text-red-500 scale-110 animate-pulse-glow'
+                        : 'text-white hover:scale-110'
                         } active:scale-95`}>
-                        <span className="text-2xl">{hasLiked ? '❤️' : '🤍'}</span>
+                        <span className="text-4xl drop-shadow-md">{hasLiked ? '❤️' : '🤍'}</span>
                     </div>
-                    <span className="text-white text-xs font-black drop-shadow-lg">
+                    <span className="text-white text-[10px] font-bold drop-shadow-lg tracking-wide">
                         {localLikes > 999 ? `${(localLikes / 1000).toFixed(1)}K` : localLikes}
                     </span>
                 </button>
@@ -287,12 +300,12 @@ export default function VideoPlayer({
                 {/* Comment Button */}
                 <button
                     onClick={() => setShowComments(!showComments)}
-                    className="flex flex-col items-center gap-1 group"
+                    className="flex flex-col items-center gap-1 group mt-1"
                 >
-                    <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-md border-2 border-white/20 flex items-center justify-center hover:bg-black/60 hover:scale-110 active:scale-95 transition-all">
-                        <span className="text-2xl">💬</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                        <span className="text-3xl text-white drop-shadow-md">💬</span>
                     </div>
-                    <span className="text-white text-xs font-black drop-shadow-lg">
+                    <span className="text-white text-[10px] font-bold drop-shadow-lg tracking-wide">
                         Comment
                     </span>
                 </button>
@@ -300,15 +313,12 @@ export default function VideoPlayer({
                 {/* Favorite Button */}
                 <button
                     onClick={toggleFavorite}
-                    className="flex flex-col items-center gap-1 group"
+                    className="flex flex-col items-center gap-1 group mt-1"
                 >
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md border-2 transition-all ${isFavorited
-                        ? 'bg-yellow-500/80 border-yellow-400 scale-110'
-                        : 'bg-black/40 border-white/20 hover:bg-black/60 hover:scale-110'
-                        } active:scale-95`}>
-                        <span className="text-2xl">{isFavorited ? '⭐' : '☆'}</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                        <span className="text-3xl text-white drop-shadow-md">{isFavorited ? '⭐' : '☆'}</span>
                     </div>
-                    <span className="text-white text-xs font-black drop-shadow-lg">
+                    <span className="text-white text-[10px] font-bold drop-shadow-lg tracking-wide">
                         Favorite
                     </span>
                 </button>
@@ -316,12 +326,12 @@ export default function VideoPlayer({
                 {/* Share Button */}
                 <button
                     onClick={handleShare}
-                    className="flex flex-col items-center gap-1 group"
+                    className="flex flex-col items-center gap-1 group mt-1"
                 >
-                    <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-md border-2 border-white/20 flex items-center justify-center hover:bg-black/60 hover:scale-110 active:scale-95 transition-all">
-                        <span className="text-2xl">📤</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                        <span className="text-3xl text-white drop-shadow-md">↪️</span>
                     </div>
-                    <span className="text-white text-xs font-black drop-shadow-lg">
+                    <span className="text-white text-[10px] font-bold drop-shadow-lg tracking-wide">
                         Share
                     </span>
                 </button>
@@ -329,17 +339,17 @@ export default function VideoPlayer({
                 {/* Download Button */}
                 <button
                     onClick={handleDownload}
-                    className="flex flex-col items-center gap-1 group"
+                    className="flex flex-col items-center gap-1 group mt-1"
                 >
-                    <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-md border-2 border-white/20 flex items-center justify-center hover:bg-black/60 hover:scale-110 active:scale-95 transition-all">
-                        <span className="text-2xl">⬇️</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                        <span className="text-3xl text-white drop-shadow-md">⬇️</span>
                     </div>
-                    <span className="text-white text-xs font-black drop-shadow-lg">
+                    <span className="text-white text-[10px] font-bold drop-shadow-lg tracking-wide">
                         Save
                     </span>
                 </button>
 
-                {/* Delete Button (Owner Only) */}
+                {/* Delete Button (Owner Only) - Styled as a utility */}
                 {user?.id === vendorClerkId && (
                     <button
                         onClick={async () => {
@@ -348,14 +358,12 @@ export default function VideoPlayer({
                                 if (res.ok) window.location.reload();
                             }
                         }}
-                        className="flex flex-col items-center gap-1 group mt-2"
+                        className="flex flex-col items-center gap-1 group mt-4 opacity-60 hover:opacity-100"
                     >
-                        <div className="w-14 h-14 rounded-full bg-red-900/60 backdrop-blur-md border-2 border-red-500/40 flex items-center justify-center hover:bg-red-600/80 hover:scale-110 active:scale-95 transition-all">
-                            <span className="text-2xl">🗑️</span>
+                        <div className="w-8 h-8 rounded-full bg-black/40 border border-white/20 flex items-center justify-center hover:bg-red-900/40 hover:border-red-500/50">
+                            <span className="text-sm">🗑️</span>
                         </div>
-                        <span className="text-red-400 text-xs font-black drop-shadow-lg">
-                            Delete
-                        </span>
+                        <span className="text-white text-[8px] font-medium">Delete</span>
                     </button>
                 )}
             </div>

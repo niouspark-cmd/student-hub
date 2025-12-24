@@ -6,7 +6,7 @@ import { logAdminAction } from '@/lib/admin/audit';
 
 // Get global config
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET() {
     if (!await isAuthorizedAdmin()) {
@@ -58,3 +58,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to update system parameters' }, { status: 500 });
     }
 }
+

@@ -1,21 +1,10 @@
-
-import { PrismaClient } from '@prisma/client/edge';
-import { withAccelerate } from '@prisma/extension-accelerate';
-
+import { PrismaClient } from '@prisma/client'
 
 const prismaClientSingleton = () => {
-    const url = process.env.PRISMA_ACCELERATE_URL || process.env.DATABASE_URL;
-
-    if (!url || !url.startsWith('prisma://')) {
-        console.error('CRITICAL: Missing or Invalid Prisma Accelerate URL. Ensure DATABASE_URL starts with "prisma://". Current value:', url ? 'Set (Hidden)' : 'Unset');
-    } else {
-        if (process.env.NODE_ENV === 'development') console.log('✅ Prisma Accelerate Client Initialized');
-    }
-
     return new PrismaClient({
-        accelerateUrl: url,
+        accelerateUrl: process.env.DATABASE_URL,
         log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    } as any).$extends(withAccelerate());
+    });
 };
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;

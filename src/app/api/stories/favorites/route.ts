@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
     try {
@@ -50,3 +50,4 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
     }
 }
+

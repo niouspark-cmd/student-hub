@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
     const { userId } = await auth();
@@ -23,3 +23,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Failed' }, { status: 500 });
     }
 }
+

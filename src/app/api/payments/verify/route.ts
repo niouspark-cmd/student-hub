@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db/prisma';
  * This endpoint should be called after the student completes payment
  */
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
     try {
@@ -91,3 +91,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

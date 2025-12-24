@@ -4,7 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 import { ensureUserExists } from '@/lib/auth/sync';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
     try {
@@ -96,3 +96,4 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+

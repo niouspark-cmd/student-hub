@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface Category {
     id: string;
+    slug: string;
     name: string;
     icon: string;
     gradient: string;
@@ -15,6 +16,7 @@ interface Category {
 const categories: Category[] = [
     {
         id: 'food',
+        slug: 'food-and-snacks',
         name: 'Food & Snacks',
         icon: '🍕',
         gradient: 'from-orange-500 to-red-500',
@@ -23,6 +25,7 @@ const categories: Category[] = [
     },
     {
         id: 'tech',
+        slug: 'tech-and-gadgets',
         name: 'Tech & Gadgets',
         icon: '💻',
         gradient: 'from-blue-500 to-purple-500',
@@ -30,6 +33,7 @@ const categories: Category[] = [
     },
     {
         id: 'books',
+        slug: 'books-and-notes',
         name: 'Books & Notes',
         icon: '📚',
         gradient: 'from-green-500 to-teal-500',
@@ -37,6 +41,7 @@ const categories: Category[] = [
     },
     {
         id: 'fashion',
+        slug: 'fashion',
         name: 'Fashion',
         icon: '👕',
         gradient: 'from-pink-500 to-purple-500',
@@ -44,6 +49,7 @@ const categories: Category[] = [
     },
     {
         id: 'services',
+        slug: 'services',
         name: 'Services',
         icon: '⚡',
         gradient: 'from-yellow-500 to-orange-500',
@@ -51,6 +57,7 @@ const categories: Category[] = [
     },
     {
         id: 'misc',
+        slug: 'everything-else',
         name: 'Everything Else',
         icon: '🎯',
         gradient: 'from-indigo-500 to-blue-500',
@@ -81,7 +88,7 @@ export default function BentoCategories() {
                         transition={{ delay: index * 0.05 }}
                     >
                         <Link
-                            href={`/marketplace?category=${category.id}`}
+                            href={`/category/${category.slug}`}
                             className="group block"
                         >
                             <div className="bento-card p-6 h-full flex flex-col items-center justify-center text-center relative">

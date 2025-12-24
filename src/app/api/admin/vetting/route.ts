@@ -6,7 +6,7 @@ import { logAdminAction } from '@/lib/admin/audit';
 
 // Get all pending vendors
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET() {
     if (!await isAuthorizedAdmin()) {
@@ -54,3 +54,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+

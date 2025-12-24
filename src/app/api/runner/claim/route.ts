@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 // Extract the transaction client type from Prisma's $transaction method
 type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
     try {
@@ -106,3 +106,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

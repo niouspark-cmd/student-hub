@@ -1,29 +1,74 @@
+// export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
-
-export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
     try {
         const { userId } = await auth();
-        if (!userId) {
+        const user = await currentUser();
+
+        if (!userId || !user) {
+            console.log('Auth failed: userId or user is missing', { userId, userPresent: !!user });
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { role, isRunner } = await request.json();
+        const body = await request.json();
+        const { role, isRunner, shopName, shopLandmark } = body;
 
-        // Update user in database
-        await prisma.user.update({
+        console.log('Onboarding User:', {
+            id: user.id,
+            emailAddresses: user.emailAddresses,
+            primaryEmailId: user.primaryEmailAddressId,
+            role,
+            shopName,
+            shopLandmark
+        });
+
+        const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress
+            || user.emailAddresses[0]?.emailAddress
+            || `${user.id}@omni-placeholder.com`; // Fallback used if user signed up with Phone Number only
+
+        console.log('Final email to use:', email);
+
+        if (!email) {
+            console.error('No email found for user:', user.id);
+            return NextResponse.json({ error: 'No email found' }, { status: 400 });
+        }
+
+        const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Anonymous Student';
+
+        // Additional data for VENDOR
+        const vendorData = role === 'VENDOR' ? {
+            shopName: shopName || 'New Shop',
+            shopLandmark: shopLandmark || 'Campus'
+        } : {
+            shopName: null,
+            shopLandmark: null
+        };
+
+        // Upsert user in database (Update if exists, Create if not)
+        await prisma.user.upsert({
             where: { clerkId: userId },
-            data: {
+            update: {
                 role: role,
                 isRunner: !!isRunner,
                 onboarded: true,
-                // If they chose VENDOR, set their status to PENDING initially
-                vendorStatus: role === 'VENDOR' ? 'PENDING' : 'NOT_APPLICABLE'
+                vendorStatus: role === 'VENDOR' ? 'PENDING' : 'NOT_APPLICABLE',
+                ...vendorData
             },
+            create: {
+                clerkId: userId,
+                email: email,
+                name: name,
+                role: role,
+                isRunner: !!isRunner,
+                onboarded: true,
+                vendorStatus: role === 'VENDOR' ? 'PENDING' : 'NOT_APPLICABLE',
+                university: 'KNUST', // Default
+                ...vendorData
+            }
         });
 
         // Create response and set the Identity Cookie
@@ -42,3 +87,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+

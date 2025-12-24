@@ -50,7 +50,7 @@ export default function StoriesFeed() {
                         key={story.id}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex-shrink-0 w-32 h-56 rounded-[1.5rem] bg-surface border border-surface-border relative overflow-hidden group cursor-pointer"
+                        className="flex-shrink-0 w-28 h-48 rounded-[1.2rem] bg-surface border border-surface-border relative overflow-hidden group cursor-pointer"
                     >
                         {story.thumbnail ? (
                             <img src={story.thumbnail} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
@@ -63,15 +63,15 @@ export default function StoriesFeed() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
 
                         <div className="absolute bottom-3 left-3 right-3">
-                            <p className="text-[8px] font-black text-white uppercase tracking-tight leading-none mb-1 line-clamp-1">
+                            <p className="text-[7px] font-black text-white uppercase tracking-tight leading-none mb-1 line-clamp-1">
                                 {story.vendor.shopName || story.vendor.name || 'Vendor'}
                             </p>
-                            <div className="w-4 h-1 bg-primary rounded-full"></div>
+                            <div className="w-3 h-0.5 bg-primary rounded-full"></div>
                         </div>
 
                         {/* TikTok-style indicator */}
-                        <div className="absolute top-3 right-3">
-                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                        <div className="absolute top-2 right-2">
+                            <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
                         </div>
                     </motion.div>
                 ))}

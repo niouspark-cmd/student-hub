@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET() {
     try {
@@ -68,3 +68,4 @@ export async function GET() {
         return NextResponse.json({ error: 'INTERNAL_SERVER_ERROR' }, { status: 500 });
     }
 }
+

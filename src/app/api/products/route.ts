@@ -1,3 +1,4 @@
+
 // src/app/api/products/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
@@ -5,8 +6,6 @@ import { prisma } from '@/lib/db/prisma';
 import { ensureUserExists } from '@/lib/auth/sync';
 
 // GET - List all products or vendor's products
-
-export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
     try {
@@ -41,6 +40,7 @@ export async function GET(request: NextRequest) {
                         lastActive: true,
                     },
                 },
+                category: true, // Include category info
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -54,8 +54,6 @@ export async function GET(request: NextRequest) {
         );
     }
 }
-
-// POST - Create new product
 
 export async function POST(request: NextRequest) {
     try {
@@ -72,10 +70,10 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { title, description, price, category, imageUrl, hotspot } = body;
+        const { title, description, price, categoryId, imageUrl, hotspot, details } = body;
 
         // Validation
-        if (!title || !description || !price || !category) {
+        if (!title || !description || !price || !categoryId) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
@@ -87,9 +85,10 @@ export async function POST(request: NextRequest) {
                 title,
                 description,
                 price: parseFloat(price),
-                category,
+                categoryId,
                 imageUrl,
                 hotspot,
+                details,
                 vendorId: user.id,
             },
             include: {
