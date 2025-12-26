@@ -72,33 +72,7 @@ export default function NewReleases() {
 
     return (
         <div className="mb-16">
-            {/* Section Header */}
-            <div className="mb-8 relative">
-                <div className="flex items-center gap-4 mb-2">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse"></div>
-                        <span className="relative text-4xl">⚡</span>
-                    </div>
-                    <h2 className="text-4xl font-black text-foreground uppercase tracking-tighter">
-                        NEW RELEASES
-                    </h2>
-                </div>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="h-[2px] w-8 bg-primary"></div>
-                        <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px]">
-                            Dropped in the last 72 hours
-                        </p>
-                    </div>
 
-                    <Link
-                        href="/search?q=&categoryId=all"
-                        className="text-[10px] font-black uppercase tracking-widest text-foreground/40 hover:text-primary transition-colors flex items-center gap-2"
-                    >
-                        View All Drops <span className="text-sm">→</span>
-                    </Link>
-                </div>
-            </div>
 
             {loading ? (
                 <div className="text-center py-12">

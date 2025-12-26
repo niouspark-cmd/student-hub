@@ -11,7 +11,7 @@ import { prisma } from '@/lib/db/prisma';
 
 export async function GET() {
     try {
-        const config = await prisma.systemConfig.findUnique({
+        const config = await prisma.systemSettings.findUnique({
             where: { id: 'GLOBAL_CONFIG' }
         });
 
@@ -19,15 +19,17 @@ export async function GET() {
         return NextResponse.json({
             success: true,
             maintenanceMode: config?.maintenanceMode ?? false,
-            deliveryFee: config?.deliveryFee ?? 5.0,
-            platformFee: config?.platformFee ?? 2.0
+            activeFeatures: config?.activeFeatures ?? ['MARKET', 'PULSE', 'RUNNER', 'ESCROW'],
+            globalNotice: config?.globalNotice ?? null,
+            contentOverride: config?.contentOverride ?? {}
         });
     } catch (error) {
+        console.error('System config fetch error:', error);
         return NextResponse.json({
             success: false,
             maintenanceMode: false,
-            deliveryFee: 5.0,
-            platformFee: 2.0
+            activeFeatures: ['MARKET', 'PULSE', 'RUNNER', 'ESCROW'],
+            globalNotice: null
         });
     }
 }

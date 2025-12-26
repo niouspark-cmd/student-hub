@@ -98,14 +98,7 @@ export default function BentoCategories() {
     if (loading) {
         return (
             <div className="mb-12">
-                <div className="mb-6">
-                    <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter mb-2">
-                        Explore Categories
-                    </h2>
-                    <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest">
-                        Discover what's available on campus
-                    </p>
-                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
                     {[...Array(6)].map((_, i) => (
                         <div key={i} className="bento-card p-6 h-32 animate-pulse bg-surface/50"></div>
@@ -117,15 +110,7 @@ export default function BentoCategories() {
 
     return (
         <div className="mb-12">
-            {/* Section Header */}
-            <div className="mb-6">
-                <h2 className="text-3xl font-black text-foreground uppercase tracking-tighter mb-2">
-                    Explore Categories
-                </h2>
-                <p className="text-foreground/40 text-xs font-bold uppercase tracking-widest">
-                    Discover what's available on campus
-                </p>
-            </div>
+
 
             {/* Bento Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">

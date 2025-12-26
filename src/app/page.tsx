@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+import EditableContent from "@/components/admin/EditableContent";
 
 // export const runtime = 'edge';
 
@@ -20,13 +21,17 @@ export default function Home() {
               <img src="/OMNI-LOGO.ico" alt="OMNI" className="relative w-32 h-32 object-contain invert-on-light" />
             </div>
           </div>
-          <h1 className="text-8xl md:text-9xl font-black mb-6 uppercase tracking-[-0.05em] leading-[0.8] animate-in fade-in slide-in-from-bottom duration-700">
-            THE<br /><span className="text-primary omni-glow">FUTURE</span>
-          </h1>
+          <EditableContent
+            id="landing_hero_title"
+            defaultContent={'THE<br /><span class="text-primary omni-glow">FUTURE</span>'}
+            className="text-8xl md:text-9xl font-black mb-6 uppercase tracking-[-0.05em] leading-[0.8] animate-in fade-in slide-in-from-bottom duration-700"
+          />
           <div className="flex flex-col items-center gap-4">
-            <p className="text-[12px] font-black text-foreground/60 uppercase tracking-[0.8em] mb-4">
-              University Commerce Redefined
-            </p>
+            <EditableContent
+              id="landing_hero_desc"
+              defaultContent="University Commerce Redefined"
+              className="text-[12px] font-black text-foreground/60 uppercase tracking-[0.8em] mb-4"
+            />
             <div className="h-[2px] w-24 bg-primary/30"></div>
           </div>
         </div>

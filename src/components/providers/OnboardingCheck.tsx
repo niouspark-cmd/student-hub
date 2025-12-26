@@ -19,8 +19,8 @@ export default function OnboardingCheck() {
             return;
         }
 
-        // Skip check for onboarding and gatekeeper pages
-        if (pathname === '/onboarding' || pathname === '/gatekeeper' || pathname === '/omni-gate') {
+        // Skip check for onboarding and admin pages
+        if (pathname === '/onboarding' || pathname === '/command-center-z' || pathname === '/omni-gate') {
             return;
         }
 

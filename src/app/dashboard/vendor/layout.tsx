@@ -7,6 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 import { SignedIn } from "@clerk/nextjs";
 import ThemeToggle from '@/components/navigation/ThemeToggle';
 import { StoreIcon, PackageIcon, ShoppingCartIcon, ZapIcon, HomeIcon } from "@/components/ui/Icons";
+import MaintenanceGuard from '@/components/admin/MaintenanceGuard';
 
 export default function VendorLayout({
     children,
@@ -66,7 +67,9 @@ export default function VendorLayout({
             {/* Main Content Area */}
             <main className="pt-20 pb-12 px-4 max-w-7xl mx-auto">
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {children}
+                    <MaintenanceGuard protocol="VENDOR">
+                        {children}
+                    </MaintenanceGuard>
                 </div>
             </main>
 

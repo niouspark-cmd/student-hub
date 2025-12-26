@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import VideoPlayer from '@/components/stories/VideoPlayer';
 import TheaterMode from '@/components/stories/TheaterMode';
 import Link from 'next/link';
+import { useAdmin } from '@/context/AdminContext';
 
 interface Story {
     id: string;
@@ -23,6 +24,7 @@ export default function StoriesFeedPage() {
     const [theaterOpen, setTheaterOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
+    const { isFeatureEnabled } = useAdmin();
 
     useEffect(() => {
         const fetchStories = async () => {
@@ -90,12 +92,14 @@ export default function StoriesFeedPage() {
                         <p className="text-white/60 text-sm mb-8 leading-relaxed">
                             Be the first to share what's happening on campus! Create a story and let students know about your products.
                         </p>
-                        <Link
-                            href="/stories/my-pulse"
-                            className="inline-block px-8 py-4 bg-gradient-to-r from-[#39FF14] to-[#2ecc71] text-black font-black rounded-2xl uppercase tracking-wider hover:scale-105 active:scale-95 transition-all omni-glow-strong"
-                        >
-                            Create Story
-                        </Link>
+                        {isFeatureEnabled('PULSE') && (
+                            <Link
+                                href="/stories/my-pulse"
+                                className="inline-block px-8 py-4 bg-gradient-to-r from-[#39FF14] to-[#2ecc71] text-black font-black rounded-2xl uppercase tracking-wider hover:scale-105 active:scale-95 transition-all omni-glow-strong"
+                            >
+                                Create Story
+                            </Link>
+                        )}
                     </div>
                 </div>
             ) : (

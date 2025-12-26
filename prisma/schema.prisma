@@ -1,7 +1,7 @@
 
+
 generator client {
   provider = "prisma-client-js"
-  engineType = "library"
 }
 
 datasource db {
@@ -73,6 +73,7 @@ enum Role {
   STUDENT
   VENDOR
   ADMIN
+  GOD_MODE
 }
 
 enum VendorStatus {
@@ -258,6 +259,7 @@ model SystemSettings {
   maintenanceMode Boolean  @default(false)
   activeFeatures  String[] // ["MARKET", "PULSE", "RUNNER", "ESCROW"]
   globalNotice    String?  // "Maintenance until 2:00 PM"
+  contentOverride Json?    // Stores live-edited UI text
   
   updatedAt       DateTime @updatedAt
 }

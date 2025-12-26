@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -7,6 +6,8 @@ import Footer from "@/components/navigation/Footer";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import OnboardingCheck from "@/components/providers/OnboardingCheck";
 import { CartProvider } from "@/context/CartContext";
+import { AdminProvider } from "@/context/AdminContext";
+import GhostEditToggle from "@/components/admin/GhostEditToggle";
 import Script from "next/script";
 import "./globals.css";
 
@@ -37,12 +38,15 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
         >
           <ThemeProvider>
-            <CartProvider>
-              <OnboardingCheck />
-              <Navbar />
-              {children}
-              <Footer />
-            </CartProvider>
+            <AdminProvider>
+              <CartProvider>
+                <OnboardingCheck />
+                <Navbar />
+                {children}
+                <Footer />
+                <GhostEditToggle />
+              </CartProvider>
+            </AdminProvider>
           </ThemeProvider>
           <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
         </body>

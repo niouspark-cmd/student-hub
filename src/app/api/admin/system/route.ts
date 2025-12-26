@@ -1,21 +1,22 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
+import { cookies } from 'next/headers';
 
-const ADMIN_KEY = 'omniadmin.com';
-
-function isAuthorized(request: NextRequest, sessionClaims: any) {
-    const headerKey = request.headers.get('x-admin-key');
-    if (headerKey === ADMIN_KEY) return true;
+async function checkAuth() {
+    const { sessionClaims } = await auth();
+    // Allow GOD_MODE users
     if (sessionClaims?.metadata?.role === 'GOD_MODE') return true;
-    return false;
+
+    // Check for BOSS TOKEN (middleware already validated it, so just trust it)
+    const cookieStore = await cookies();
+    const bossToken = cookieStore.get('OMNI_BOSS_TOKEN');
+    return bossToken?.value === 'AUTHORIZED_ADMIN';
 }
 
 export async function GET(request: NextRequest) {
     try {
-        const { sessionClaims } = await auth();
-        if (!isAuthorized(request, sessionClaims)) {
+        if (!await checkAuth()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -40,10 +41,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const { userId, sessionClaims } = await auth();
+        const { userId } = await auth();
 
-        // Check Admin Role OR API Key
-        if (!isAuthorized(request, sessionClaims)) {
+        // Check Admin Authorization
+        if (!await checkAuth()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 

@@ -1,39 +1,74 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)', '/admin(.*)']);
-const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)', '/api/system/config(.*)', '/gatekeeper', '/api/admin/verify-gatekeeper', '/omni-gate']);
+const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)', '/admin(.*)', '/api/admin(.*)']);
+const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)', '/api/system/config(.*)', '/omni-gate', '/command-center-z']);
 const isIdentityRoute = createRouteMatcher(['/onboarding(.*)', '/api/auth/onboard(.*)', '/api/auth/sync(.*)', '/api/users/me(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   const { pathname } = req.nextUrl;
+
+  // 🚨 GOD MODE BYPASS: The Ultimate Override 🚨
+  // If user has GOD_MODE role, they bypass ALL restrictions (Admin tokens, Maintenance, Onboarding)
+  const role = (sessionClaims?.metadata as any)?.role;
+  if (role === 'GOD_MODE') {
+    return NextResponse.next();
+  }
 
   // 1. ADMIN PROTECTION
   if (isAdminRoute(req)) {
-    if (!userId) return NextResponse.redirect(new URL('/', req.url));
-    const bossToken = req.cookies.get('OMNI_BOSS_TOKEN');
-    if (!bossToken || bossToken.value !== 'AUTHORIZED_ADMIN') {
-      return NextResponse.redirect(new URL('/gatekeeper', req.url));
+    // Allow the unlock endpoint (it verifies password internally)
+    if (pathname === '/api/admin/unlock-command-center') {
+      return NextResponse.next();
     }
+
+    // Check for BOSS TOKEN first - allows Command Center to work without Clerk login
+    const bossToken = req.cookies.get('OMNI_BOSS_TOKEN');
+    console.log('[MIDDLEWARE] Admin route check - Token:', bossToken?.value, 'Path:', pathname);
+
+    if (bossToken && bossToken.value === 'AUTHORIZED_ADMIN') {
+      console.log('[MIDDLEWARE] BOSS TOKEN valid - granting access');
+      return NextResponse.next();
+    }
+
+    if (!userId) {
+      // API routes get JSON error
+      if (pathname.startsWith('/api/')) {
+        return new NextResponse(
+          JSON.stringify({ error: 'AUTHENTICATION_REQUIRED', message: 'Please sign in' }),
+          { status: 401, headers: { 'content-type': 'application/json' } }
+        );
+      }
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+
   }
 
   // 2. IDENTITY PROTECTION (The Strict Guard)
   // If signed in, not on a public route, and not already on the onboarding flow
   if (userId && !isPublicRoute(req) && !isIdentityRoute(req)) {
-    // GOD MODE BYPASS: Check if user is Admin
-    const { sessionClaims } = await auth();
-    const role = (sessionClaims?.metadata as any)?.role;
-
-    if (role === 'GOD_MODE') {
-      // Allow access, maybe set cookie for performance if needed, but for now just pass
-      return NextResponse.next();
-    }
-
     const identityVerified = req.cookies.get('OMNI_IDENTITY_VERIFIED');
 
     if (!identityVerified || identityVerified.value !== 'TRUE') {
       console.log(`[IDENTITY GUARD] User ${userId} unauthorized for ${pathname}. Redirecting to /onboarding`);
+
+      // CRITICAL: If it's an API route, return JSON error instead of redirect
+      if (pathname.startsWith('/api/')) {
+        return new NextResponse(
+          JSON.stringify({
+            error: 'IDENTITY_VERIFICATION_REQUIRED',
+            message: 'Please complete onboarding first',
+            redirect: '/onboarding'
+          }),
+          {
+            status: 403,
+            headers: { 'content-type': 'application/json' }
+          }
+        );
+      }
+
+      // For pages, redirect to onboarding
       return NextResponse.redirect(new URL('/onboarding', req.url));
     }
   }

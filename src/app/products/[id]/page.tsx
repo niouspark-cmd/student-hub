@@ -30,9 +30,13 @@ export default function ProductDetailsPage() {
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [showFAB, setShowFAB] = useState(false);
+    const [isGhostAdmin, setIsGhostAdmin] = useState(false);
 
     useEffect(() => {
         fetchProduct();
+        // Check if admin is viewing
+        const ghost = localStorage.getItem('OMNI_GOD_MODE_UNLOCKED') === 'true';
+        if (ghost) setIsGhostAdmin(true);
     }, [params.id]);
 
     useEffect(() => {
@@ -58,6 +62,11 @@ export default function ProductDetailsPage() {
     };
 
     const handleBuyNow = () => {
+        // Block buying if admin is viewing
+        if (isGhostAdmin) {
+            alert('🛡️ ADMIN MODE ACTIVE\n\nBuying is disabled in Ghost Admin mode.\n\nTo purchase, please sign out of admin mode.');
+            return;
+        }
         if (product) {
             addToCart(product);
             router.push('/cart');
@@ -249,8 +258,17 @@ export default function ProductDetailsPage() {
                                             ₵{(product.price + 30).toFixed(2)} <span className="text-sm text-green-500 font-bold ml-1">(-15%)</span>
                                         </div>
                                     </div>
-                                    <button className="flex-1 w-full sm:w-auto px-8 py-4 bg-[#39FF14] text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-green-500/20">
-                                        Add All 3 to Cart
+                                    <button
+                                        onClick={() => {
+                                            if (isGhostAdmin) {
+                                                alert('🛡️ ADMIN MODE ACTIVE\n\nBuying is disabled in Ghost Admin mode.');
+                                                return;
+                                            }
+                                            // Add bundle to cart logic here
+                                        }}
+                                        className="flex-1 w-full sm:w-auto px-8 py-4 bg-[#39FF14] text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-green-500/20"
+                                    >
+                                        {isGhostAdmin ? '👁️ ADMIN VIEWING' : 'Add All 3 to Cart'}
                                     </button>
                                 </div>
                             </div>
@@ -261,7 +279,14 @@ export default function ProductDetailsPage() {
                 {/* Desktop Buy Button */}
                 <SignedIn>
                     <div className="hidden md:block">
-                        {user?.id === product.vendor.clerkId ? (
+                        {isGhostAdmin ? (
+                            <button
+                                disabled
+                                className="w-full py-6 bg-red-500/10 border-2 border-red-500/30 text-red-500 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] cursor-not-allowed"
+                            >
+                                👁️ ADMIN MODE • BUYING DISABLED
+                            </button>
+                        ) : user?.id === product.vendor.clerkId ? (
                             <button
                                 disabled
                                 className="w-full py-6 bg-surface border border-surface-border text-foreground/40 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] cursor-not-allowed"
@@ -295,7 +320,7 @@ export default function ProductDetailsPage() {
 
             {/* Floating Action Button (Mobile) */}
             <SignedIn>
-                {user?.id !== product.vendor.clerkId && (
+                {!isGhostAdmin && user?.id !== product.vendor.clerkId && (
                     <button
                         onClick={handleBuyNow}
                         className={`fab md:hidden ${showFAB ? 'scale-100' : 'scale-0'} transition-transform duration-300`}

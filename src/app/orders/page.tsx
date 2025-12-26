@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useAdmin } from '@/context/AdminContext';
 
 
 interface Order {
@@ -363,6 +364,7 @@ interface OrderCardProps {
 
 // 🎴 Dynamic Order Card Component
 function OrderCard({ order, viewMode, getStatusInfo, handleCancelOrder, isHistory = false }: OrderCardProps) {
+    const { isFeatureEnabled } = useAdmin();
     const info = getStatusInfo(order.status, order.fulfillmentType || 'PICKUP');
     const isReady = ['PAID', 'PREPARING', 'READY', 'PICKED_UP'].includes(order.status);
 
@@ -385,7 +387,7 @@ function OrderCard({ order, viewMode, getStatusInfo, handleCancelOrder, isHistor
                             <span className="text-[8px] font-bold text-foreground/30 uppercase tracking-tighter">{order.vendor.name}</span>
                         </div>
                     </div>
-                    {!isHistory && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
+                    {!isHistory && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && isFeatureEnabled('MARKET_ACTIONS') && (
                         <button onClick={() => handleCancelOrder?.(order.id)} title="Cancel Mission" className="p-2 text-red-400/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">🗑️</button>
                     )}
                 </div>
@@ -417,8 +419,11 @@ function OrderCard({ order, viewMode, getStatusInfo, handleCancelOrder, isHistor
                                 <div className="text-xl font-black tracking-widest text-primary">{order.releaseKey.slice(0, 3)}-{order.releaseKey.slice(3)}</div>
                             </div>
                         )}
-                        {!isHistory && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
+                        {!isHistory && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && isFeatureEnabled('MARKET_ACTIONS') && (
                             <button onClick={() => handleCancelOrder?.(order.id)} className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase border border-red-500/20">Abort Mission</button>
+                        )}
+                        {!isFeatureEnabled('MARKET_ACTIONS') && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
+                            <div className="w-full py-2 bg-gray-500/10 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-gray-500/20 text-center opacity-50">MAINTENANCE</div>
                         )}
                     </div>
                 </div>
@@ -478,9 +483,17 @@ function OrderCard({ order, viewMode, getStatusInfo, handleCancelOrder, isHistor
                                     </div>
                                 </div>
                             )}
-                            <button className="flex-1 px-6 py-4 bg-surface border border-surface-border rounded-2xl font-black text-[10px] text-foreground/40 hover:bg-surface/80 hover:text-foreground uppercase tracking-widest transition-all">Message</button>
-                            {!isHistory && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
-                                <button onClick={() => handleCancelOrder?.(order.id)} className="px-6 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl font-black text-[10px] border border-red-500/20 transition-all uppercase tracking-widest">Abort Order</button>
+                            {isFeatureEnabled('MARKET_ACTIONS') ? (
+                                <>
+                                    <button className="flex-1 px-6 py-4 bg-surface border border-surface-border rounded-2xl font-black text-[10px] text-foreground/40 hover:bg-surface/80 hover:text-foreground uppercase tracking-widest transition-all">Message</button>
+                                    {!isHistory && !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
+                                        <button onClick={() => handleCancelOrder?.(order.id)} className="px-6 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl font-black text-[10px] border border-red-500/20 transition-all uppercase tracking-widest">Abort Order</button>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="flex-1 flex justify-center items-center opacity-50 text-[10px] font-black uppercase tracking-widest text-foreground/40 py-4 border border-white/5 rounded-2xl">
+                                    ACTIONS PAUSED
+                                </div>
                             )}
                         </div>
                     </div>

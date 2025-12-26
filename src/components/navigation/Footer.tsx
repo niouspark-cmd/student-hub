@@ -2,9 +2,30 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { StoreIcon, PackageIcon, ZapIcon, HeartIcon } from '@/components/ui/Icons';
 
 export default function Footer() {
+    const pathname = usePathname();
+
+    // Pages where footer should be hidden
+    const hideFooterPages = [
+        '/command-center-z',           // Admin panel
+        '/cart',                        // Cart page
+        '/checkout',                    // Checkout flow
+        '/dashboard/vendor',            // Vendor dashboard
+        '/dashboard/admin',             // Admin dashboard
+        '/runner',                      // Runner dashboard
+        '/onboarding',                  // Onboarding flow
+        '/stories/theater',             // Theater mode
+    ];
+
+    // Check if current page should hide footer
+    const shouldHideFooter = hideFooterPages.some(page => pathname?.startsWith(page));
+
+    // Don't render footer on specified pages
+    if (shouldHideFooter) return null;
+
     return (
         <footer className="bg-surface border-t border-surface-border pt-16 pb-8 px-4 mt-24">
             <div className="max-w-7xl mx-auto">
@@ -42,9 +63,9 @@ export default function Footer() {
                         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-6">Ecosystem</h3>
                         <div className="space-y-4">
                             <FooterLink href="/stories" label="Campus Pulse" />
+                            <FooterLink href="/runner" label="Runner Dashboard" />
                             <FooterLink href="/onboarding/vendor" label="Become a Vendor" />
-                            <FooterLink href="/onboarding/runner" label="Join Runner Force" />
-                            <FooterLink href="/command-center-z" label="Command Center" />
+                            <FooterLink href="/about" label="About OMNI" />
                         </div>
                     </div>
 

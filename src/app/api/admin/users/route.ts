@@ -1,33 +1,24 @@
-
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { auth } from '@clerk/nextjs/server';
+import { cookies } from 'next/headers';
 
-const ADMIN_KEY = 'omniadmin.com';
-
-function isAuthorized(request: NextRequest, sessionClaims: any) {
-    const headerKey = request.headers.get('x-admin-key');
-    if (headerKey === ADMIN_KEY) return true;
+async function checkAuth() {
+    const { sessionClaims } = await auth();
     if (sessionClaims?.metadata?.role === 'GOD_MODE') return true;
-    return false;
+
+    const cookieStore = await cookies();
+    const bossToken = cookieStore.get('OMNI_BOSS_TOKEN');
+    return bossToken?.value === 'AUTHORIZED_ADMIN';
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(req: Request) {
     try {
-        const { sessionClaims } = await auth();
-        // Security Check
-        if (!isAuthorized(request, sessionClaims)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-
-        const search = request.nextUrl.searchParams.get('q');
+        if (!await checkAuth()) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
         const users = await prisma.user.findMany({
-            where: search ? {
-                OR: [
-                    { name: { contains: search, mode: 'insensitive' } },
-                    { email: { contains: search, mode: 'insensitive' } },
-                    { shopName: { contains: search, mode: 'insensitive' } }
-                ]
-            } : undefined,
             take: 50,
             orderBy: { createdAt: 'desc' },
             select: {
@@ -35,56 +26,48 @@ export async function GET(request: NextRequest) {
                 name: true,
                 email: true,
                 role: true,
+                balance: true,
                 vendorStatus: true,
                 isRunner: true,
-                shopName: true,
-                balance: true,
-                createdAt: true
+                lastActive: true,
+                university: true
             }
         });
 
-        return NextResponse.json(users);
-    } catch (e) {
-        return NextResponse.json({ error: 'Failed' }, { status: 500 });
+        return NextResponse.json({ success: true, users });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: 'Failed to fetch users' }, { status: 500 });
     }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function POST(req: Request) {
     try {
-        const { sessionClaims, userId: adminId } = await auth();
-        if (!isAuthorized(request, sessionClaims)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-
-        const body = await request.json();
-        const { userId, action, value } = body;
-        // Actions: 'SET_ROLE', 'SET_VENDOR_STATUS', 'TOGGLE_RUNNER'
-
-        let updateData = {};
-        if (action === 'promote_vendor') {
-            updateData = { role: 'VENDOR', vendorStatus: 'ACTIVE' };
-        } else if (action === 'ban') {
-            // We don't have a specific ban column yet, assume suspending vendor or just role manipulation?
-            // Let's toggle vendor status to SUSPENDED for now.
-            updateData = { vendorStatus: 'SUSPENDED' };
-        } else if (action === 'verify_runner') {
-            updateData = { isRunner: true };
+        if (!await checkAuth()) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: updateData
-        });
+        const body = await req.json();
+        const { targetUserId, action, value } = body;
 
-        await prisma.adminLog.create({
-            data: {
-                adminId: adminId!,
-                action: `USER_MOD_${action}`,
-                details: `Modified User ${userId}`
-            }
-        });
+        let updateData = {};
+
+        if (action === 'FREEZE_WALLET') {
+            updateData = { balance: 0 }; // Draconian Freeze
+        } else if (action === 'SET_ROLE') {
+            updateData = { role: value }; // value: 'ADMIN', 'VENDOR', 'STUDENT'
+        } else if (action === 'SET_RUNNER') {
+            updateData = { isRunner: value };
+        }
+
+        if (Object.keys(updateData).length > 0) {
+            await prisma.user.update({
+                where: { id: targetUserId },
+                data: updateData
+            });
+        }
 
         return NextResponse.json({ success: true });
-
-    } catch (e) {
-        return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: 'Action failed' }, { status: 500 });
     }
 }

@@ -41,13 +41,19 @@ export default function Navbar() {
             setDbUser(null);
         }
 
-        // Fetch Global Settings (Ticker)
-        fetch('/api/admin/system', { headers: { 'x-admin-key': 'omniadmin.com' } }) // Public read is fine usually, but we use key to be safe/consistent
-            .then(res => res.json())
-            .then(data => setGlobalNotice(data?.globalNotice || null))
-            .catch(() => setGlobalNotice(null));
+        // Poll Global Settings (Ticker) - Instant Sync
+        const fetchTicker = () => {
+            fetch('/api/admin/system', { headers: { 'x-admin-key': 'omniadmin.com' } })
+                .then(res => res.json())
+                .then(data => setGlobalNotice(data?.globalNotice || null))
+                .catch(() => setGlobalNotice(null));
+        };
 
-    }, [clerkLoaded, user, pathname]);
+        fetchTicker();
+        const interval = setInterval(fetchTicker, 3000); // 3 seconds for "Instant" feel
+
+        return () => clearInterval(interval);
+    }, [clerkLoaded, user]); // Removed pathname to avoid re-mounting interval purely on nav change
 
     // Close drawer on path change and Keyboard Shortcuts
     useEffect(() => {
@@ -77,8 +83,20 @@ export default function Navbar() {
 
     const isActive = (path: string) => pathname === path;
 
-    // If in Vendor Terminal, hide standard navbar (handled by VendorLayout)
-    if (pathname.startsWith('/dashboard/vendor')) {
+    // Parse Color from Global Notice: [#ff0000]Message
+    let tickerMessage = globalNotice;
+    let tickerColor = '#39FF14'; // Default Omni Green
+
+    if (globalNotice?.startsWith('[')) {
+        const match = globalNotice.match(/^\[(#[a-fA-F0-9]{6}|[a-z]+)\](.*)/);
+        if (match) {
+            tickerColor = match[1];
+            tickerMessage = match[2];
+        }
+    }
+
+    // Only hide navbar on Command Center
+    if (pathname?.startsWith('/command-center-z')) {
         return null;
     }
 
@@ -86,6 +104,7 @@ export default function Navbar() {
         <>
             <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-surface-border shadow-2xl transition-all duration-300">
                 <div className="flex justify-between items-center px-4 h-16 max-w-7xl mx-auto">
+                    {/* ... (Existing Logo etc) */}
 
                     {/* LEFT: Mobile Hamburger / Desktop Logo */}
                     <div className="flex items-center gap-4">
@@ -99,7 +118,6 @@ export default function Navbar() {
                         </button>
 
                         {/* Logo - Ghost Trigger */}
-                        {/* Logo - Ghost Trigger (Triple Tap) */}
                         <div
                             onClick={(e) => {
                                 // Triple Click Logic
@@ -145,11 +163,9 @@ export default function Navbar() {
                                     📹 My Pulse
                                 </NavLink>
 
-                                {dbUser?.isRunner && (
-                                    <NavLink href="/runner" isActive={isActive('/runner')}>
-                                        🏃 Runner Mode
-                                    </NavLink>
-                                )}
+                                <NavLink href="/runner" isActive={isActive('/runner')}>
+                                    🏃 Runner Mode
+                                </NavLink>
                             </SignedIn>
                         </div>
                     </div>
@@ -198,16 +214,14 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {/* Mobile: Location Sub-Header (Amazon Style) */}
-
                 {/* GLOBAL TICKER */}
-                {globalNotice && (
-                    <div className="bg-[#39FF14] text-black overflow-hidden h-6 flex items-center relative">
-                        <div className="animate-marquee whitespace-nowrap font-black text-xs uppercase tracking-[0.2em] flex gap-8 w-full absolute">
-                            <span>📢 {globalNotice}</span>
-                            <span>📢 {globalNotice}</span>
-                            <span>📢 {globalNotice}</span>
-                            <span>📢 {globalNotice}</span>
+                {tickerMessage && (
+                    <div style={{ backgroundColor: tickerColor }} className="text-black overflow-hidden h-6 flex items-center relative transition-colors duration-500">
+                        <div className="animate-marquee whitespace-nowrap font-black text-xs uppercase tracking-[0.2em] flex gap-8 w-full absolute pt-1">
+                            <span>📢 {tickerMessage}</span>
+                            <span>📢 {tickerMessage}</span>
+                            <span>📢 {tickerMessage}</span>
+                            <span>📢 {tickerMessage}</span>
                         </div>
                     </div>
                 )}
@@ -371,14 +385,12 @@ export default function Navbar() {
                                         </div>
                                     )}
 
-                                    {dbUser?.isRunner && (
-                                        <div className="mb-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3">
-                                                Work Mode
-                                            </h3>
-                                            <DrawerLink href="/runner" icon={<PackageIcon className="w-5 h-5 text-blue-500" />} label="Runner Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/runner')} />
-                                        </div>
-                                    )}
+                                    <div className="mb-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                                        <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3">
+                                            Earn Money
+                                        </h3>
+                                        <DrawerLink href="/runner" icon={<PackageIcon className="w-5 h-5 text-blue-500" />} label="Runner Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/runner')} />
+                                    </div>
 
                                 </SignedIn>
                             </div>

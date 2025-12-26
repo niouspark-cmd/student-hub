@@ -8,9 +8,15 @@ import { logAdminAction } from '@/lib/admin/audit';
 
 // export const runtime = 'edge';
 
-export async function GET() {
-    if (!await isAuthorizedAdmin()) {
-        return NextResponse.json({ error: 'Uplink Forbidden: Insufficient clearance' }, { status: 403 });
+export async function GET(request: NextRequest) {
+    // Check for admin key header first (for Command Center)
+    const adminKey = request.headers.get('x-admin-key');
+    if (adminKey !== 'omniadmin.com') {
+        // Fall back to standard admin auth (for /dashboard/admin routes)
+        const hasAdminAuth = await isAuthorizedAdmin();
+        if (!hasAdminAuth) {
+            return NextResponse.json({ error: 'Uplink Forbidden: Insufficient clearance' }, { status: 403 });
+        }
     }
 
     try {
@@ -28,8 +34,14 @@ export async function GET() {
 // Update vendor status
 
 export async function POST(request: NextRequest) {
-    if (!await isAuthorizedAdmin()) {
-        return NextResponse.json({ error: 'Uplink Forbidden: Insufficient clearance' }, { status: 403 });
+    // Check for admin key header first (for Command Center)
+    const adminKey = request.headers.get('x-admin-key');
+    if (adminKey !== 'omniadmin.com') {
+        // Fall back to standard admin auth (for /dashboard/admin routes)
+        const hasAdminAuth = await isAuthorizedAdmin();
+        if (!hasAdminAuth) {
+            return NextResponse.json({ error: 'Uplink Forbidden: Insufficient clearance' }, { status: 403 });
+        }
     }
 
     try {

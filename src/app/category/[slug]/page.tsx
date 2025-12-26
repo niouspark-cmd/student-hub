@@ -4,6 +4,8 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
+import CategoryHero from '@/components/marketplace/CategoryHero';
+import EnhancedProductCard from '@/components/marketplace/EnhancedProductCard';
 
 interface Product {
     id: string;
@@ -60,6 +62,7 @@ export default function CategoryHubPage({ params }: { params: Promise<{ slug: st
     // Category-specific filters
     const [spicyLevel, setSpicyLevel] = useState<string>('');
     const [condition, setCondition] = useState<string>('');
+    const [activeQuickFilter, setActiveQuickFilter] = useState<string>('');
 
     useEffect(() => {
         fetchCategory();
@@ -130,6 +133,33 @@ export default function CategoryHubPage({ params }: { params: Promise<{ slug: st
             case 'price-high': filtered.sort((a, b) => b.price - a.price); break;
         }
         setFilteredProducts(filtered);
+    };
+
+    const handleQuickFilter = (filter: string) => {
+        setActiveQuickFilter(filter);
+        // Apply filter logic based on category
+        if (slug === 'food-and-snacks') {
+            // Food quick filters: Breakfast, Lunch, Dinner, Snacks, Drinks
+            // For now, just set as active - can be expanded later
+        }
+    };
+
+    // Get quick filters based on category
+    const getQuickFilters = () => {
+        switch (slug) {
+            case 'food-and-snacks':
+                return ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks'];
+            case 'tech-and-gadgets':
+                return ['Laptops', 'Phones', 'Accessories', 'Gaming'];
+            case 'fashion':
+                return ['Men', 'Women', 'Unisex', 'Accessories'];
+            case 'services':
+                return ['Cleaning', 'Tutoring', 'Delivery', 'Tech Support'];
+            case 'books-and-notes':
+                return ['Textbooks', 'Notes', 'Study Guides', 'Stationery'];
+            default:
+                return [];
+        }
     };
 
     // Category "Energy Color" System - King Kong Edition
@@ -287,6 +317,21 @@ export default function CategoryHubPage({ params }: { params: Promise<{ slug: st
 
                     {/* MAIN PRODUCT FEED - King Kong Edition */}
                     <main className="flex-1 min-w-0">
+                        {/* Category Hero Section */}
+                        <CategoryHero
+                            categoryName={category.name}
+                            categorySlug={slug}
+                            categoryIcon={category.icon || '📦'}
+                            description={category.description || undefined}
+                            stats={{
+                                productCount: filteredProducts.length,
+                                vendorCount: Array.from(new Set(category.products.map(p => p.vendor.id))).length,
+                                avgDeliveryTime: '15m'
+                            }}
+                            quickFilters={getQuickFilters()}
+                            onQuickFilterClick={handleQuickFilter}
+                        />
+
                         {/* Mobile Filter Pills - Horizontal Scroll */}
                         <div className="md:hidden mb-4 overflow-x-auto scrollbar-hide">
                             <div className="flex gap-2 pb-2">
