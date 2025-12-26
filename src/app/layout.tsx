@@ -3,8 +3,11 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/navigation/Navbar";
+import Footer from "@/components/navigation/Footer";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import OnboardingCheck from "@/components/providers/OnboardingCheck";
+import { CartProvider } from "@/context/CartContext";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,12 +37,16 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
         >
           <ThemeProvider>
-            <OnboardingCheck />
-            <Navbar />
-            {children}
+            <CartProvider>
+              <OnboardingCheck />
+              <Navbar />
+              {children}
+              <Footer />
+            </CartProvider>
           </ThemeProvider>
+          <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
         </body>
       </html>
-    </ClerkProvider>
+    </ClerkProvider >
   );
 }

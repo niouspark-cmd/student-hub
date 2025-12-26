@@ -1,0 +1,108 @@
+// src/app/dashboard/vendor/layout.tsx
+'use client';
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
+import { SignedIn } from "@clerk/nextjs";
+import ThemeToggle from '@/components/navigation/ThemeToggle';
+import { StoreIcon, PackageIcon, ShoppingCartIcon, ZapIcon, HomeIcon } from "@/components/ui/Icons";
+
+export default function VendorLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const pathname = usePathname();
+    const isActive = (path: string) => pathname === path;
+
+    return (
+        <div className="min-h-screen bg-background text-foreground selection:bg-[#39FF14] selection:text-black font-sans transition-colors duration-300">
+            {/* PROFESSIONAL VENDOR NAVIGATION (Side/Top Hybrid) */}
+            <nav className="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-xl border-b border-surface-border h-16 transition-colors duration-300">
+                <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+                    {/* Brand */}
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-[#39FF14] flex items-center justify-center">
+                            <StoreIcon className="w-5 h-5 text-black" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-black text-lg tracking-tight leading-none text-foreground">OMNI</span>
+                            <span className="text-[10px] font-bold text-primary dark:text-[#39FF14] tracking-widest uppercase leading-none">Vendor Terminal</span>
+                        </div>
+                    </div>
+
+                    {/* Desktop Links */}
+                    <div className="hidden md:flex items-center gap-1 bg-surface p-1 rounded-full border border-surface-border transition-colors duration-300">
+                        <VendorLink href="/dashboard/vendor" icon={<HomeIcon className="w-4 h-4" />} label="Overview" active={isActive('/dashboard/vendor')} />
+                        <VendorLink href="/dashboard/vendor/products" icon={<PackageIcon className="w-4 h-4" />} label="Inventory" active={isActive('/dashboard/vendor/products')} />
+                        <VendorLink href="/dashboard/vendor/orders" icon={<ZapIcon className="w-4 h-4" />} label="Orders" active={isActive('/dashboard/vendor/orders')} />
+                        <VendorLink href="/dashboard/vendor/scan" icon={<div className="w-4 h-4 border-2 border-current rounded flex items-center justify-center text-[10px] font-bold">QR</div>} label="Scan" active={isActive('/dashboard/vendor/scan')} />
+                    </div>
+
+                    {/* Right Side Actions */}
+                    <div className="flex items-center gap-4">
+                        <ThemeToggle />
+
+                        {/* Switch Back to Student Mode */}
+                        <Link
+                            href="/marketplace"
+                            className="hidden md:flex items-center gap-2 text-xs font-bold text-foreground/60 hover:text-foreground transition-colors"
+                            title="Switch to Buying"
+                        >
+                            <ShoppingCartIcon className="w-4 h-4" />
+                            <span>Marketplace</span>
+                        </Link>
+
+                        <div className="h-8 w-[1px] bg-foreground/10 hidden md:block"></div>
+
+                        <SignedIn>
+                            <UserButton appearance={{ elements: { avatarBox: "w-8 h-8 ring-2 ring-foreground/20" } }} />
+                        </SignedIn>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Main Content Area */}
+            <main className="pt-20 pb-12 px-4 max-w-7xl mx-auto">
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {children}
+                </div>
+            </main>
+
+            {/* Mobile Bottom Bar for Vendors */}
+            <div className="md:hidden fixed bottom-0 w-full bg-background/90 backdrop-blur-xl border-t border-surface-border pb-safe z-50 transition-colors duration-300">
+                <div className="flex justify-around items-center h-16">
+                    <MobileVendorLink href="/dashboard/vendor" icon={<HomeIcon className="w-5 h-5" />} label="Home" active={isActive('/dashboard/vendor')} />
+                    <MobileVendorLink href="/dashboard/vendor/products" icon={<PackageIcon className="w-5 h-5" />} label="Items" active={isActive('/dashboard/vendor/products')} />
+                    <MobileVendorLink href="/dashboard/vendor/orders" icon={<ZapIcon className="w-5 h-5" />} label="Orders" active={isActive('/dashboard/vendor/orders')} />
+                    <MobileVendorLink href="/marketplace" icon={<ShoppingCartIcon className="w-5 h-5" />} label="Shop" active={false} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function VendorLink({ href, icon, label, active }: any) {
+    return (
+        <Link
+            href={href}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${active ? 'bg-[#39FF14] text-black shadow-[0_0_15px_rgba(57,255,20,0.3)]' : 'text-foreground/60 hover:text-foreground hover:bg-foreground/5'}`}
+        >
+            {icon}
+            <span>{label}</span>
+        </Link>
+    );
+}
+
+function MobileVendorLink({ href, icon, label, active }: any) {
+    return (
+        <Link
+            href={href}
+            className={`flex flex-col items-center justify-center w-full h-full gap-1 ${active ? 'text-[#39FF14]' : 'text-foreground/40'}`}
+        >
+            {icon}
+            <span className="text-[9px] font-black uppercase tracking-wider">{label}</span>
+        </Link>
+    );
+}

@@ -9,7 +9,9 @@ interface Product {
     title: string;
     description: string;
     price: number;
-    category: string;
+    category: {
+        name: string;
+    };
     imageUrl: string | null;
     hotspot: string | null;
     createdAt: string;
@@ -108,7 +110,7 @@ export default function VendorProductsPage() {
                                             {product.title}
                                         </h3>
                                         <span className="px-2 py-1 bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest rounded-full border border-primary/20">
-                                            {product.category}
+                                            {product.category.name}
                                         </span>
                                     </div>
 

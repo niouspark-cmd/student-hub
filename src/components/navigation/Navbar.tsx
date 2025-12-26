@@ -4,80 +4,189 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs';
-
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
+import { useCart } from '@/context/CartContext';
+import {
+    MenuIcon,
+    XIcon,
+    ShoppingCartIcon,
+    SearchIcon,
+    MapPinIcon,
+    ChevronRightIcon,
+    StoreIcon,
+    HeartIcon,
+    PackageIcon,
+    ZapIcon,
+    UserCircleIcon
+} from '@/components/ui/Icons';
 
 export default function Navbar() {
     const pathname = usePathname();
     const { user, isLoaded: clerkLoaded } = useUser();
+    const { getItemCount } = useCart();
     const [dbUser, setDbUser] = useState<{ role: string; vendorStatus: string; isRunner: boolean; onboarded: boolean } | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [globalNotice, setGlobalNotice] = useState<string | null>(null);
 
     useEffect(() => {
+        // Fetch User
         if (clerkLoaded && user) {
             fetch('/api/users/me')
                 .then(res => res.json())
                 .then(data => setDbUser(data))
                 .catch(() => setDbUser(null));
         } else if (clerkLoaded && !user) {
-            setTimeout(() => setDbUser(null), 0);
+            setDbUser(null);
         }
+
+        // Fetch Global Settings (Ticker)
+        fetch('/api/admin/system', { headers: { 'x-admin-key': 'omniadmin.com' } }) // Public read is fine usually, but we use key to be safe/consistent
+            .then(res => res.json())
+            .then(data => setGlobalNotice(data?.globalNotice || null))
+            .catch(() => setGlobalNotice(null));
+
     }, [clerkLoaded, user, pathname]);
+
+    // Close drawer on path change and Keyboard Shortcuts
+    useEffect(() => {
+        setIsDrawerOpen(false);
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Shortcut: Shift + Alt + Z (Command Center Z)
+            if (e.shiftKey && e.altKey && e.key === 'Z') {
+                if (user?.publicMetadata?.role === 'GOD_MODE') {
+                    window.location.href = '/command-center-z';
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [pathname, user]);
+
+    // Prevent body scroll when drawer is open
+    useEffect(() => {
+        if (isDrawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+    }, [isDrawerOpen]);
 
     const isActive = (path: string) => pathname === path;
 
+    // If in Vendor Terminal, hide standard navbar (handled by VendorLayout)
+    if (pathname.startsWith('/dashboard/vendor')) {
+        return null;
+    }
+
     return (
-        <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-surface-border transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <img
-                            src="/OMNI-LOGO.ico"
-                            alt="OMNI"
-                            className="h-16 w-auto transition-transform group-hover:scale-110 invert-on-light"
-                        />
-                    </Link>
+        <>
+            <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-surface-border shadow-2xl transition-all duration-300">
+                <div className="flex justify-between items-center px-4 h-16 max-w-7xl mx-auto">
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center gap-1">
-                        <SignedIn>
-                            <NavLink href="/marketplace" isActive={isActive('/marketplace')}>
-                                🛍️ Marketplace
-                            </NavLink>
-                            <NavLink href="/orders" isActive={isActive('/orders')}>
-                                📦 My Orders
-                            </NavLink>
-                            <NavLink href="/stories" isActive={isActive('/stories')}>
-                                📱 Campus Pulse
-                            </NavLink>
-                            <NavLink href="/stories/my-pulse" isActive={isActive('/stories/my-pulse')}>
-                                📹 My Pulse
-                            </NavLink>
+                    {/* LEFT: Mobile Hamburger / Desktop Logo */}
+                    <div className="flex items-center gap-4">
+                        {/* Hamburger Trigger (Mobile Only) */}
+                        <button
+                            onClick={() => setIsDrawerOpen(true)}
+                            className="lg:hidden p-1 hover:bg-surface rounded-lg transition-colors"
+                            aria-label="Open Menu"
+                        >
+                            <MenuIcon className="w-6 h-6 text-foreground" />
+                        </button>
 
-                            {dbUser?.isRunner && (
-                                <NavLink href="/runner" isActive={isActive('/runner')}>
-                                    🏃 Runner Mode
+                        {/* Logo - Ghost Trigger */}
+                        {/* Logo - Ghost Trigger (Triple Tap) */}
+                        <div
+                            onClick={(e) => {
+                                // Triple Click Logic
+                                const now = Date.now();
+                                const lastClick = (window as any).lastGhostClick || 0;
+                                const clicks = (window as any).ghostClicks || 0;
+
+                                if (now - lastClick < 500) { // 500ms between clicks
+                                    (window as any).ghostClicks = clicks + 1;
+                                } else {
+                                    (window as any).ghostClicks = 1;
+                                }
+                                (window as any).lastGhostClick = now;
+
+                                if ((window as any).ghostClicks >= 3) {
+                                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                                    window.location.href = '/command-center-z';
+                                    (window as any).ghostClicks = 0;
+                                }
+                            }}
+                            className="flex items-center gap-2 group flex-shrink-0 cursor-pointer select-none"
+                        >
+                            <img
+                                src="/OMNI-LOGO.ico"
+                                alt="OMNI"
+                                className="h-10 lg:h-12 w-auto transition-transform group-hover:scale-110 invert-on-light"
+                            />
+                        </div>
+
+                        {/* Desktop Navigation Links */}
+                        <div className="hidden lg:flex items-center gap-1 ml-4">
+                            <SignedIn>
+                                <NavLink href="/marketplace" isActive={isActive('/marketplace')}>
+                                    🛍️ Marketplace
                                 </NavLink>
-                            )}
-
-                            {dbUser?.role === 'VENDOR' && (
-                                <NavLink href="/dashboard/vendor" isActive={isActive('/dashboard/vendor')}>
-                                    📊 Vendor Terminal
+                                <NavLink href="/orders" isActive={isActive('/orders')}>
+                                    📦 My Orders
                                 </NavLink>
-                            )}
-
-                            {dbUser?.role === 'ADMIN' && (
-                                <NavLink href="/dashboard/admin" isActive={isActive('/dashboard/admin')}>
-                                    ⚡ OMNI Command
+                                <NavLink href="/stories" isActive={isActive('/stories')}>
+                                    📱 Campus Pulse
                                 </NavLink>
-                            )}
-                        </SignedIn>
+                                <NavLink href="/stories/my-pulse" isActive={isActive('/stories/my-pulse')}>
+                                    📹 My Pulse
+                                </NavLink>
+
+                                {dbUser?.isRunner && (
+                                    <NavLink href="/runner" isActive={isActive('/runner')}>
+                                        🏃 Runner Mode
+                                    </NavLink>
+                                )}
+                            </SignedIn>
+                        </div>
                     </div>
 
-                    {/* Auth & Theme Section */}
-                    <div className="flex items-center gap-6">
+                    {/* RIGHT: Actions (Search, Cart, Profile) */}
+                    <div className="flex items-center gap-3 md:gap-6">
+                        {/* Search Icon (Mobile/Desktop) - Expandable logic could go here */}
+                        <Link href="/search" className="p-2 text-foreground/60 hover:text-primary transition-colors">
+                            <SearchIcon className="w-6 h-6" />
+                        </Link>
+
                         <ThemeToggle />
+
+                        <SignedIn>
+                            {/* Desktop: Text Role */}
+                            <span className="hidden lg:block text-xs font-black text-foreground/40 uppercase tracking-widest">
+                                {dbUser?.role || 'STUDENT'}
+                            </span>
+
+                            {/* Cart Icon */}
+                            <Link
+                                href="/cart"
+                                className="relative p-2 text-foreground hover:text-primary transition-colors group"
+                            >
+                                <ShoppingCartIcon className="w-6 h-6 group-hover:scale-110 transition-transform block" />
+                                {getItemCount() > 0 && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-background shadow-sm">
+                                        <span className="text-[10px] font-black text-white">{getItemCount()}</span>
+                                    </div>
+                                )}
+                            </Link>
+
+                            {/* Desktop: User Avatar */}
+                            <div className="hidden lg:block">
+                                <UserButton appearance={{ elements: { avatarBox: "w-9 h-9 border-2 border-surface-border" } }} />
+                            </div>
+                        </SignedIn>
 
                         <SignedOut>
                             <SignInButton mode="modal">
@@ -86,70 +195,203 @@ export default function Navbar() {
                                 </button>
                             </SignInButton>
                         </SignedOut>
-                        <SignedIn>
-                            <div className="flex items-center gap-3">
-                                <span className="hidden md:block text-xs font-black text-foreground/40 uppercase tracking-widest">
-                                    {dbUser?.role || 'STUDENT'}
-                                </span>
-                                <UserButton
-                                    afterSignOutUrl="/"
-                                    appearance={{
-                                        elements: {
-                                            avatarBox: "w-9 h-9 border-2 border-primary/20"
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </SignedIn>
                     </div>
                 </div>
 
-                {/* Mobile Navigation */}
-                <SignedIn>
-                    <div className="md:hidden flex gap-2 pb-3 overflow-x-auto no-scrollbar">
-                        <MobileNavLink href="/marketplace" isActive={isActive('/marketplace')}>
-                            🛍️ Marketplace
-                        </MobileNavLink>
-                        <MobileNavLink href="/orders" isActive={isActive('/orders')}>
-                            📦 Orders
-                        </MobileNavLink>
-                        <MobileNavLink href="/stories" isActive={isActive('/stories')}>
-                            📱 Pulse
-                        </MobileNavLink>
-                        <MobileNavLink href="/stories/my-pulse" isActive={isActive('/stories/my-pulse')}>
-                            📹 My Pulse
-                        </MobileNavLink>
-                        {dbUser?.isRunner && (
-                            <MobileNavLink href="/runner" isActive={isActive('/runner')}>
-                                🏃 Runner
-                            </MobileNavLink>
-                        )}
-                        {dbUser?.role === 'VENDOR' && (
-                            <MobileNavLink href="/dashboard/vendor" isActive={isActive('/dashboard/vendor')}>
-                                📊 Vendor
-                            </MobileNavLink>
-                        )}
-                        {dbUser?.role === 'ADMIN' && (
-                            <MobileNavLink href="/dashboard/admin" isActive={isActive('/dashboard/admin')}>
-                                ⚡ Admin
-                            </MobileNavLink>
-                        )}
+                {/* Mobile: Location Sub-Header (Amazon Style) */}
+
+                {/* GLOBAL TICKER */}
+                {globalNotice && (
+                    <div className="bg-[#39FF14] text-black overflow-hidden h-6 flex items-center relative">
+                        <div className="animate-marquee whitespace-nowrap font-black text-xs uppercase tracking-[0.2em] flex gap-8 w-full absolute">
+                            <span>📢 {globalNotice}</span>
+                            <span>📢 {globalNotice}</span>
+                            <span>📢 {globalNotice}</span>
+                            <span>📢 {globalNotice}</span>
+                        </div>
                     </div>
-                </SignedIn>
-            </div>
-        </nav>
+                )}
+            </nav>
+
+            {/* HAMBURGER DRAWER (Mobile) */}
+            <AnimatePresence>
+                {isDrawerOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsDrawerOpen(false)}
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+                        />
+
+                        {/* Drawer Content */}
+                        <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-background border-r border-surface-border z-[70] overflow-y-auto lg:hidden shadow-2xl"
+                        >
+                            {/* Drawer Header */}
+                            <div className="p-6 bg-gradient-to-br from-primary/20 to-surface border-b border-surface-border">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="w-12 h-12 rounded-full border-2 border-primary/30 overflow-hidden bg-surface flex items-center justify-center">
+                                        <SignedIn>
+                                            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-full h-full" } }} />
+                                        </SignedIn>
+                                        <SignedOut>
+                                            <UserCircleIcon className="w-full h-full text-foreground/20 p-2" />
+                                        </SignedOut>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsDrawerOpen(false)}
+                                        className="p-2 hover:bg-black/10 rounded-full transition-colors"
+                                    >
+                                        <XIcon className="w-6 h-6 text-foreground" />
+                                    </button>
+                                </div>
+                                <SignedIn>
+                                    <h2 className="text-xl font-black text-foreground uppercase tracking-tight">
+                                        Hello, {user?.firstName || 'Student'}
+                                    </h2>
+                                    <p className="text-xs font-bold text-foreground/60 uppercase tracking-widest mt-1">
+                                        {dbUser?.role || 'Member'} • {dbUser?.onboarded ? 'Verified' : 'Guest'}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-3 bg-surface/50 p-2 rounded-lg w-fit border border-surface-border/50">
+                                        <MapPinIcon className="w-3 h-3 text-primary" />
+                                        <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-wide">
+                                            University of Ghana
+                                        </span>
+                                    </div>
+                                </SignedIn>
+                                <SignedOut>
+                                    <h2 className="text-xl font-black text-foreground uppercase tracking-tight">
+                                        Hello, Guest
+                                    </h2>
+                                    <p className="text-xs font-bold text-foreground/60 uppercase tracking-widest mt-1">
+                                        Join the marketplace today
+                                    </p>
+                                    <div className="mt-4">
+                                        <SignInButton mode="modal">
+                                            <button className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest shadow-lg">
+                                                Sign In / Sign Up
+                                            </button>
+                                        </SignInButton>
+                                    </div>
+                                </SignedOut>
+                            </div>
+
+                            {/* Drawer Links */}
+                            <div className="p-4 space-y-2">
+                                <SignedIn>
+                                    {/* HUSTLE SWITCH (Dual Mode) */}
+                                    <div className="mb-6 p-1">
+                                        <Link
+                                            href={dbUser?.role === 'VENDOR' ? "/dashboard/vendor" : "/onboarding/vendor"}
+                                            onClick={() => setIsDrawerOpen(false)}
+                                            className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-background to-surface border border-primary/30 rounded-2xl shadow-lg relative overflow-hidden group"
+                                        >
+                                            <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors"></div>
+                                            <div className="flex items-center gap-3 relative z-10">
+                                                <div className="w-10 h-10 rounded-full bg-[#39FF14] flex items-center justify-center text-black">
+                                                    <StoreIcon className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-black text-foreground uppercase tracking-widest">
+                                                        {dbUser?.role === 'VENDOR' ? 'Vendor Mode' : 'Become a Vendor'}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-wide">
+                                                        {dbUser?.role === 'VENDOR' ? 'Switch to Dashboard' : 'Start Selling Today'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <ChevronRightIcon className="w-5 h-5 text-foreground/40" />
+                                        </Link>
+                                    </div>
+
+                                    {/* RUNNER SWITCH - Only for Non-Vendors */}
+                                    {dbUser?.role !== 'VENDOR' && (
+                                        <div className="mb-6 p-1 -mt-4">
+                                            <Link
+                                                href={dbUser?.isRunner ? "/runner" : "/onboarding/runner"}
+                                                onClick={() => setIsDrawerOpen(false)}
+                                                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-background to-surface border border-yellow-500/30 rounded-2xl shadow-lg relative overflow-hidden group"
+                                            >
+                                                <div className="absolute inset-0 bg-yellow-500/5 group-hover:bg-yellow-500/10 transition-colors"></div>
+                                                <div className="flex items-center gap-3 relative z-10">
+                                                    <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-black">
+                                                        <ZapIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-black text-foreground uppercase tracking-widest">
+                                                            {dbUser?.isRunner ? 'Runner Mode' : 'Become a Runner'}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-wide">
+                                                            {dbUser?.isRunner ? 'Active Missions' : 'Earn on Campus'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <ChevronRightIcon className="w-5 h-5 text-foreground/40 group-hover:translate-x-1 transition-transform relative z-10" />
+                                            </Link>
+                                        </div>
+                                    )}
+
+                                    <div className="mb-6">
+                                        <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3 px-2">
+                                            Shop & Save
+                                        </h3>
+                                        <DrawerLink href="/marketplace" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/marketplace')} />
+                                        <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={getItemCount()} active={isActive('/cart')} />
+                                        <DrawerLink href="/orders" icon={<PackageIcon className="w-5 h-5" />} label="My Orders" setIsOpen={setIsDrawerOpen} active={isActive('/orders')} />
+                                        <DrawerLink href="/wishlist" icon={<HeartIcon className="w-5 h-5" />} label="Wishlist" setIsOpen={setIsDrawerOpen} />
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3 px-2">
+                                            Community
+                                        </h3>
+                                        <DrawerLink href="/stories" icon={<ZapIcon className="w-5 h-5 text-yellow-500" />} label="Campus Pulse" setIsOpen={setIsDrawerOpen} live={true} active={isActive('/stories')} />
+                                        <DrawerLink href="/stories/my-pulse" icon={<div className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[10px] font-black">MP</div>} label="My Pulse" setIsOpen={setIsDrawerOpen} active={isActive('/stories/my-pulse')} />
+                                    </div>
+
+                                    {/* Specialized Modes */}
+                                    {(dbUser?.role === 'VENDOR' || dbUser?.role === 'ADMIN') && (
+                                        <div className="mb-6 p-4 bg-surface rounded-2xl border border-surface-border">
+                                            <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3">
+                                                Business Terminal
+                                            </h3>
+                                            {dbUser?.role === 'VENDOR' && (
+                                                <DrawerLink href="/dashboard/vendor" icon={<StoreIcon className="w-5 h-5 text-[#39FF14]" />} label="Vendor Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/dashboard/vendor')} className="text-[#39FF14]" />
+                                            )}
+                                            {dbUser?.role === 'ADMIN' && (
+                                                <DrawerLink href="/dashboard/admin" icon={<ZapIcon className="w-5 h-5 text-red-500" />} label="Admin Command" setIsOpen={setIsDrawerOpen} active={isActive('/dashboard/admin')} className="text-red-500" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {dbUser?.isRunner && (
+                                        <div className="mb-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3">
+                                                Work Mode
+                                            </h3>
+                                            <DrawerLink href="/runner" icon={<PackageIcon className="w-5 h-5 text-blue-500" />} label="Runner Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/runner')} />
+                                        </div>
+                                    )}
+
+                                </SignedIn>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
     );
 }
 
-function NavLink({
-    href,
-    isActive,
-    children
-}: {
-    href: string;
-    isActive: boolean;
-    children: React.ReactNode;
-}) {
+// Sub-components
+function NavLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
     return (
         <Link
             href={href}
@@ -163,24 +405,26 @@ function NavLink({
     );
 }
 
-function MobileNavLink({
-    href,
-    isActive,
-    children
-}: {
-    href: string;
-    isActive: boolean;
-    children: React.ReactNode;
-}) {
+function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, className }: any) {
     return (
         <Link
             href={href}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${isActive
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-surface/50 text-foreground/40 hover:bg-surface border border-surface-border'
-                }`}
+            onClick={() => setIsOpen(false)}
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${active ? 'bg-surface border border-surface-border shadow-sm' : 'hover:bg-surface/50'} ${className}`}
         >
-            {children}
+            <div className="flex items-center gap-4">
+                <span className={`text-foreground/60 ${active ? 'text-foreground' : ''}`}>{icon}</span>
+                <span className={`font-bold text-sm uppercase tracking-tight ${active ? 'text-foreground' : 'text-foreground/70'}`}>{label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                {live && (
+                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[8px] font-black uppercase rounded animate-pulse">LIVE</span>
+                )}
+                {badge > 0 && (
+                    <span className="px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-black rounded-full">{badge}</span>
+                )}
+                <ChevronRightIcon className="w-4 h-4 text-foreground/20" />
+            </div>
         </Link>
     );
 }

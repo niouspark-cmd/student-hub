@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { useCart } from '@/context/CartContext';
 
 interface Product {
     id: string;
@@ -15,6 +16,7 @@ interface Product {
     vendor: {
         id: string;
         name: string | null;
+        clerkId: string;
         isActive: boolean;
         currentHotspot: string | null;
     };
@@ -23,6 +25,8 @@ interface Product {
 export default function ProductDetailsPage() {
     const params = useParams();
     const router = useRouter();
+    const { user } = useUser();
+    const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [showFAB, setShowFAB] = useState(false);
@@ -54,7 +58,10 @@ export default function ProductDetailsPage() {
     };
 
     const handleBuyNow = () => {
-        router.push(`/checkout/${params.id}`);
+        if (product) {
+            addToCart(product);
+            router.push('/cart');
+        }
     };
 
     if (loading) {
@@ -111,7 +118,7 @@ export default function ProductDetailsPage() {
                 {/* Back Button */}
                 <button
                     onClick={() => router.back()}
-                    className="absolute top-6 left-6 w-12 h-12 glass-strong rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform"
+                    className="absolute top-28 left-6 w-12 h-12 glass-strong rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform z-20"
                 >
                     ←
                 </button>
@@ -205,15 +212,70 @@ export default function ProductDetailsPage() {
                     </div>
                 </div>
 
+                {/* FREQUENTLY BOUGHT TOGETHER (Amazon Style Logic) */}
+                <div className="mb-12 border-t border-surface-border pt-8">
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight mb-6">Frequently Bought Together</h3>
+                    <div className="bg-surface border border-surface-border rounded-[2rem] p-6 lg:p-8">
+                        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+                            {/* Bundle Visual */}
+                            <div className="flex items-center gap-2 overflow-x-auto pb-4 md:pb-0 no-scrollbar w-full md:w-auto justify-center">
+                                <div className="w-24 h-24 md:w-32 md:h-32 bg-background rounded-2xl flex-shrink-0 border border-surface-border overflow-hidden">
+                                    {product.imageUrl ? <img src={product.imageUrl} className="w-full h-full object-cover" /> : <div className="text-2xl p-4">📦</div>}
+                                </div>
+                                <div className="text-2xl text-foreground/40 font-black">+</div>
+                                <div className="w-24 h-24 md:w-32 md:h-32 bg-background rounded-2xl flex-shrink-0 border border-surface-border flex items-center justify-center relative">
+                                    <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-bl-lg">PROMO</div>
+                                    <span className="text-4xl">🥤</span>
+                                </div>
+                                <div className="text-2xl text-foreground/40 font-black">+</div>
+                                <div className="w-24 h-24 md:w-32 md:h-32 bg-background rounded-2xl flex-shrink-0 border border-surface-border flex items-center justify-center">
+                                    <span className="text-4xl">🍟</span>
+                                </div>
+                            </div>
+
+                            {/* Bundle Action */}
+                            <div className="flex-1 w-full md:w-auto text-center md:text-left">
+                                <div className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-2">Campus Bundle Deal</div>
+                                <div className="text-sm font-bold text-foreground/60 mb-4 space-y-1">
+                                    <p>This Item: <span className="text-foreground">{product.title}</span></p>
+                                    <p>+ <span className="text-foreground">Ener-G Drink (500ml)</span></p>
+                                    <p>+ <span className="text-foreground">Spicy Yam Chips</span></p>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <div className="text-left">
+                                        <div className="text-xs line-through text-foreground/40 font-bold">Total: ₵{(product.price + 35).toFixed(2)}</div>
+                                        <div className="text-3xl font-black text-foreground tracking-tighter">
+                                            ₵{(product.price + 30).toFixed(2)} <span className="text-sm text-green-500 font-bold ml-1">(-15%)</span>
+                                        </div>
+                                    </div>
+                                    <button className="flex-1 w-full sm:w-auto px-8 py-4 bg-[#39FF14] text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-green-500/20">
+                                        Add All 3 to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Desktop Buy Button */}
                 <SignedIn>
                     <div className="hidden md:block">
-                        <button
-                            onClick={handleBuyNow}
-                            className="w-full py-6 bg-primary hover:brightness-110 text-primary-foreground rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] transition-all hover:scale-[1.02] active:scale-95 omni-glow-strong"
-                        >
-                            Buy Now - ₵{product.price.toFixed(2)}
-                        </button>
+                        {user?.id === product.vendor.clerkId ? (
+                            <button
+                                disabled
+                                className="w-full py-6 bg-surface border border-surface-border text-foreground/40 rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] cursor-not-allowed"
+                            >
+                                You Own This Item
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleBuyNow}
+                                className="w-full py-6 bg-primary hover:brightness-110 text-primary-foreground rounded-[2rem] font-black text-sm uppercase tracking-[0.3em] transition-all hover:scale-[1.02] active:scale-95 omni-glow-strong"
+                            >
+                                Buy Now - ₵{product.price.toFixed(2)}
+                            </button>
+                        )}
                     </div>
                 </SignedIn>
 
@@ -233,14 +295,16 @@ export default function ProductDetailsPage() {
 
             {/* Floating Action Button (Mobile) */}
             <SignedIn>
-                <button
-                    onClick={handleBuyNow}
-                    className={`fab md:hidden ${showFAB ? 'scale-100' : 'scale-0'} transition-transform duration-300`}
-                    style={{ width: '4rem', height: '4rem', fontSize: '1.5rem' }}
-                >
-                    🛒
-                </button>
+                {user?.id !== product.vendor.clerkId && (
+                    <button
+                        onClick={handleBuyNow}
+                        className={`fab md:hidden ${showFAB ? 'scale-100' : 'scale-0'} transition-transform duration-300`}
+                        style={{ width: '4rem', height: '4rem', fontSize: '1.5rem' }}
+                    >
+                        🛒
+                    </button>
+                )}
             </SignedIn>
-        </div>
+        </div >
     );
 }

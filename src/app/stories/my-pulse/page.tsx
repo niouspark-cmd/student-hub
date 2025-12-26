@@ -22,6 +22,7 @@ export default function MyPulsePage() {
         totalLikes: 0,
         totalStories: 0,
     });
+    const [visibleCount, setVisibleCount] = useState(8);
 
     useEffect(() => {
         fetchMyStories();
@@ -59,7 +60,7 @@ export default function MyPulsePage() {
     }
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300 py-8 px-4">
+        <div className="min-h-screen bg-background transition-colors duration-300 pt-32 pb-8 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -144,42 +145,55 @@ export default function MyPulsePage() {
                             </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {myStories.map((story) => (
-                                <Link
-                                    key={story.id}
-                                    href={`/stories?id=${story.id}`}
-                                    className="group relative aspect-[9/16] rounded-2xl overflow-hidden bg-black hover:scale-105 transition-all"
-                                >
-                                    {/* Video Thumbnail */}
-                                    <video
-                                        src={story.videoUrl}
-                                        className="w-full h-full object-cover"
-                                        muted
-                                    />
+                        <>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {myStories.slice(0, visibleCount).map((story) => (
+                                    <Link
+                                        key={story.id}
+                                        href={`/stories?id=${story.id}`}
+                                        className="group relative aspect-[9/16] rounded-2xl overflow-hidden bg-black hover:scale-105 transition-all"
+                                    >
+                                        {/* Video Thumbnail */}
+                                        <video
+                                            src={story.videoUrl}
+                                            className="w-full h-full object-cover"
+                                            muted
+                                        />
 
-                                    {/* Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                                            {story.title && (
-                                                <p className="text-white text-sm font-bold mb-2 line-clamp-2">
-                                                    {story.title}
-                                                </p>
-                                            )}
-                                            <div className="flex items-center gap-4 text-white/80 text-xs font-bold">
-                                                <span>👁️ {story.views}</span>
-                                                <span>❤️ {story.likes}</span>
+                                        {/* Overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute bottom-0 left-0 right-0 p-4">
+                                                {story.title && (
+                                                    <p className="text-white text-sm font-bold mb-2 line-clamp-2">
+                                                        {story.title}
+                                                    </p>
+                                                )}
+                                                <div className="flex items-center gap-4 text-white/80 text-xs font-bold">
+                                                    <span>👁️ {story.views}</span>
+                                                    <span>❤️ {story.likes}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Play Icon */}
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="text-white text-2xl">▶️</span>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
+                                        {/* Play Icon */}
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-white text-2xl">▶️</span>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+
+                            {myStories.length > visibleCount && (
+                                <div className="mt-12 flex justify-center">
+                                    <button
+                                        onClick={() => setVisibleCount(prev => prev + 12)}
+                                        className="px-8 py-4 bg-surface border border-surface-border rounded-2xl font-black text-xs uppercase tracking-widest hover:border-[#39FF14] hover:text-[#39FF14] transition-all omni-glow active:scale-95"
+                                    >
+                                        Load More Stories
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

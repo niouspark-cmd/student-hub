@@ -25,9 +25,12 @@ interface Product {
 
 export default function MarketplacePage() {
     const [maintenanceMode, setMaintenanceMode] = useState(false);
+    const [isGhostAdmin, setIsGhostAdmin] = useState(false);
 
     useEffect(() => {
         checkSystemStatus();
+        const ghost = localStorage.getItem('OMNI_GOD_MODE_UNLOCKED') === 'true';
+        if (ghost) setIsGhostAdmin(true);
     }, []);
 
     const checkSystemStatus = async () => {
@@ -44,7 +47,7 @@ export default function MarketplacePage() {
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="max-w-7xl mx-auto px-4 pt-40 pb-8">
                 {/* Subtle Breadcrumb Navigation */}
                 <div className="mb-8">
                     <h1 className="text-sm font-bold tracking-widest text-foreground/30 uppercase mb-8">
@@ -64,18 +67,36 @@ export default function MarketplacePage() {
                 ) : (
                     <>
                         <SignedOut>
-                            <div className="bg-surface border border-surface-border rounded-[2.5rem] p-12 text-center relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-                                <h2 className="text-3xl font-black text-foreground mb-6 uppercase tracking-tight relative z-10">
-                                    Authentication Required for Marketplace Access
-                                </h2>
-                                <SignInButton mode="modal">
-                                    <button className="relative z-10 px-10 py-5 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:scale-105 transition-all omni-glow active:scale-95">
-                                        Initialize Session
-                                    </button>
-                                </SignInButton>
-                            </div>
+                            {!isGhostAdmin && (
+                                <div className="bg-surface border border-surface-border rounded-[2.5rem] p-12 text-center relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+                                    <h2 className="text-3xl font-black text-foreground mb-6 uppercase tracking-tight relative z-10">
+                                        Authentication Required for Marketplace Access
+                                    </h2>
+                                    <SignInButton mode="modal">
+                                        <button className="relative z-10 px-10 py-5 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:scale-105 transition-all omni-glow active:scale-95">
+                                            Initialize Session
+                                        </button>
+                                    </SignInButton>
+                                </div>
+                            )}
                         </SignedOut>
+
+                        {(isGhostAdmin) && (
+                            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-2 text-[10px] font-black text-red-500 uppercase tracking-widest animate-pulse">
+                                    GHOST ADMIN ACTIVE
+                                </div>
+                                {/* Section 1: New Releases */}
+                                <NewReleases />
+                                {/* Section 2: Categories */}
+                                <BentoCategories />
+                                {/* Section 3: Stories */}
+                                <div className="mt-24 mb-12">
+                                    <StoriesFeed />
+                                </div>
+                            </div>
+                        )}
 
                         <SignedIn>
                             {/* Section 1: New Releases - 72 Hour Fresh Drops */}

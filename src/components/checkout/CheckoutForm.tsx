@@ -50,6 +50,18 @@ export default function CheckoutForm({
     };
 
     const handleCheckout = async () => {
+        // Pre-check for Paystack (Avoid orphan orders)
+        const PaystackPop = (window as unknown as {
+            PaystackPop: {
+                setup: (options: unknown) => { openIframe: () => void }
+            }
+        }).PaystackPop;
+
+        if (!PaystackPop) {
+            alert('Payment system (Paystack) not loaded yet. Please wait a moment or refresh.');
+            return;
+        }
+
         setIsCreatingOrder(true);
         try {
             // 1. Create the order in our database first
@@ -66,17 +78,6 @@ export default function CheckoutForm({
 
             if (data.success) {
                 // 2. Launch Paystack using the Inline script
-                const PaystackPop = (window as unknown as {
-                    PaystackPop: {
-                        setup: (options: unknown) => { openIframe: () => void }
-                    }
-                }).PaystackPop;
-                if (!PaystackPop) {
-                    alert('Payment system (Paystack) not loaded. Please refresh.');
-                    setIsCreatingOrder(false);
-                    return;
-                }
-
                 const handler = PaystackPop.setup({
                     key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
                     email: email,

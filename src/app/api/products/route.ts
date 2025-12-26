@@ -11,10 +11,12 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const vendorOnly = searchParams.get('vendorOnly') === 'true';
+        const query = searchParams.get('q');
+        const categoryId = searchParams.get('categoryId');
 
         const { userId } = await auth();
 
-        let where = {};
+        let where: any = {};
 
         if (vendorOnly && userId) {
             const user = await prisma.user.findUnique({
@@ -25,7 +27,18 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ error: 'User not found' }, { status: 404 });
             }
 
-            where = { vendorId: user.id };
+            where.vendorId = user.id;
+        }
+
+        if (query) {
+            where.OR = [
+                { title: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } },
+            ];
+        }
+
+        if (categoryId) {
+            where.categoryId = categoryId;
         }
 
         const products = await prisma.product.findMany({

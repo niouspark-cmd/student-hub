@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '@/context/CartContext';
 
 interface Product {
     id: string;
@@ -32,17 +33,29 @@ interface Category {
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'popular';
 
+const categoryConfig = [
+    { slug: 'food-and-snacks', name: 'Food & Snacks', icon: '🍕' },
+    { slug: 'tech-and-gadgets', name: 'Tech & Gadgets', icon: '💻' },
+    { slug: 'fashion', name: 'Fashion', icon: '👕' },
+    { slug: 'books-and-notes', name: 'Books & Notes', icon: '📚' },
+    { slug: 'services', name: 'Services', icon: '⚡' },
+    { slug: 'everything-else', name: 'Everything Else', icon: '🎯' }
+];
+
 export default function CategoryHubPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
+    const { addToCart } = useCart();
     const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState(true);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+    const [visibleCount, setVisibleCount] = useState(12);
 
     // Filter states
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const [selectedHotspot, setSelectedHotspot] = useState<string>('');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
     const [showActiveOnly, setShowActiveOnly] = useState(false);
+    const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
     // Category-specific filters
     const [spicyLevel, setSpicyLevel] = useState<string>('');
@@ -62,16 +75,41 @@ export default function CategoryHubPage({ params }: { params: Promise<{ slug: st
         try {
             const res = await fetch(`/api/categories/${slug}`);
             const data = await res.json();
+
             if (data.success) {
                 setCategory(data.category);
-                // Set initial price range based on products
                 if (data.category.products.length > 0) {
                     const prices = data.category.products.map((p: Product) => p.price);
                     setPriceRange([0, Math.max(...prices)]);
                 }
+            } else {
+                // Fallback for empty/unseeded category
+                const fallback = categoryConfig.find(c => c.slug === slug);
+                if (fallback) {
+                    setCategory({
+                        id: 'virtual-' + slug,
+                        name: fallback.name,
+                        slug: fallback.slug,
+                        icon: fallback.icon,
+                        description: 'Category hub',
+                        products: []
+                    });
+                }
             }
         } catch (error) {
             console.error('Failed to fetch category hub:', error);
+            // Fallback on error too
+            const fallback = categoryConfig.find(c => c.slug === slug);
+            if (fallback) {
+                setCategory({
+                    id: 'virtual-' + slug,
+                    name: fallback.name,
+                    slug: fallback.slug,
+                    icon: fallback.icon,
+                    description: 'Category hub',
+                    products: []
+                });
+            }
         } finally {
             setLoading(false);
         }
@@ -79,373 +117,358 @@ export default function CategoryHubPage({ params }: { params: Promise<{ slug: st
 
     const applyFilters = () => {
         if (!category) return;
-
         let filtered = [...category.products];
 
-        // Hotspot filter
-        if (selectedHotspot) {
-            filtered = filtered.filter(p => p.hotspot === selectedHotspot);
-        }
+        if (selectedHotspot) filtered = filtered.filter(p => p.hotspot === selectedHotspot);
+        if (showActiveOnly) filtered = filtered.filter(p => p.vendor.isAcceptingOrders);
+        if (slug === 'food-and-snacks' && spicyLevel) filtered = filtered.filter(p => p.details?.spicyLevel === spicyLevel);
+        if (slug === 'tech-and-gadgets' && condition) filtered = filtered.filter(p => p.details?.condition === condition);
 
-        // Price range filter
-        filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
-
-        // Active vendors only
-        if (showActiveOnly) {
-            filtered = filtered.filter(p => p.vendor.isAcceptingOrders);
-        }
-
-        // Category-specific filters
-        if (slug === 'food-and-snacks' && spicyLevel) {
-            filtered = filtered.filter(p => p.details?.spicyLevel === spicyLevel);
-        }
-
-        if (slug === 'tech-and-gadgets' && condition) {
-            filtered = filtered.filter(p => p.details?.condition === condition);
-        }
-
-        // Sorting
         switch (sortBy) {
-            case 'newest':
-                filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                break;
-            case 'price-low':
-                filtered.sort((a, b) => a.price - b.price);
-                break;
-            case 'price-high':
-                filtered.sort((a, b) => b.price - a.price);
-                break;
+            case 'newest': filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); break;
+            case 'price-low': filtered.sort((a, b) => a.price - b.price); break;
+            case 'price-high': filtered.sort((a, b) => b.price - a.price); break;
         }
-
         setFilteredProducts(filtered);
     };
 
-    const getHeaderGradient = () => {
+    // Category "Energy Color" System - King Kong Edition
+    const getCategoryTheme = () => {
         switch (slug) {
-            case 'food-and-snacks': return { bg: 'from-orange-500/20 to-red-500/20', text: 'text-orange-500', icon: '🍕' };
-            case 'tech-and-gadgets': return { bg: 'from-blue-500/20 to-cyan-500/20', text: 'text-cyan-500', icon: '💻' };
-            case 'fashion': return { bg: 'from-pink-500/20 to-purple-500/20', text: 'text-pink-500', icon: '👕' };
-            case 'books-and-notes': return { bg: 'from-amber-500/20 to-yellow-500/20', text: 'text-amber-500', icon: '📚' };
-            case 'services': return { bg: 'from-yellow-500/20 to-orange-500/20', text: 'text-yellow-500', icon: '⚡' };
-            default: return { bg: 'from-primary/20 to-primary/5', text: 'text-primary', icon: '🎯' };
+            case 'food-and-snacks':
+                return {
+                    bg: 'from-orange-500/10 to-red-500/10',
+                    text: 'text-[#FF4D00]',
+                    icon: '🍕',
+                    energy: '#FF4D00', // Sunset Orange
+                    shadow: 'hover:shadow-[0_8px_30px_rgb(255,77,0,0.2)]',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(255,77,0,0.15)]',
+                    badge: 'bg-[#FF4D00]',
+                    border: 'group-hover:border-[#FF4D00]/50',
+                    accent: 'from-[#FF4D00]/10'
+                };
+            case 'tech-and-gadgets':
+                return {
+                    bg: 'from-blue-500/10 to-cyan-500/10',
+                    text: 'text-[#0070FF]',
+                    icon: '💻',
+                    energy: '#0070FF', // Cyber Blue
+                    shadow: 'hover:shadow-[0_8px_30px_rgb(0,112,255,0.2)]',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(0,112,255,0.15)]',
+                    badge: 'bg-[#0070FF]',
+                    border: 'group-hover:border-[#0070FF]/50',
+                    accent: 'from-[#0070FF]/10'
+                };
+            case 'fashion':
+                return {
+                    bg: 'from-purple-500/10 to-pink-500/10',
+                    text: 'text-[#A333FF]',
+                    icon: '👕',
+                    energy: '#A333FF', // Electric Purple
+                    shadow: 'hover:shadow-[0_8px_30px_rgb(163,51,255,0.2)]',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(163,51,255,0.15)]',
+                    badge: 'bg-[#A333FF]',
+                    border: 'group-hover:border-[#A333FF]/50',
+                    accent: 'from-[#A333FF]/10'
+                };
+            case 'books-and-notes':
+                return {
+                    bg: 'from-green-500/10 to-emerald-500/10',
+                    text: 'text-[#2ECC71]',
+                    icon: '📚',
+                    energy: '#2ECC71', // Academic Green
+                    shadow: 'hover:shadow-[0_8px_30px_rgb(46,204,113,0.2)]',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(46,204,113,0.15)]',
+                    badge: 'bg-[#2ECC71]',
+                    border: 'group-hover:border-[#2ECC71]/50',
+                    accent: 'from-[#2ECC71]/10'
+                };
+            case 'services':
+                return {
+                    bg: 'from-yellow-500/10 to-orange-500/10',
+                    text: 'text-yellow-500',
+                    icon: '⚡',
+                    energy: '#FFD700',
+                    shadow: 'hover:shadow-[0_8px_30px_rgb(255,215,0,0.2)]',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(255,215,0,0.15)]',
+                    badge: 'bg-yellow-500',
+                    border: 'group-hover:border-yellow-500/50',
+                    accent: 'from-yellow-500/10'
+                };
+            default:
+                return {
+                    bg: 'from-primary/10 to-primary/5',
+                    text: 'text-primary',
+                    icon: '🎯',
+                    energy: '#39FF14',
+                    shadow: 'hover:shadow-[0_8px_30px_rgba(57,255,20,0.2)]',
+                    glow: 'group-hover:shadow-[0_0_20px_rgba(57,255,20,0.15)]',
+                    badge: 'bg-primary',
+                    border: 'group-hover:border-primary/50',
+                    accent: 'from-primary/10'
+                };
         }
     };
 
-    const theme = getHeaderGradient();
+    const theme = getCategoryTheme();
     const hotspots = Array.from(new Set(category?.products.map(p => p.hotspot).filter(Boolean) as string[]));
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-center">
-                    <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent omni-glow mb-4"></div>
-                    <p className="text-primary font-black uppercase tracking-[0.4em] text-[10px]">Loading Hub...</p>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="h-12 w-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin omni-glow"></div>
+        </div>
+    );
 
-    if (!category) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-                <div className="text-8xl mb-6 opacity-20">🕸️</div>
-                <h1 className="text-4xl font-black text-foreground mb-4 uppercase tracking-tighter">404</h1>
-                <p className="text-foreground/40 text-xs font-black uppercase tracking-widest mb-8">Hub Not Found</p>
-                <Link href="/marketplace" className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest omni-glow active:scale-95 transition-all">
-                    Return to Marketplace
-                </Link>
-            </div>
-        );
-    }
+    if (!category) return <div>Category not found</div>;
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300 pb-24">
-            {/* HERO HEADER */}
-            <div className={`relative pt-32 pb-16 px-4 overflow-hidden border-b border-surface-border bg-gradient-to-b ${theme.bg}`}>
-                <div className="max-w-7xl mx-auto relative z-10">
-                    <Link href="/marketplace" className="inline-flex items-center gap-2 text-foreground/40 hover:text-foreground mb-8 transition-colors font-black text-[10px] uppercase tracking-[0.2em] group">
-                        <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Marketplace
-                    </Link>
+        <div className="min-h-screen bg-background transition-colors duration-300">
+            {/* KING KONG CONTAINER - Max Width 7xl for Ultra-Wide */}
+            <div className="max-w-7xl mx-auto pt-24 pb-24 px-3 md:px-6">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6">
 
-                    <div className="flex flex-col md:flex-row items-start md:items-end gap-6 md:gap-12">
-                        {/* Category Icon */}
-                        <div className="w-32 h-32 bg-surface backdrop-blur-xl rounded-[2rem] flex items-center justify-center text-6xl shadow-2xl border border-white/10 animate-in zoom-in duration-500 animate-float">
-                            {category.icon || theme.icon}
+                    {/* SLIM DESKTOP SIDEBAR - King Kong Edition (192px) */}
+                    <aside className="hidden md:block w-48 flex-shrink-0 space-y-6 sticky top-24 self-start h-[calc(100vh-8rem)] overflow-y-auto pr-2 scrollbar-hide">
+                        <Link
+                            href="/marketplace"
+                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-foreground/40 hover:text-primary transition-colors mb-2 group"
+                        >
+                            <span className="group-hover:-translate-x-1 transition-transform">←</span> Return to Market
+                        </Link>
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground/40 mb-4">Department</h3>
+                            <h1 className="text-2xl font-black uppercase tracking-tighter leading-none">{category.name}</h1>
                         </div>
 
-                        {/* Category Info */}
-                        <div className="flex-1">
-                            <h1 className="text-5xl md:text-7xl font-black text-foreground mb-4 uppercase tracking-tighter leading-none">
-                                {category.name}
+                        {/* Filter Sections */}
+                        <div className="space-y-6">
+                            {/* Hotspots */}
+                            {hotspots.length > 0 && (
+                                <div>
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] mb-3 text-primary">Locations</h4>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <input type="radio" name="hotspot" checked={selectedHotspot === ''} onChange={() => setSelectedHotspot('')} className="accent-primary" />
+                                            <span className={`text-xs font-bold ${selectedHotspot === '' ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground'}`}>All Campus</span>
+                                        </label>
+                                        {hotspots.map(h => (
+                                            <label key={h} className="flex items-center gap-2 cursor-pointer group">
+                                                <input type="radio" name="hotspot" checked={selectedHotspot === h} onChange={() => setSelectedHotspot(h)} className="accent-primary" />
+                                                <span className={`text-xs font-bold ${selectedHotspot === h ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground'}`}>{h}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Sort */}
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] mb-3 text-primary">Sort By</h4>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                                    className="w-full bg-surface border border-surface-border rounded-lg p-2 text-xs font-bold focus:outline-none"
+                                >
+                                    <option value="newest">Newest Arrivals</option>
+                                    <option value="popular">Most Popular</option>
+                                    <option value="price-low">Price: Low to High</option>
+                                    <option value="price-high">Price: High to Low</option>
+                                </select>
+                            </div>
+
+                            {/* Active Only Switch */}
+                            <div className="flex items-center gap-3 p-3 bg-surface border border-surface-border rounded-xl">
+                                <div className={`w-3 h-3 rounded-full ${showActiveOnly ? 'bg-green-500 animate-pulse' : 'bg-foreground/20'}`}></div>
+                                <span className="text-xs font-bold uppercase flex-1">Active Vendors</span>
+                                <input type="checkbox" checked={showActiveOnly} onChange={(e) => setShowActiveOnly(e.target.checked)} className="accent-primary h-4 w-4" />
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* MAIN PRODUCT FEED - King Kong Edition */}
+                    <main className="flex-1 min-w-0">
+                        {/* Mobile Filter Pills - Horizontal Scroll */}
+                        <div className="md:hidden mb-4 overflow-x-auto scrollbar-hide">
+                            <div className="flex gap-2 pb-2">
+                                <button
+                                    onClick={() => setShowActiveOnly(!showActiveOnly)}
+                                    className="px-4 py-2 rounded-full text-xs font-black uppercase whitespace-nowrap border-2 transition-all"
+                                    style={{
+                                        backgroundColor: showActiveOnly ? theme.energy : 'transparent',
+                                        borderColor: theme.energy,
+                                        color: showActiveOnly ? '#000' : theme.energy
+                                    }}
+                                >
+                                    ⚡ Online
+                                </button>
+                                {hotspots.slice(0, 3).map(hotspot => (
+                                    <button
+                                        key={hotspot}
+                                        onClick={() => setSelectedHotspot(selectedHotspot === hotspot ? null : hotspot)}
+                                        className="px-4 py-2 rounded-full text-xs font-black uppercase whitespace-nowrap border-2 transition-all"
+                                        style={{
+                                            backgroundColor: selectedHotspot === hotspot ? theme.energy : 'transparent',
+                                            borderColor: theme.energy,
+                                            color: selectedHotspot === hotspot ? '#000' : theme.energy
+                                        }}
+                                    >
+                                        📍 {hotspot}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Premium Category Header */}
+                        <div className="mb-6 md:mb-8">
+                            <h1 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">
+                                {category.name} <span style={{ color: theme.energy }}>.</span>
                             </h1>
-                            <p className="text-lg md:text-xl font-bold opacity-60 max-w-2xl leading-relaxed uppercase tracking-wide">
-                                {category.description || `Browse all ${category.name.toLowerCase()} available on campus`}
+                            <p className="text-xs font-bold text-foreground/40 uppercase tracking-widest mt-2">
+                                {filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'} Available
                             </p>
                         </div>
 
-                        {/* Stats */}
-                        <div className="text-right">
-                            <div className="text-5xl font-black text-foreground leading-none mb-1">{filteredProducts.length}</div>
-                            <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
-                                {filteredProducts.length === category.products.length ? 'Total Items' : `of ${category.products.length}`}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Decorative Glow */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-            </div>
-
-            {/* FILTERS & SORTING */}
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="bg-surface border border-surface-border rounded-[2rem] p-6 mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Sort By */}
-                        <div>
-                            <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Sort By</label>
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                            >
-                                <option value="newest">Newest First</option>
-                                <option value="price-low">Price: Low to High</option>
-                                <option value="price-high">Price: High to Low</option>
-                            </select>
-                        </div>
-
-                        {/* Hotspot Filter */}
-                        {hotspots.length > 0 && (
-                            <div>
-                                <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Location</label>
-                                <select
-                                    value={selectedHotspot}
-                                    onChange={(e) => setSelectedHotspot(e.target.value)}
-                                    className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                >
-                                    <option value="">All Hotspots</option>
-                                    {hotspots.map(hotspot => (
-                                        <option key={hotspot} value={hotspot}>📍 {hotspot}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Category-Specific Filters */}
-                        {slug === 'food-and-snacks' && (
-                            <div>
-                                <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Spicy Level</label>
-                                <select
-                                    value={spicyLevel}
-                                    onChange={(e) => setSpicyLevel(e.target.value)}
-                                    className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                >
-                                    <option value="">All Levels</option>
-                                    <option value="Mild">🌶️ Mild</option>
-                                    <option value="Medium">🌶️🌶️ Medium</option>
-                                    <option value="Hot">🌶️🌶️🌶️ Hot</option>
-                                    <option value="Fire">🔥 Fire</option>
-                                </select>
-                            </div>
-                        )}
-
-                        {slug === 'tech-and-gadgets' && (
-                            <div>
-                                <label className="block text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Condition</label>
-                                <select
-                                    value={condition}
-                                    onChange={(e) => setCondition(e.target.value)}
-                                    className="w-full px-4 py-3 bg-background border border-surface-border rounded-xl text-foreground font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                >
-                                    <option value="">All Conditions</option>
-                                    <option value="New">✨ New (Sealed)</option>
-                                    <option value="Like New">📦 Like New</option>
-                                    <option value="Used">🔧 Used (Good)</option>
-                                    <option value="Refurbished">♻️ Refurbished</option>
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Active Vendors Toggle */}
-                        <div className="flex items-end">
-                            <button
-                                onClick={() => setShowActiveOnly(!showActiveOnly)}
-                                className={`w-full px-4 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${showActiveOnly
-                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                                        : 'bg-background border border-surface-border text-foreground hover:border-primary/50'
-                                    }`}
-                            >
-                                {showActiveOnly ? '✓ Active Only' : 'All Vendors'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Active Filters Summary */}
-                    {(selectedHotspot || spicyLevel || condition || showActiveOnly) && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {selectedHotspot && (
-                                <span className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-lg text-xs font-bold text-primary">
-                                    📍 {selectedHotspot}
-                                    <button onClick={() => setSelectedHotspot('')} className="ml-2">×</button>
-                                </span>
-                            )}
-                            {spicyLevel && (
-                                <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-500">
-                                    🌶️ {spicyLevel}
-                                    <button onClick={() => setSpicyLevel('')} className="ml-2">×</button>
-                                </span>
-                            )}
-                            {condition && (
-                                <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-500">
-                                    {condition}
-                                    <button onClick={() => setCondition('')} className="ml-2">×</button>
-                                </span>
-                            )}
-                            {showActiveOnly && (
-                                <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-500">
-                                    Active Vendors
-                                    <button onClick={() => setShowActiveOnly(false)} className="ml-2">×</button>
-                                </span>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* PRODUCT GRID */}
-                <AnimatePresence mode="wait">
-                    {filteredProducts.length > 0 ? (
-                        <motion.div
-                            key="products"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-                        >
-                            {filteredProducts.map((product, index) => (
+                        {/* Mobile Filter Drawer (Conditional) */}
+                        <AnimatePresence>
+                            {showFiltersMobile && (
                                 <motion.div
-                                    key={product.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="md:hidden bg-surface border-b border-surface-border overflow-hidden mb-4"
                                 >
-                                    <Link href={`/products/${product.id}`} className="group block h-full">
-                                        <div className="bg-surface border border-surface-border rounded-[2.5rem] overflow-hidden hover:border-primary/50 transition-all h-full flex flex-col shadow-lg hover:shadow-2xl hover:-translate-y-1 duration-300">
-                                            {/* Image */}
-                                            <div className="h-64 relative bg-black/5 overflow-hidden">
-                                                {product.imageUrl ? (
-                                                    <img
-                                                        src={product.imageUrl}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                        alt={product.title}
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-6xl">
-                                                        {category.icon || theme.icon}
-                                                    </div>
-                                                )}
+                                    <div className="p-4 space-y-4">
+                                        {/* Mobile version of filters here - simplified */}
+                                        <select
+                                            value={sortBy}
+                                            onChange={(e) => setSortBy(e.target.value as SortOption)}
+                                            className="w-full bg-background border border-surface-border rounded-lg p-3 font-bold text-sm"
+                                        >
+                                            <option value="newest">Newest Arrivals</option>
+                                            <option value="price-low">Price: Low to High</option>
+                                        </select>
+                                        <button
+                                            onClick={() => setShowActiveOnly(!showActiveOnly)}
+                                            className={`w-full py-3 rounded-lg font-bold text-xs uppercase ${showActiveOnly ? 'bg-primary text-primary-foreground' : 'bg-background border border-surface-border'}`}
+                                        >
+                                            {showActiveOnly ? 'Showing Active Only' : 'Show All Types'}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                                                {/* Badges */}
-                                                <div className="absolute top-4 left-4 right-4 flex justify-between items-start gap-2">
-                                                    {product.hotspot && (
-                                                        <div className="px-3 py-1.5 bg-background/90 backdrop-blur-md rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/10">
-                                                            📍 {product.hotspot}
-                                                        </div>
-                                                    )}
-                                                    {slug === 'food-and-snacks' && product.details?.spicyLevel === 'Fire' && (
-                                                        <div className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg">
-                                                            🔥 SPICY
-                                                        </div>
-                                                    )}
-                                                    {slug === 'tech-and-gadgets' && (
-                                                        <div className="px-3 py-1.5 bg-blue-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg">
-                                                            🛡️ Escrow
-                                                        </div>
-                                                    )}
-                                                </div>
+                        {/* ULTRA-DENSE KING KONG GRID - 2 mobile, 3 tablet, 4 desktop, 5 ultra-wide */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                            {filteredProducts.slice(0, visibleCount).map((product, index) => (
+                                <Link
+                                    href={`/products/${product.id}`}
+                                    key={product.id}
+                                    className={`group relative bg-surface border border-surface-border/60 rounded-2xl overflow-hidden ${theme.border} ${theme.shadow} transition-all duration-300 flex flex-col`}
+                                >
+                                    {/* Category-Colored Gradient Overlay */}
+                                    <div className={`absolute inset-0 bg-gradient-to-t ${theme.accent} to-transparent opacity-0 group-hover:opacity-100 rounded-2xl pointer-events-none transition-opacity duration-300 z-[1]`} />
 
-                                                {/* Vendor Status */}
-                                                <div className="absolute bottom-4 right-4 px-3 py-1 bg-background/80 backdrop-blur-md rounded-full border border-primary/20 flex items-center gap-2">
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${product.vendor.isAcceptingOrders ? 'bg-primary animate-pulse' : 'bg-foreground/20'}`}></div>
-                                                    <span className="text-[8px] font-black text-foreground uppercase tracking-widest">
-                                                        {product.vendor.isAcceptingOrders ? 'Active' : 'Offline'}
-                                                    </span>
-                                                </div>
+                                    {/* Floating "Student Deal" Badge - Category Energy Color */}
+                                    {index % 3 === 0 && (
+                                        <div className={`absolute top-2 right-2 ${theme.badge} text-white text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-1 z-20 rounded-lg shadow-lg`}>
+                                            Student Deal
+                                        </div>
+                                    )}
+
+                                    {/* Image Container - Fixed 1:1 Aspect Ratio */}
+                                    <div className="aspect-square relative bg-background/50 overflow-hidden">
+                                        {product.imageUrl ? (
+                                            <img
+                                                src={product.imageUrl}
+                                                alt={product.title}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-4xl md:text-5xl opacity-20">
+                                                {category.icon}
                                             </div>
+                                        )}
 
-                                            {/* Content */}
-                                            <div className="p-8 flex-1 flex flex-col">
-                                                <h3 className="text-xl font-black text-foreground mb-2 uppercase tracking-tight line-clamp-1">
-                                                    {product.title}
-                                                </h3>
-                                                <p className="text-foreground/40 text-xs font-bold mb-6 line-clamp-2 uppercase tracking-wide">
-                                                    {product.description}
-                                                </p>
+                                        {/* Enhanced Gradient Overlay with Category Energy */}
+                                        <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
 
-                                                {/* Category-Specific Details */}
-                                                <div className="mt-auto space-y-2">
-                                                    {slug === 'tech-and-gadgets' && product.details?.condition && (
-                                                        <div className="flex justify-between items-center py-2 border-t border-surface-border">
-                                                            <span className="text-[10px] uppercase font-bold text-foreground/40">Condition</span>
-                                                            <span className="text-xs font-black uppercase">{product.details.condition}</span>
-                                                        </div>
-                                                    )}
+                                        {/* Elite Quick-Add Button - Bottom Right */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                addToCart(product);
+                                            }}
+                                            className="absolute bottom-2 right-2 w-9 h-9 md:w-11 md:h-11 bg-[#39FF14] text-black rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(57,255,20,0.4)] hover:shadow-[0_6px_20px_rgba(57,255,20,0.6)] active:scale-90 transition-all md:translate-y-12 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 duration-300 z-30"
+                                            title="Quick Add to Cart"
+                                        >
+                                            <span className="text-xl md:text-2xl font-black leading-none pb-0.5">+</span>
+                                        </button>
+                                    </div>
 
-                                                    {slug === 'food-and-snacks' && product.details?.prepTime && (
-                                                        <div className="flex justify-between items-center py-2 border-t border-surface-border">
-                                                            <span className="text-[10px] uppercase font-bold text-foreground/40">Prep Time</span>
-                                                            <span className="text-xs font-black uppercase text-orange-500">{product.details.prepTime}</span>
-                                                        </div>
-                                                    )}
+                                    {/* Elite Product Card Content */}
+                                    <div className="p-3 md:p-4 flex flex-col flex-1 gap-1.5 relative z-10">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="text-sm md:text-base font-black text-foreground leading-tight line-clamp-2 min-h-[2.5em] uppercase tracking-tight">
+                                                {product.title}
+                                            </h3>
+                                        </div>
 
-                                                    {slug === 'books-and-notes' && product.details?.courseCode && (
-                                                        <div className="flex justify-between items-center py-2 border-t border-surface-border">
-                                                            <span className="text-[10px] uppercase font-bold text-foreground/40">Course</span>
-                                                            <span className="text-xs font-black uppercase bg-foreground/5 px-2 py-1 rounded">{product.details.courseCode}</span>
-                                                        </div>
-                                                    )}
+                                        {/* Vendor Trust Badge */}
+                                        <div className="text-[9px] md:text-[10px] text-foreground/40 font-bold uppercase tracking-wider truncate">
+                                            ✓ {product.vendor.name || 'Verified Vendor'}
+                                        </div>
 
-                                                    {/* Price & CTA */}
-                                                    <div className="flex items-center justify-between pt-4 border-t border-surface-border">
-                                                        <div className="text-3xl font-black text-foreground tracking-tighter">₵{product.price.toFixed(2)}</div>
-                                                        <div className="px-6 py-3 bg-foreground text-background rounded-xl text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-lg">
-                                                            View
-                                                        </div>
+                                        {/* Elite Price Section - Bottom Left with Shield */}
+                                        <div className="mt-auto pt-3 flex items-end justify-between">
+                                            <div className="flex items-end gap-2">
+                                                <div>
+                                                    <div className={`text-[9px] ${theme.text} font-black uppercase tracking-wider mb-0.5`}>Price</div>
+                                                    <div className="text-xl md:text-2xl font-black text-foreground leading-none tracking-tighter">
+                                                        ₵{product.price.toFixed(2)}
                                                     </div>
+                                                </div>
+                                                {/* Electric Green Shield - Safe Trade Signal */}
+                                                <div className="text-2xl md:text-3xl relative mb-0.5" title="Shield Escrow Protected">
+                                                    <span className="filter drop-shadow-[0_2px_4px_rgba(57,255,20,0.3)]">🛡️</span>
+                                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#39FF14] rounded-full animate-pulse shadow-[0_0_8px_rgba(57,255,20,0.6)]"></div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
-                                </motion.div>
+
+                                        {/* Delivery Info */}
+                                        {product.hotspot && (
+                                            <div className="mt-1 pt-2 border-t border-surface-border text-[9px] font-bold text-foreground/40 uppercase tracking-wider flex items-center gap-1">
+                                                <span>⚡ 15m to</span>
+                                                <span className="truncate max-w-[80px]">{product.hotspot}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
                             ))}
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="empty"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="text-center py-24 bg-surface rounded-[3rem] border border-dashed border-surface-border"
-                        >
-                            <div className="text-8xl mb-6 opacity-20">🔍</div>
-                            <h3 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">No Items Found</h3>
-                            <p className="text-foreground/40 font-bold uppercase tracking-widest text-xs mb-8">
-                                Try adjusting your filters
-                            </p>
-                            <button
-                                onClick={() => {
-                                    setSelectedHotspot('');
-                                    setSpicyLevel('');
-                                    setCondition('');
-                                    setShowActiveOnly(false);
-                                }}
-                                className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest omni-glow active:scale-95 transition-all"
-                            >
-                                Clear All Filters
-                            </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        </div>
+
+                        {filteredProducts.length > visibleCount && (
+                            <div className="mt-12 flex justify-center">
+                                <button
+                                    onClick={() => setVisibleCount(prev => prev + 12)}
+                                    className="px-8 py-4 bg-surface border border-surface-border rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all omni-glow active:scale-95"
+                                >
+                                    Load More Discoveries
+                                </button>
+                            </div>
+                        )}
+
+                        {filteredProducts.length === 0 && (
+                            <div className="col-span-full py-24 text-center">
+                                <span className="text-6xl opacity-20">🔍</span>
+                                <h3 className="text-xl font-black mt-4 uppercase">No products found</h3>
+                                <button onClick={() => { }} className="text-primary text-xs font-bold mt-2 uppercase underline">Clear Filters</button>
+                            </div>
+                        )}
+                    </main>
+                </div>
             </div>
         </div>
     );

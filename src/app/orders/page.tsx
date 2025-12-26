@@ -151,7 +151,7 @@ export default function OrdersPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pt-24 pb-12 relative overflow-hidden transition-colors duration-300">
+        <div className="min-h-screen bg-background text-foreground pt-32 pb-12 relative overflow-hidden transition-colors duration-300">
             <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
 
             <div className="max-w-4xl mx-auto px-4 relative z-10">
@@ -448,6 +448,9 @@ function OrderCard({ order, viewMode, getStatusInfo, handleCancelOrder, isHistor
                             </div>
                             <div className="text-right">
                                 <div className="text-3xl font-black text-foreground">₵{order.amount.toFixed(2)}</div>
+                                <div className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mt-1">
+                                    Placed {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
                             </div>
                         </div>
 

@@ -3,20 +3,24 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 
 export default function OnboardingCheck() {
-    const { userId, isLoaded } = useAuth();
+    const { user, isLoaded } = useUser();
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
-        console.log('[DEBUG] OnboardingCheck - isLoaded:', isLoaded, 'userId:', userId);
-        if (!isLoaded || !userId) return;
+        // console.log('[DEBUG] OnboardingCheck - isLoaded:', isLoaded, 'userId:', user?.id);
+        if (!isLoaded || !user) return;
+
+        // GOD MODE BYPASS
+        if (user.publicMetadata?.role === 'GOD_MODE') {
+            return;
+        }
 
         // Skip check for onboarding and gatekeeper pages
         if (pathname === '/onboarding' || pathname === '/gatekeeper' || pathname === '/omni-gate') {
-            console.log('[DEBUG] OnboardingCheck - Skipping for route:', pathname);
             return;
         }
 
@@ -45,7 +49,7 @@ export default function OnboardingCheck() {
         };
 
         checkOnboarding();
-    }, [userId, isLoaded, pathname, router]);
+    }, [user, isLoaded, pathname, router]);
 
     return null;
 }

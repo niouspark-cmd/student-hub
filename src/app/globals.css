@@ -17,13 +17,13 @@
   --accent: #8b5cf6;
   --primary-glow: rgba(79, 70, 229, 0.2);
   --omni-green: #39FF14;
-  
+
   /* Glassmorphism Variables */
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.18);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
   --blur-amount: 16px;
-  
+
   /* Bento Spacing */
   --bento-gap: 1.5rem;
   --bento-radius: 2rem;
@@ -39,7 +39,7 @@
   --primary-foreground: #000000;
   --accent: #39FF14;
   --primary-glow: rgba(57, 255, 20, 0.4);
-  
+
   /* Dark Glassmorphism */
   --glass-bg: rgba(13, 17, 23, 0.7);
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -146,6 +146,7 @@ body {
 }
 
 @media (max-width: 768px) {
+
   .bento-lg,
   .bento-xl {
     grid-column: span 1;
@@ -157,27 +158,36 @@ body {
    ======================================== */
 
 @keyframes gradient-x {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
 }
 
 @keyframes gradient-y {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 50% 0%;
   }
+
   50% {
     background-position: 50% 100%;
   }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px var(--primary-glow);
   }
+
   50% {
     box-shadow: 0 0 40px var(--primary-glow);
   }
@@ -187,15 +197,19 @@ body {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -223,6 +237,22 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 10s linear infinite;
+  display: flex;
+  min-width: 200%;
+}
+
 /* ========================================
    🌟 GLOW EFFECTS
    ======================================== */
@@ -241,7 +271,7 @@ body {
 
 .neon-border {
   border: 2px solid var(--primary);
-  box-shadow: 
+  box-shadow:
     0 0 10px var(--primary-glow),
     inset 0 0 10px var(--primary-glow);
 }
@@ -255,7 +285,7 @@ body {
 }
 
 .gradient-mesh {
-  background: 
+  background:
     radial-gradient(at 40% 20%, rgba(79, 70, 229, 0.3) 0px, transparent 50%),
     radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
     radial-gradient(at 0% 50%, rgba(57, 255, 20, 0.2) 0px, transparent 50%);
@@ -388,7 +418,7 @@ body {
     --bento-gap: 1rem;
     --bento-radius: 1.5rem;
   }
-  
+
   .bento-card {
     padding: 1.5rem;
   }

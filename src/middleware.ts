@@ -21,6 +21,15 @@ export default clerkMiddleware(async (auth, req) => {
   // 2. IDENTITY PROTECTION (The Strict Guard)
   // If signed in, not on a public route, and not already on the onboarding flow
   if (userId && !isPublicRoute(req) && !isIdentityRoute(req)) {
+    // GOD MODE BYPASS: Check if user is Admin
+    const { sessionClaims } = await auth();
+    const role = (sessionClaims?.metadata as any)?.role;
+
+    if (role === 'GOD_MODE') {
+      // Allow access, maybe set cookie for performance if needed, but for now just pass
+      return NextResponse.next();
+    }
+
     const identityVerified = req.cookies.get('OMNI_IDENTITY_VERIFIED');
 
     if (!identityVerified || identityVerified.value !== 'TRUE') {

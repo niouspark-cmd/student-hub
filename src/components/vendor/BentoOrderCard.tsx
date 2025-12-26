@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Order {
     id: string;
@@ -19,6 +21,65 @@ interface BentoOrderCardProps {
 }
 
 export default function BentoOrderCard({ order }: BentoOrderCardProps) {
+    const router = useRouter();
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleMarkReady = async () => {
+        if (!confirm('Mark this order as READY for runner pickup?')) return;
+
+        setIsUpdating(true);
+        try {
+            const res = await fetch(`/api/orders/${order.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'READY' })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                // Refresh to update UI and notify system
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to update status');
+                setIsUpdating(false);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Connection error');
+            setIsUpdating(false);
+        }
+    };
+
+    const handleVerifyPickup = async () => {
+        const code = prompt("Enter the 6-digit Runner Key:");
+        if (!code) return;
+
+        setIsUpdating(true);
+        try {
+            const res = await fetch('/api/vendor/verify-pickup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    pickupCode: code
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                alert('Runnner Verified! Order is now in transit.');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Verification Failed');
+                setIsUpdating(false);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Connection error');
+            setIsUpdating(false);
+        }
+    };
+
     // Determine status glow color
     const getStatusGlow = () => {
         if (order.status === 'PAID' || order.status === 'PREPARING') {
@@ -96,9 +157,24 @@ export default function BentoOrderCard({ order }: BentoOrderCardProps) {
                 >
                     View Details
                 </Link>
-                {order.status === 'PAID' && (
-                    <button className="px-4 py-2.5 bg-foreground/5 hover:bg-foreground/10 border border-surface-border rounded-xl transition-all text-[10px] font-black uppercase">
-                        Mark Ready
+                {/* Stage 0 -> Stage 1: Mark Ready */}
+                {(order.status === 'PAID' || order.status === 'PREPARING') && (
+                    <button
+                        onClick={handleMarkReady}
+                        disabled={isUpdating}
+                        className="px-4 py-2.5 bg-foreground/5 hover:bg-foreground/10 border border-surface-border rounded-xl transition-all text-[10px] font-black uppercase disabled:opacity-50"
+                    >
+                        {isUpdating ? '...' : 'Mark Ready'}
+                    </button>
+                )}
+                {/* Stage 1 -> Stage 2: Verify Runner Pickup */}
+                {order.status === 'READY' && (
+                    <button
+                        onClick={handleVerifyPickup}
+                        disabled={isUpdating}
+                        className="px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black border border-yellow-600 rounded-xl transition-all text-[10px] font-black uppercase disabled:opacity-50 animate-pulse"
+                    >
+                        {isUpdating ? '...' : 'Verify Runner'}
                     </button>
                 )}
             </div>

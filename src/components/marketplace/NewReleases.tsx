@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
+import { useUser } from '@clerk/nextjs';
+import Link from 'next/link';
 
 interface NewRelease {
     id: string;
@@ -30,9 +33,13 @@ interface NewRelease {
 }
 
 export default function NewReleases() {
+    const { user } = useUser();
+    const isAdmin = user?.publicMetadata?.role === 'GOD_MODE';
+
     const [releases, setReleases] = useState<NewRelease[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const { addToCart } = useCart();
 
     useEffect(() => {
         fetchNewReleases();
@@ -76,11 +83,20 @@ export default function NewReleases() {
                         NEW RELEASES
                     </h2>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="h-[2px] w-8 bg-primary"></div>
-                    <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px]">
-                        Dropped in the last 72 hours
-                    </p>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-[2px] w-8 bg-primary"></div>
+                        <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px]">
+                            Dropped in the last 72 hours
+                        </p>
+                    </div>
+
+                    <Link
+                        href="/search?q=&categoryId=all"
+                        className="text-[10px] font-black uppercase tracking-widest text-foreground/40 hover:text-primary transition-colors flex items-center gap-2"
+                    >
+                        View All Drops <span className="text-sm">→</span>
+                    </Link>
                 </div>
             </div>
 
@@ -145,6 +161,20 @@ export default function NewReleases() {
                                                 {product.isVendorActive ? 'Live' : 'Offline'}
                                             </span>
                                         </div>
+
+                                        {/* Quick Add Button - HIDDEN FOR ADMIN */}
+                                        {!isAdmin && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    addToCart(product);
+                                                }}
+                                                className="absolute bottom-4 right-20 w-8 h-8 bg-[#39FF14] text-black rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform hover:scale-110 z-20"
+                                                title="Quick Add"
+                                            >
+                                                <span className="text-xl font-black leading-none pb-1">+</span>
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Product Info */}
@@ -175,15 +205,58 @@ export default function NewReleases() {
                                                     ₵{product.price.toFixed(2)}
                                                 </span>
                                             </div>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleProductClick(product.id);
-                                                }}
-                                                className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg hover:shadow-primary/30"
-                                            >
-                                                View
-                                            </button>
+
+                                            {isAdmin ? (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            if (confirm('DELETE PRODUCT? This cannot be undone.')) {
+                                                                try {
+                                                                    const res = await fetch(`/api/admin/products/${product.id}`, {
+                                                                        method: 'DELETE',
+                                                                        headers: {
+                                                                            'x-admin-key': 'omniadmin.com'
+                                                                        }
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        setReleases(prev => prev.filter(p => p.id !== product.id));
+                                                                        alert('ASSET TERMINATED');
+                                                                    } else {
+                                                                        alert('TERMINATION FAILED');
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    alert('SYSTEM ERROR');
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="px-4 py-3 bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                                                    >
+                                                        DEL
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // Inspect Logic
+                                                            router.push(`/products/${product.id}?mode=inspect`);
+                                                        }}
+                                                        className="px-4 py-3 bg-surface border border-surface-border text-foreground hover:bg-surface/80 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                                                    >
+                                                        INSPECT
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleProductClick(product.id);
+                                                    }}
+                                                    className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg hover:shadow-primary/30"
+                                                >
+                                                    View
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>

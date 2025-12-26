@@ -43,14 +43,24 @@ export async function POST(request: NextRequest) {
         // which the student physically gives them.
 
         // 3. Verification successful! Release Escrow.
-        const updatedOrder = await prisma.order.update({
-            where: { id: order.id },
-            data: {
-                status: 'COMPLETED',
-                escrowStatus: 'RELEASED',
-                deliveredAt: new Date(),
-            },
-        });
+        // 3. Verification successful! Release Escrow.
+        // Update Order + Credit Vendor Wallet
+        const [updatedOrder, updatedVendor] = await prisma.$transaction([
+            prisma.order.update({
+                where: { id: order.id },
+                data: {
+                    status: 'COMPLETED',
+                    escrowStatus: 'RELEASED',
+                    deliveredAt: new Date(),
+                },
+            }),
+            prisma.user.update({
+                where: { id: order.vendor.id },
+                data: {
+                    balance: { increment: order.amount }
+                }
+            })
+        ]);
 
         // Award XP to the runner if it was a delivery
         if (order.fulfillmentType === 'DELIVERY' && order.runnerId) {

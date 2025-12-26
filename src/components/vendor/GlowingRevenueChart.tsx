@@ -112,9 +112,9 @@ export default function GlowingRevenueChart({ data }: RevenueChartProps) {
                     <h3 className="text-foreground/40 text-[10px] font-black uppercase tracking-widest mb-2">
                         Revenue Trend (Last 7 Days)
                     </h3>
-                    <div className="text-4xl font-black text-foreground flex items-baseline gap-2">
+                    <div className="text-2xl md:text-4xl font-black text-foreground flex items-baseline gap-2">
                         ₵{totalRevenue.toFixed(2)}
-                        <span className="text-sm text-[#39FF14] font-black uppercase tracking-wider">Total</span>
+                        <span className="text-xs md:text-sm text-[#39FF14] font-black uppercase tracking-wider">Total</span>
                     </div>
                 </div>
                 <div className="w-12 h-12 bg-[#39FF14]/10 rounded-2xl flex items-center justify-center text-2xl border border-[#39FF14]/20">

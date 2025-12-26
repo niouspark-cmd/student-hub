@@ -4,8 +4,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUser } from '@clerk/nextjs';
 
 export default function OnboardingPage() {
+    const { user, isLoaded } = useUser();
     const [step, setStep] = useState(1);
     const [role, setRole] = useState<'STUDENT' | 'VENDOR' | null>(null);
     const [isRunner, setIsRunner] = useState(false);
@@ -18,14 +20,27 @@ export default function OnboardingPage() {
     const router = useRouter();
 
     useEffect(() => {
-        checkExistingStatus();
-    }, []);
+        if (isLoaded && user) {
+            if (user.publicMetadata?.role === 'GOD_MODE') {
+                window.location.href = '/marketplace';
+                return;
+            }
+            checkExistingStatus();
+        }
+    }, [isLoaded, user]);
 
     const checkExistingStatus = async () => {
         setLoading(true);
         try {
             const res = await fetch('/api/users/me');
             const data = await res.json();
+
+            // GOD MODE BYPASS
+            if (data.role === 'GOD_MODE') {
+                window.location.href = '/marketplace';
+                return;
+            }
+
             if (data.onboarded) {
                 // Already onboarded in DB, just need to set the cookie via local refresh or API
                 await handleComplete(data.role, data.isRunner);

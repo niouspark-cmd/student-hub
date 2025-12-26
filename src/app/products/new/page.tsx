@@ -80,7 +80,7 @@ export default function NewProductPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background py-8 transition-colors duration-300">
+        <div className="min-h-screen bg-background pt-48 pb-12 transition-colors duration-300">
             <div className="max-w-3xl mx-auto px-4">
                 <div className="mb-8">
                     <h1 className="text-4xl font-black text-foreground mb-2 uppercase tracking-tighter">
@@ -107,8 +107,8 @@ export default function NewProductPage() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, categoryId: cat.id, details: {} })}
                                         className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${formData.categoryId === cat.id
-                                                ? 'bg-primary/20 border-primary shadow-lg scale-[1.02]'
-                                                : 'bg-background border-surface-border hover:border-primary/50'
+                                            ? 'bg-primary/20 border-primary shadow-lg scale-[1.02]'
+                                            : 'bg-background border-surface-border hover:border-primary/50'
                                             }`}
                                     >
                                         <div className="text-2xl">{cat.icon || '📦'}</div>
