@@ -49,6 +49,9 @@ export default function RunnerDashboard() {
             setIsLoading(false);
         });
 
+        // Fetch immediately on mount
+        fetchActiveMission();
+
         const interval = setInterval(() => {
             if (isOnline) fetchMissions();
             fetchActiveMission();
@@ -59,7 +62,7 @@ export default function RunnerDashboard() {
 
     const fetchActiveMission = async () => {
         try {
-            const res = await fetch('/api/runner/missions/active');
+            const res = await fetch('/api/runner/missions/active', { cache: 'no-store' });
             const data = await res.json();
             if (data.success && data.mission) {
                 setActiveMission(data.mission);
