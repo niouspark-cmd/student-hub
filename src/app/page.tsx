@@ -19,21 +19,13 @@ export default function Home() {
               <img src="/OMNI-LOGO.ico" alt="OMNI" className="relative w-32 h-32 object-contain invert-on-light" />
             </div>
           </div>
-
-          <SimpleEdit
-            id="landing_hero_title"
-            text="THE FUTURE"
-            tag="h1"
-            className="text-8xl md:text-9xl font-black mb-6 uppercase tracking-[-0.05em] leading-[0.8] animate-in fade-in slide-in-from-bottom duration-700 text-primary omni-glow"
-          />
-
+          <h1 className="text-6xl sm:text-7xl md:text-9xl font-black mb-6 uppercase tracking-[-0.05em] leading-[0.9] animate-in fade-in slide-in-from-bottom duration-700 break-words">
+            MOST<br /><span className="text-foreground">POWERFUL</span>
+          </h1>
           <div className="flex flex-col items-center gap-4">
-            <SimpleEdit
-              id="landing_hero_desc"
-              text="University Commerce Redefined"
-              tag="p"
-              className="text-[12px] font-black text-foreground/60 uppercase tracking-[0.8em] mb-4"
-            />
+            <p className="text-[10px] sm:text-[12px] font-black text-foreground/60 uppercase tracking-[0.4em] sm:tracking-[0.8em] mb-4 text-center px-4">
+              University Marketplace Ever Made
+            </p>
             <div className="h-[2px] w-24 bg-primary/30"></div>
           </div>
         </div>
