@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 const isAdminRoute = createRouteMatcher(['/dashboard/admin(.*)', '/admin(.*)', '/api/admin(.*)']);
 const isPublicRoute = createRouteMatcher(['/', '/sign-in(.*)', '/sign-up(.*)', '/api/system/config(.*)', '/omni-gate', '/command-center-z']);
-const isIdentityRoute = createRouteMatcher(['/onboarding(.*)', '/api/auth/onboard(.*)', '/api/auth/sync(.*)', '/api/users/me(.*)']);
+const isIdentityRoute = createRouteMatcher(['/onboarding(.*)', '/api/auth/onboard(.*)', '/api/auth/sync(.*)', '/api/users/me(.*)', '/api/runner(.*)', '/api/orders(.*)', '/api/vendor(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth();

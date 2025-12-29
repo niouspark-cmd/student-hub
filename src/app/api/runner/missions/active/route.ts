@@ -11,11 +11,21 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Find the one active mission for this runner
+        // 1. Get the Runner's internal DB ID first
+        const runner = await prisma.user.findUnique({
+            where: { clerkId: userId },
+            select: { id: true }
+        });
+
+        if (!runner) {
+            return NextResponse.json({ success: true, mission: null });
+        }
+
+        // 2. Find the one active mission using the internal ID
         // Active means: Assigned to me, AND status is NOT COMPLETED/CANCELLED
         const activeMission = await prisma.order.findFirst({
             where: {
-                runnerId: userId,
+                runnerId: runner.id,
                 status: {
                     in: ['READY', 'PICKED_UP']
                 }
