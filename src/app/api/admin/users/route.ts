@@ -33,7 +33,8 @@ export async function GET(req: Request) {
                 vendorStatus: true,
                 isRunner: true,
                 lastActive: true,
-                university: true
+                university: true,
+                frozenBalance: true
             }
         });
 
@@ -78,14 +79,25 @@ export async function POST(req: Request) {
         let updateData: any = {};
 
         if (action === 'FREEZE_WALLET') {
-            // Proper freeze: set flag and zero balance
-            updateData = {
-                walletFrozen: true,
-                balance: 0
-            };
+            const user = await prisma.user.findUnique({ where: { id: targetUserId } });
+            if (user && !user.walletFrozen) {
+                // Proper freeze: save current balance, allow zeroing
+                updateData = {
+                    walletFrozen: true,
+                    balance: 0,
+                    frozenBalance: user.balance
+                };
+            }
         } else if (action === 'UNFREEZE_WALLET') {
-            // Unfreeze wallet
-            updateData = { walletFrozen: false };
+            const user = await prisma.user.findUnique({ where: { id: targetUserId } });
+            if (user && user.walletFrozen) {
+                // Unfreeze wallet: restore balance
+                updateData = {
+                    walletFrozen: false,
+                    balance: user.frozenBalance,
+                    frozenBalance: 0
+                };
+            }
         } else if (action === 'BAN_USER') {
             // Ban user with reason
             updateData = {

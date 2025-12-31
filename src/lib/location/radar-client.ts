@@ -36,27 +36,45 @@ export const setMetadata = (metadata: Record<string, any>) => {
     }
 };
 
+// Tracking state for Web SDK simulation
+let trackingInterval: NodeJS.Timeout | null = null;
+
+// Intervals in milliseconds
+const INTERVAL_RESPONSIVE = 10000; // 10 seconds (Runners)
+const INTERVAL_EFFICIENT = 300000; // 5 minutes (Students)
+
 /**
- * Request location permissions and start tracking.
- * @param mode 'RESPONSIVE' (Runners - high accuracy) or 'EFFICIENT' (Students - battery saving)
- * @param backgroundRequest If true, requests "Always" (Background) permission. If false, requests "When in Use" (Foreground).
+ * Request location permissions and start tracking via periodic trackOnce calls.
+ * Web SDK does not support background presets, so we simulate them with intervals.
+ * @param mode 'RESPONSIVE' (Runners - high frequency) or 'EFFICIENT' (Students - low frequency)
+ * @param backgroundRequest Ignored on web, kept for signature compatibility.
  */
 export const startTracking = async (mode: 'RESPONSIVE' | 'EFFICIENT' = 'EFFICIENT', backgroundRequest: boolean = false) => {
     if (!PUBLISHABLE_KEY) return;
 
     try {
-        // 1. Initialize check (ensure it's ready, though initializeRadar should have run)
-        if (!Radar.isTracking || typeof Radar.isTracking !== 'function') {
-            // Just a safety check, proceed to try startTracking
+        // Clear any existing tracking to avoid duplicates
+        if (trackingInterval) {
+            clearInterval(trackingInterval);
+            trackingInterval = null;
         }
 
-        // 2. Start Tracking (Web SDK handles permissions automatically via browser prompt)
-        const trackingOptions = mode === 'RESPONSIVE'
-            ? Radar.presets.responsive
-            : Radar.presets.efficient;
+        console.log(`Radar tracking initializing in ${mode} mode...`);
 
-        await Radar.startTracking(trackingOptions);
-        console.log(`Radar tracking started in ${mode} mode.`);
+        // 1. Initial Track (Checks permissions)
+        await trackOnce();
+
+        // 2. Set up interval for continuous tracking
+        const intervalMs = mode === 'RESPONSIVE' ? INTERVAL_RESPONSIVE : INTERVAL_EFFICIENT;
+
+        trackingInterval = setInterval(async () => {
+            // console.log(`Radar tracking update (${mode})...`);
+            try {
+                await trackOnce();
+            } catch (e) {
+                console.error("Tracking update failed", e);
+            }
+        }, intervalMs);
 
     } catch (error) {
         console.error('Error starting Radar tracking:', error);
@@ -67,12 +85,10 @@ export const startTracking = async (mode: 'RESPONSIVE' | 'EFFICIENT' = 'EFFICIEN
  * Stop tracking location.
  */
 export const stopTracking = async () => {
-    if (!PUBLISHABLE_KEY) return;
-    try {
-        await Radar.stopTracking();
-        console.log('Radar tracking stopped.');
-    } catch (error) {
-        console.error('Error stopping Radar tracking:', error);
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+        trackingInterval = null;
+        console.log('Radar tracking stopped (interval cleared).');
     }
 };
 
@@ -82,6 +98,7 @@ export const stopTracking = async () => {
 export const trackOnce = async () => {
     if (!PUBLISHABLE_KEY) return;
     try {
+        // trackOnce() automatically handles permission prompt if needed
         const result = await Radar.trackOnce();
         return result;
     } catch (error) {

@@ -748,7 +748,10 @@ export default function CommandCenterPage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-5 bg-black/40 rounded-2xl border border-white/5">
                                                 <div className="text-[9px] text-zinc-500 uppercase tracking-widest mb-2 font-bold">Wallet Assets</div>
-                                                <div className="text-2xl font-mono text-green-400">₵{selectedUser.balance.toFixed(2)}</div>
+                                                <div className="text-2xl font-mono text-green-400">
+                                                    ₵{(selectedUser.walletFrozen ? (selectedUser.frozenBalance || 0) : selectedUser.balance).toFixed(2)}
+                                                    {selectedUser.walletFrozen && <span className="text-[10px] text-red-500 ml-2 block sm:inline"> (FROZEN)</span>}
+                                                </div>
                                             </div>
                                             <div className="p-5 bg-black/40 rounded-2xl border border-white/5">
                                                 <div className="text-[9px] text-zinc-500 uppercase tracking-widest mb-2 font-bold">Clearance Level</div>
