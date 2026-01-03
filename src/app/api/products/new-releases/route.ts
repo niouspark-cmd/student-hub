@@ -1,6 +1,7 @@
 // src/app/api/products/new-releases/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { getCachedNewReleases } from '@/lib/db/cached-queries';
 
 /**
  * GET /api/products/new-releases
@@ -10,25 +11,7 @@ import { prisma } from '@/lib/db/prisma';
  */
 export async function GET(request: NextRequest) {
     try {
-        // Calculate the date 3 days ago
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-        const newReleases = await prisma.product.findMany({
-            where: {
-                createdAt: {
-                    gte: threeDaysAgo // Only get items created >= 72 hours ago
-                }
-            },
-            include: {
-                vendor: true,
-                category: true,
-            },
-            orderBy: {
-                createdAt: 'desc' // Newest items first
-            },
-            take: 12 // Show top 12 freshest items
-        });
+        const newReleases = await getCachedNewReleases();
 
         // Calculate "time ago" for each product
         const productsWithTimeAgo = newReleases.map(product => {
