@@ -19,6 +19,19 @@ export default function CartPage() {
     const [manualEmail, setManualEmail] = useState('');
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [tempEmailInput, setTempEmailInput] = useState('');
+    const [isHybridAuth, setIsHybridAuth] = useState(false);
+    const [hybridClerkId, setHybridClerkId] = useState<string | null>(null);
+
+    useState(() => {
+        if (typeof window !== 'undefined') {
+            const isVerified = document.cookie.split('; ').some(c => c.startsWith('OMNI_IDENTITY_VERIFIED=TRUE'));
+            const syncId = document.cookie.split('; ').find(c => c.trim().startsWith('OMNI_HYBRID_SYNCED='))?.split('=')[1];
+            if (isVerified) {
+                setIsHybridAuth(true);
+                if (syncId) setHybridClerkId(syncId);
+            }
+        }
+    });
 
     const itemsByVendor = items.reduce((acc, item) => {
         if (!acc[item.vendorId]) {
@@ -38,8 +51,8 @@ export default function CartPage() {
     const handleCheckout = async () => {
         if (items.length === 0) return;
 
-        // User Check
-        if (!user) {
+        // User Check (Hybrid Aware)
+        if (!user && !isHybridAuth) {
             modal.alert('Please sign in to checkout.', 'Sign In Required');
             return;
         }
@@ -53,7 +66,21 @@ export default function CartPage() {
 
         const item = items[0]; // Get the single item
 
-        const userEmail = user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress || manualEmail;
+        let userEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || manualEmail;
+
+        // If in Hybrid mode and no email yet, try to fetch it or prompt
+        if (!userEmail && isHybridAuth && hybridClerkId) {
+            try {
+                const res = await fetch(`/api/users/me?clerkId=${hybridClerkId}`);
+                const data = await res.json();
+                if (data.success && data.user?.email) {
+                    userEmail = data.user.email;
+                    setManualEmail(userEmail); // Cache it
+                }
+            } catch (e) {
+                console.error('Hybrid Email Fetch Failed', e);
+            }
+        }
 
         if (!userEmail) {
             setShowEmailModal(true);
