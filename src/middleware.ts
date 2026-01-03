@@ -73,11 +73,12 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  // Security: Clear Tokens if signed out
-  if (!userId && (req.cookies.has('OMNI_BOSS_TOKEN') || req.cookies.has('OMNI_IDENTITY_VERIFIED'))) {
+  // Security: Clear Administrative Tokens if signed out
+  // NOTE: We do NOT clear OMNI_IDENTITY_VERIFIED here because that is our Hybrid Sync bridge
+  // for the mobile app which functions even if the web clerk session isn't hot yet.
+  if (!userId && req.cookies.has('OMNI_BOSS_TOKEN')) {
     const response = NextResponse.next();
     response.cookies.delete('OMNI_BOSS_TOKEN');
-    response.cookies.delete('OMNI_IDENTITY_VERIFIED');
     return response;
   }
 });
