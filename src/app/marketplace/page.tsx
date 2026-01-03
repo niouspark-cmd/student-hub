@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
-import Cookies from 'js-cookie';
 import StoriesFeed from '@/components/marketplace/StoriesFeed';
 import NewReleases from '@/components/marketplace/NewReleases';
 import BentoCategories from '@/components/marketplace/BentoCategories';
@@ -37,9 +36,9 @@ export default function MarketplacePage() {
         const ghost = localStorage.getItem('OMNI_GOD_MODE_UNLOCKED') === 'true';
         if (ghost) setIsGhostAdmin(true);
 
-        // Check for Native Session Sync
-        const hybridToken = Cookies.get('OMNI_IDENTITY_VERIFIED');
-        if (hybridToken === 'TRUE') {
+        // Check for Native Session Sync manually (no external deps)
+        const isVerified = document.cookie.split('; ').some(c => c.startsWith('OMNI_IDENTITY_VERIFIED=TRUE'));
+        if (isVerified) {
             setIsHybridAuth(true);
         }
     }, []);
