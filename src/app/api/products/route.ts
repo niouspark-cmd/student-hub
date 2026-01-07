@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db/prisma';
 import { ensureUserExists } from '@/lib/auth/sync';
+import { getCachedProductsByCategory } from '@/lib/db/cached-queries';
 
 // GET - List all products or vendor's products
 
@@ -39,6 +40,11 @@ export async function GET(request: NextRequest) {
 
         if (categoryId) {
             where.categoryId = categoryId;
+        }
+
+        if (categoryId && !query && !vendorOnly) {
+            const products = await getCachedProductsByCategory(categoryId);
+            return NextResponse.json({ success: true, products });
         }
 
         const products = await prisma.product.findMany({
