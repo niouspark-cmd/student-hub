@@ -14,14 +14,11 @@ const categoryConfig = [
 ];
 
 export default function HorizontalHubs() {
-    const scrollRef = useRef<HTMLDivElement>(null);
-
     return (
-        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-y border-surface-border py-4 mb-8 -mx-4 px-4 overflow-hidden">
-            <motion.div
-                className="flex gap-3 overflow-x-auto no-scrollbar pb-1 snap-x"
-                drag="x"
-                dragConstraints={scrollRef}
+        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-y border-surface-border py-4 mb-8 -mx-4 px-4">
+            <div
+                className="flex gap-3 overflow-x-auto pb-1 snap-x scrollbar-hide"
+                style={{ WebkitOverflowScrolling: 'touch' }}
             >
                 {categoryConfig.map((cat) => (
                     <Link
@@ -33,7 +30,16 @@ export default function HorizontalHubs() {
                         <span className="text-xs font-black uppercase tracking-wider">{cat.name}</span>
                     </Link>
                 ))}
-            </motion.div>
+            </div>
+            <style jsx>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
         </div>
     );
 }
