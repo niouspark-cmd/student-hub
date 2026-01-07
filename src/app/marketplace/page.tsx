@@ -3,10 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 import StoriesFeed from '@/components/marketplace/StoriesFeed';
-import NewReleases from '@/components/marketplace/NewReleases';
-import BentoCategories from '@/components/marketplace/BentoCategories';
 import MaintenanceGuard from '@/components/admin/MaintenanceGuard';
-import SimpleEdit from '@/components/admin/SimpleEdit';
+import HorizontalHubs from '@/components/marketplace/HorizontalHubs';
+import SmartFeed from '@/components/marketplace/SmartFeed';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -58,13 +57,7 @@ export default function MarketplacePage() {
     return (
         <MaintenanceGuard protocol="MARKET">
             <div className="min-h-screen bg-background transition-colors duration-300">
-                <div className="max-w-7xl mx-auto px-4 pt-40 pb-8">
-                    {/* Subtle Breadcrumb Navigation */}
-                    <div className="mb-8">
-                        <h1 className="text-sm font-bold tracking-widest text-foreground/30 uppercase mb-8">
-                            OMNI ECOSYSTEM <span className="text-primary">/</span> MARKET
-                        </h1>
-                    </div>
+                <div className="max-w-7xl mx-auto px-4 pt-32 pb-8">
 
                     {maintenanceMode ? (
                         <div className="bg-red-500/10 border-2 border-red-500/20 rounded-[3rem] p-24 text-center relative overflow-hidden animate-in fade-in zoom-in duration-500">
@@ -82,179 +75,66 @@ export default function MarketplacePage() {
                         </div>
                     ) : (
                         <>
-                            {(isHybridAuth || isGhostAdmin) ? (
-                                <>
-                                    <div className="mb-20">
-                                        <StoriesFeed />
-                                    </div>
+                            {/* Header Section */}
+                            <div className="mb-6 flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-sm font-bold tracking-widest text-foreground/30 uppercase">
+                                        OMNI MARKET <span className="text-primary">•</span> DISCOVERY
+                                    </h1>
+                                </div>
+                            </div>
 
-                                    <div className="mb-24">
-                                        <div className="flex items-end justify-between mb-8">
-                                            <div>
-                                                <SimpleEdit
-                                                    id="market_title"
-                                                    text="New Releases"
-                                                    tag="h2"
-                                                    className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter mb-2"
-                                                />
-                                                <SimpleEdit
-                                                    id="market_subtitle"
-                                                    text="Fresh Drops From Campus Vendors"
-                                                    tag="p"
-                                                    className="text-foreground/40 font-bold tracking-widest uppercase text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                        <Suspense fallback={<div className="h-96 bg-surface/50 rounded-3xl animate-pulse" />}>
-                                            <NewReleases />
-                                        </Suspense>
-                                    </div>
+                            {/* Campus Pulse (Stories) */}
+                            <div className="mb-8">
+                                <StoriesFeed />
+                            </div>
 
-                                    <div className="mb-12">
-                                        <div className="flex items-end justify-between mb-8">
-                                            <div>
-                                                <SimpleEdit
-                                                    id="explore_title"
-                                                    text="Explore"
-                                                    tag="h2"
-                                                    className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter mb-2"
-                                                />
-                                                <SimpleEdit
-                                                    id="explore_subtitle"
-                                                    text="Browse by Category"
-                                                    tag="p"
-                                                    className="text-foreground/40 font-bold tracking-widest uppercase text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                        <BentoCategories />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <SignedOut>
-                                        {!isGhostAdmin && (
-                                            <div className="bg-surface border border-surface-border rounded-[2.5rem] p-12 text-center relative overflow-hidden">
-                                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-                                                <h2 className="text-3xl font-black text-foreground mb-6 uppercase tracking-tight relative z-10">
-                                                    Authentication Required for Marketplace Access
-                                                </h2>
-                                                <p className="text-foreground/60 mb-8 max-w-md mx-auto relative z-10">
-                                                    Please sign in with your student credentials to view the full marketplace, access live drops, and start trading.
-                                                </p>
-                                                <div className="relative z-10">
-                                                    <SignInButton mode="modal">
-                                                        <button className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-wider hover:scale-105 transition-transform shadow-[0_0_20px_rgba(57,255,20,0.3)]">
-                                                            Access Student Hub
-                                                        </button>
-                                                    </SignInButton>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </SignedOut>
-
-                                    <SignedIn>
-                                        <div className="mb-20">
-                                            <StoriesFeed />
-                                        </div>
-
-                                        <div className="mb-24">
-                                            <div className="flex items-end justify-between mb-8">
-                                                <div>
-                                                    <SimpleEdit
-                                                        id="market_title"
-                                                        text="New Releases"
-                                                        tag="h2"
-                                                        className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter mb-2"
-                                                    />
-                                                    <SimpleEdit
-                                                        id="market_subtitle"
-                                                        text="Fresh Drops From Campus Vendors"
-                                                        tag="p"
-                                                        className="text-foreground/40 font-bold tracking-widest uppercase text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <Suspense fallback={<div className="h-96 bg-surface/50 rounded-3xl animate-pulse" />}>
-                                                <NewReleases />
-                                            </Suspense>
-                                        </div>
-
-                                        <div className="mb-12">
-                                            <div className="flex items-end justify-between mb-8">
-                                                <div>
-                                                    <SimpleEdit
-                                                        id="explore_title"
-                                                        text="Explore"
-                                                        tag="h2"
-                                                        className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter mb-2"
-                                                    />
-                                                    <SimpleEdit
-                                                        id="explore_subtitle"
-                                                        text="Browse by Category"
-                                                        tag="p"
-                                                        className="text-foreground/40 font-bold tracking-widest uppercase text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <BentoCategories />
-                                        </div>
-                                    </SignedIn>
-                                </>
-                            )}
-
+                            {/* Authentication Check */}
                             <SignedOut>
-                                {isGhostAdmin && (
-                                    <>
-                                        <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl text-yellow-500 font-bold text-center">
-                                            👻 GHOST ADMIN MODE ACTIVE - VIEWING AS AUTHENTICATED USER
+                                {!isGhostAdmin && !isHybridAuth && (
+                                    <div className="bg-surface border border-surface-border rounded-[2.5rem] p-12 text-center relative overflow-hidden mb-12">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+                                        <h2 className="text-3xl font-black text-foreground mb-6 uppercase tracking-tight relative z-10">
+                                            Authentication Required
+                                        </h2>
+                                        <p className="text-foreground/60 mb-8 max-w-md mx-auto relative z-10">
+                                            Sign in to access personalized recommendations and start trading.
+                                        </p>
+                                        <div className="relative z-10">
+                                            <SignInButton mode="modal">
+                                                <button className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-wider hover:scale-105 transition-transform shadow-[0_0_20px_rgba(57,255,20,0.3)]">
+                                                    Access Student Hub
+                                                </button>
+                                            </SignInButton>
                                         </div>
-                                        <div className="mb-20">
-                                            <StoriesFeed />
-                                        </div>
-                                        <div className="mb-24">
-                                            <div className="flex items-end justify-between mb-8">
-                                                <div>
-                                                    <SimpleEdit
-                                                        id="market_title"
-                                                        text="New Releases"
-                                                        tag="h2"
-                                                        className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter mb-2"
-                                                    />
-                                                    <SimpleEdit
-                                                        id="market_subtitle"
-                                                        text="Fresh Drops From Campus Vendors"
-                                                        tag="p"
-                                                        className="text-foreground/40 font-bold tracking-widest uppercase text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <Suspense fallback={<div className="h-96 bg-surface/50 rounded-3xl animate-pulse" />}>
-                                                <NewReleases />
-                                            </Suspense>
-                                        </div>
-                                        <div className="mb-12">
-                                            <div className="flex items-end justify-between mb-8">
-                                                <div>
-                                                    <SimpleEdit
-                                                        id="explore_title"
-                                                        text="Explore"
-                                                        tag="h2"
-                                                        className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter mb-2"
-                                                    />
-                                                    <SimpleEdit
-                                                        id="explore_subtitle"
-                                                        text="Browse by Category"
-                                                        tag="p"
-                                                        className="text-foreground/40 font-bold tracking-widest uppercase text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <BentoCategories />
-                                        </div>
-                                    </>
+                                    </div>
                                 )}
                             </SignedOut>
+
+                            {(isHybridAuth || isGhostAdmin) ? (
+                                <>
+                                    {isGhostAdmin && (
+                                        <div className="mb-4 text-[10px] font-bold text-yellow-500 text-center uppercase tracking-widest animate-pulse">
+                                            👻 Ghost Mode Active
+                                        </div>
+                                    )}
+                                    {/* Sticky Hubs Bar */}
+                                    <HorizontalHubs />
+
+                                    {/* The Smart Feed */}
+                                    <Suspense fallback={<div className="h-96 bg-surface/50 rounded-3xl animate-pulse" />}>
+                                        <SmartFeed />
+                                    </Suspense>
+                                </>
+                            ) : (
+                                <SignedIn>
+                                    {/* Authenticated View */}
+                                    <HorizontalHubs />
+                                    <Suspense fallback={<div className="h-96 bg-surface/50 rounded-3xl animate-pulse" />}>
+                                        <SmartFeed />
+                                    </Suspense>
+                                </SignedIn>
+                            )}
                         </>
                     )}
                 </div>
