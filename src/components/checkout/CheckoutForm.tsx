@@ -37,7 +37,15 @@ export default function CheckoutForm({
             });
             const data = await res.json();
             if (data.success) {
-                window.location.href = '/orders?success=true';
+                // Check for Mobile WebView
+                if ((window as any).ReactNativeWebView) {
+                    (window as any).ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'PAYMENT_SUCCESS',
+                        orderId: data.order.id
+                    }));
+                } else {
+                    window.location.href = '/orders?success=true';
+                }
             }
         } catch (error) {
             console.error('Final verification failed:', error);
