@@ -8,7 +8,45 @@ import { ensureUserExists } from '@/lib/auth/sync';
 export async function POST(request: NextRequest) {
     try {
         // Sync user and get their DB record
-        const student = await ensureUserExists();
+        let student = await ensureUserExists();
+
+        // Hybrid Auth Fallback for WebViews
+        if (!student) {
+            try {
+                const { cookies } = await import('next/headers');
+                const cookieStore = await cookies();
+                const isVerified = cookieStore.get('OMNI_IDENTITY_VERIFIED')?.value === 'TRUE';
+                const hybridClerkId = cookieStore.get('OMNI_HYBRID_SYNCED')?.value;
+
+                if (isVerified && hybridClerkId) {
+                    student = await prisma.user.findUnique({
+                        where: { clerkId: hybridClerkId },
+                        select: {
+                            id: true,
+                            clerkId: true,
+                            email: true,
+                            name: true,
+                            role: true,
+                            university: true,
+                            onboarded: true,
+                            isRunner: true,
+                            runnerStatus: true,
+                            xp: true,
+                            runnerLevel: true,
+                            currentHotspot: true,
+                            lastActive: true,
+                            walletFrozen: true,
+                            banned: true,
+                            banReason: true,
+                            createdAt: true,
+                            updatedAt: true,
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Hybrid auth fallback failed:', e);
+            }
+        }
 
         if (!student) {
             return NextResponse.json(
