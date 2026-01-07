@@ -45,9 +45,9 @@ const getDiscoveryFeed = unstable_cache(
 
         // 3. Just For You (Random selection for now)
         // In future: Based on user history
+        // FIX: Removed 'skip' to ensure products appear even if DB has few items
         const recommendedPool = await prisma.product.findMany({
             take: 20,
-            skip: Math.floor(Math.random() * 10), // Random skip
             include: {
                 vendor: {
                     select: {
