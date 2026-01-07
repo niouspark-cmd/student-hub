@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
 import CategoryHero from '@/components/marketplace/CategoryHero';
 import EnhancedProductCard from '@/components/marketplace/EnhancedProductCard';
+import MobileBackButton from '@/components/ui/MobileBackButton';
 
 interface Product {
     id: string;
@@ -317,6 +318,8 @@ export default function CategoryHubPage({ params }: { params: Promise<{ slug: st
 
                     {/* MAIN PRODUCT FEED - King Kong Edition */}
                     <main className="flex-1 min-w-0">
+                        <MobileBackButton />
+
                         {/* Category Hero Section */}
                         <CategoryHero
                             categoryName={category.name}
