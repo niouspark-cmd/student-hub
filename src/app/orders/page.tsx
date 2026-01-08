@@ -1,7 +1,7 @@
 // src/app/orders/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useAdmin } from '@/context/AdminContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -286,28 +286,46 @@ export default function OrdersPage() {
     const [activeTab, setActiveTab] = useState<'ACTIVE' | 'ARCHIVE'>('ACTIVE');
     const [selectedHistoryOrder, setSelectedHistoryOrder] = useState<Order | null>(null);
     const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+    const hasAutoExpanded = useRef(false);
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    const fetchOrders = async () => {
-        setLoading(true);
+    const fetchOrders = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const response = await fetch('/api/orders', { cache: 'no-store' });
             const data = await response.json();
             if (data.success) {
                 setOrders(data.orders);
-                // Auto-expand the first priority order (In Transit) if exists
-                const priority = data.orders.find((o: Order) => ['PICKED_UP', 'READY'].includes(o.status));
-                if (priority) setExpandedOrderId(priority.id);
+                // Auto-expand logic (Only once per session mount)
+                if (!silent && !hasAutoExpanded.current) {
+                    const priority = data.orders.find((o: Order) => ['PICKED_UP', 'READY'].includes(o.status));
+                    if (priority) {
+                        setExpandedOrderId(priority.id);
+                        hasAutoExpanded.current = true;
+                    }
+                }
             }
         } catch (error) {
             console.error('Failed to fetch orders:', error);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchOrders(); // Initial load
+
+        const refreshSilent = () => fetchOrders(true);
+
+        window.addEventListener('focus', refreshSilent);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refreshSilent();
+        });
+
+        return () => {
+            window.removeEventListener('focus', refreshSilent);
+            document.removeEventListener('visibilitychange', refreshSilent);
+        };
+    }, [fetchOrders]);
 
     const handleCancelOrder = async (orderId: string) => {
         if (!confirm('This will abort the current protocol. Confirm?')) return;
@@ -315,7 +333,7 @@ export default function OrdersPage() {
             const res = await fetch(`/api/orders/${orderId}/cancel`, { method: 'POST' });
             const data = await res.json();
             if (data.success) {
-                fetchOrders();
+                fetchOrders(true);
             } else {
                 alert(data.error || 'Failed to abort');
             }
