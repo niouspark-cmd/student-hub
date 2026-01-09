@@ -219,6 +219,15 @@ const LedgerRow = ({ order, onClick }: { order: Order, onClick: () => void }) =>
 import { toPng } from 'html-to-image';
 
 // 4. Evidence Vault (Timeline Modal)
+// Declare native interface
+declare global {
+    interface Window {
+        ReactNativeWebView?: {
+            postMessage: (message: string) => void;
+        };
+    }
+}
+
 const EvidenceVault = ({ order, onClose }: { order: Order, onClose: () => void }) => {
     const [copied, setCopied] = useState(false);
     const [showFormats, setShowFormats] = useState(false);
@@ -260,11 +269,26 @@ Thank you for using Omni.
 Live. Learn. Earn.
         `.trim();
 
+        const filename = `OMNI-Receipt-${order.id.slice(0, 8)}.txt`;
+
+        if (window.ReactNativeWebView) {
+            // Encode text to Base64 for native saving
+            const base64 = btoa(unescape(encodeURIComponent(receiptContent))); // handle utf8
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'DOWNLOAD_BLOB',
+                base64: base64,
+                filename: filename,
+                mimetype: 'text/plain'
+            }));
+            setShowFormats(false);
+            return;
+        }
+
         const blob = new Blob([receiptContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `OMNI-Receipt-${order.id.slice(0, 8)}.txt`;
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -278,10 +302,21 @@ Live. Learn. Earn.
             try {
                 // skipFonts: true avoids CORS SecurityError when reading external stylesheets
                 const dataUrl = await toPng(receiptRef.current, { cacheBust: true, pixelRatio: 3, skipFonts: true });
-                const link = document.createElement('a');
-                link.download = `OMNI-Receipt-${order.id.slice(0, 8)}.png`;
-                link.href = dataUrl;
-                link.click();
+                const filename = `OMNI-Receipt-${order.id.slice(0, 8)}.png`;
+
+                if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'DOWNLOAD_BLOB',
+                        base64: dataUrl,
+                        filename: filename,
+                        mimetype: 'image/png'
+                    }));
+                } else {
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = dataUrl;
+                    link.click();
+                }
             } catch (err) {
                 console.error('Failed to generate receipt image', err);
                 alert('Could not generate image. Try TXT version.');
