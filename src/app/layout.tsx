@@ -15,6 +15,8 @@ import Script from "next/script";
 import LocationProvider from "@/components/location/DynamicLocationProvider";
 import CampusGuard from "@/components/layout/CampusGuard";
 import "./globals.css";
+import WelcomeModal from "@/components/alpha/WelcomeModal";
+import InsightUplink from "@/components/alpha/InsightUplink";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +58,8 @@ export default function RootLayout({
                     </CampusGuard>
                     <Footer />
                     <GhostEditToggle />
+                    <WelcomeModal />
+                    <InsightUplink />
                   </CartProvider>
                 </ModalProvider>
               </LocationProvider>

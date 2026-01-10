@@ -185,7 +185,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Partner Management Teaser */}
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-3 gap-8">
                     <div className="p-12 bg-surface border border-surface-border rounded-[3rem] group cursor-pointer hover:border-primary/30 transition-all">
                         <div className="text-6xl mb-8">🛠️</div>
                         <h3 className="text-3xl font-black text-foreground mb-2 uppercase tracking-tighter">Partner Vetting</h3>
@@ -200,6 +200,14 @@ export default function AdminDashboard() {
                         <p className="text-foreground/40 mb-8 max-w-sm font-black uppercase tracking-widest text-[10px]">Manage global settings, fee structure, and security parameters.</p>
                         <Link href="/dashboard/admin/controls">
                             <button className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all omni-glow active:scale-95">Access Terminal</button>
+                        </Link>
+                    </div>
+                    <div className="p-12 bg-surface border border-surface-border rounded-[3rem] group cursor-pointer hover:border-[#39FF14]/30 transition-all">
+                        <div className="text-6xl mb-8">📡</div>
+                        <h3 className="text-3xl font-black text-foreground mb-2 uppercase tracking-tighter">Signal Intel</h3>
+                        <p className="text-foreground/40 mb-8 max-w-sm font-black uppercase tracking-widest text-[10px]">Intercept feedback patterns and tester transmissions from the Alpha field.</p>
+                        <Link href="/dashboard/admin/signals">
+                            <button className="px-8 py-4 bg-[#39FF14] text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-lg active:scale-95">Open Uplink</button>
                         </Link>
                     </div>
                 </div>

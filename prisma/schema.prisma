@@ -278,3 +278,13 @@ model AdminLog {
   ipAddress String?
   createdAt DateTime @default(now())
 }
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userName  String
+  userId    String?
+  content   String
+  rating    Int?
+  status    String   @default("OPEN") // OPEN, RESOLVED
+  createdAt DateTime @default(now())
+}
