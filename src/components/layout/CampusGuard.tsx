@@ -10,6 +10,7 @@ export default function CampusGuard({ children }: { children: React.ReactNode })
     const { user, isLoaded } = useUser();
     const [needsSelection, setNeedsSelection] = useState(false);
     const [selectedUni, setSelectedUni] = useState('');
+    const [customUni, setCustomUni] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
@@ -47,12 +48,13 @@ export default function CampusGuard({ children }: { children: React.ReactNode })
     };
 
     const handleSave = async () => {
-        if (!selectedUni) return;
+        const finalUni = selectedUni === 'OTHER' ? customUni.trim() : selectedUni;
+        if (!finalUni) return;
         setLoading(true);
         try {
             await fetch('/api/users/update-profile', {
                 method: 'POST',
-                body: JSON.stringify({ university: selectedUni }),
+                body: JSON.stringify({ university: finalUni }),
             });
             setNeedsSelection(false);
             window.location.reload(); // Refresh to apply filters
@@ -103,11 +105,23 @@ export default function CampusGuard({ children }: { children: React.ReactNode })
                             <span className="font-bold text-sm">Other / Not Listed</span>
                             {selectedUni === 'OTHER' && <span>✓</span>}
                         </button>
+
+                        {/* Custom Input for 'OTHER' */}
+                        {selectedUni === 'OTHER' && (
+                            <input
+                                type="text"
+                                placeholder="Enter your university name..."
+                                value={customUni}
+                                onChange={(e) => setCustomUni(e.target.value)}
+                                className="w-full p-4 rounded-xl bg-background border border-primary/50 text-foreground font-bold placeholder:text-foreground/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all animate-in fade-in slide-in-from-top-2"
+                                autoFocus
+                            />
+                        )}
                     </div>
 
                     <button
                         onClick={handleSave}
-                        disabled={!selectedUni || loading}
+                        disabled={(!selectedUni || (selectedUni === 'OTHER' && !customUni.trim())) || loading}
                         className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
                     >
                         {loading ? 'Setting Campus...' : 'Confirm Campus 🚀'}

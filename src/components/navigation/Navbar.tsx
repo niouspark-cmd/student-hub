@@ -388,12 +388,14 @@ export default function Navbar() {
                                         </div>
                                     )}
 
-                                    <div className="mb-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                                        <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3">
-                                            Earn Money
-                                        </h3>
-                                        <DrawerLink href="/runner" icon={<PackageIcon className="w-5 h-5 text-blue-500" />} label="Runner Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/runner')} />
-                                    </div>
+                                    {dbUser?.isRunner && (
+                                        <div className="mb-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3">
+                                                Earn Money
+                                            </h3>
+                                            <DrawerLink href="/runner" icon={<PackageIcon className="w-5 h-5 text-blue-500" />} label="Runner Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/runner')} />
+                                        </div>
+                                    )}
 
                                 </SignedIn>
                             </div>
