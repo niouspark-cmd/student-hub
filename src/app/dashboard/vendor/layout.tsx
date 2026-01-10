@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { SignedIn } from "@clerk/nextjs";
 import ThemeToggle from '@/components/navigation/ThemeToggle';
@@ -15,6 +15,11 @@ export default function VendorLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const omniToken = searchParams?.get('__omni_token');
+
+    // Helper to preserve auth token in navigation
+    const getHref = (path: string) => omniToken ? `${path}?__omni_token=${omniToken}` : path;
     const isActive = (path: string) => pathname === path;
 
     return (
@@ -35,10 +40,10 @@ export default function VendorLayout({
 
                     {/* Desktop Links */}
                     <div className="hidden md:flex items-center gap-1 bg-surface p-1 rounded-full border border-surface-border transition-colors duration-300">
-                        <VendorLink href="/dashboard/vendor" icon={<HomeIcon className="w-4 h-4" />} label="Overview" active={isActive('/dashboard/vendor')} />
-                        <VendorLink href="/dashboard/vendor/products" icon={<PackageIcon className="w-4 h-4" />} label="Inventory" active={isActive('/dashboard/vendor/products')} />
-                        <VendorLink href="/dashboard/vendor/orders" icon={<ZapIcon className="w-4 h-4" />} label="Orders" active={isActive('/dashboard/vendor/orders')} />
-                        <VendorLink href="/dashboard/vendor/scan" icon={<div className="w-4 h-4 border-2 border-current rounded flex items-center justify-center text-[10px] font-bold">QR</div>} label="Scan" active={isActive('/dashboard/vendor/scan')} />
+                        <VendorLink href={getHref("/dashboard/vendor")} icon={<HomeIcon className="w-4 h-4" />} label="Overview" active={isActive('/dashboard/vendor')} />
+                        <VendorLink href={getHref("/dashboard/vendor/products")} icon={<PackageIcon className="w-4 h-4" />} label="Inventory" active={isActive('/dashboard/vendor/products')} />
+                        <VendorLink href={getHref("/dashboard/vendor/orders")} icon={<ZapIcon className="w-4 h-4" />} label="Orders" active={isActive('/dashboard/vendor/orders')} />
+                        <VendorLink href={getHref("/dashboard/vendor/scan")} icon={<div className="w-4 h-4 border-2 border-current rounded flex items-center justify-center text-[10px] font-bold">QR</div>} label="Scan" active={isActive('/dashboard/vendor/scan')} />
                     </div>
 
                     {/* Right Side Actions */}
@@ -48,11 +53,11 @@ export default function VendorLayout({
                         {/* Switch Back / Exit Terminal */}
                         <Link
                             href="/marketplace"
-                            className="flex items-center gap-2 text-xs font-bold text-red-500/80 hover:text-red-500 transition-colors"
+                            className="flex items-center gap-2 text-xs font-bold text-red-500 transition-colors"
                             title="Exit Terminal"
                         >
-                            <span className="md:hidden text-[10px] uppercase font-black tracking-widest border border-red-500/20 px-2 py-1 rounded">Exit</span>
-                            <span className="hidden md:inline">Exit Mode</span>
+                            <span className="md:hidden text-[10px] uppercase font-black tracking-widest border-2 border-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg shadow-sm">Exit</span>
+                            <span className="hidden md:inline hover:underline">Exit Mode</span>
                         </Link>
 
                         <div className="h-8 w-[1px] bg-foreground/10 hidden md:block"></div>
@@ -76,9 +81,9 @@ export default function VendorLayout({
             {/* Mobile Bottom Bar for Vendors */}
             <div className="md:hidden fixed bottom-0 w-full bg-background/90 backdrop-blur-xl border-t border-surface-border pb-safe z-50 transition-colors duration-300">
                 <div className="flex justify-around items-center h-16">
-                    <MobileVendorLink href="/dashboard/vendor" icon={<HomeIcon className="w-5 h-5" />} label="Home" active={isActive('/dashboard/vendor')} />
-                    <MobileVendorLink href="/dashboard/vendor/products" icon={<PackageIcon className="w-5 h-5" />} label="Items" active={isActive('/dashboard/vendor/products')} />
-                    <MobileVendorLink href="/dashboard/vendor/orders" icon={<ZapIcon className="w-5 h-5" />} label="Orders" active={isActive('/dashboard/vendor/orders')} />
+                    <MobileVendorLink href={getHref("/dashboard/vendor")} icon={<HomeIcon className="w-5 h-5" />} label="Home" active={isActive('/dashboard/vendor')} />
+                    <MobileVendorLink href={getHref("/dashboard/vendor/products")} icon={<PackageIcon className="w-5 h-5" />} label="Items" active={isActive('/dashboard/vendor/products')} />
+                    <MobileVendorLink href={getHref("/dashboard/vendor/orders")} icon={<ZapIcon className="w-5 h-5" />} label="Orders" active={isActive('/dashboard/vendor/orders')} />
                     <MobileVendorLink href="/marketplace" icon={<ShoppingCartIcon className="w-5 h-5" />} label="Shop" active={false} />
                 </div>
             </div>
