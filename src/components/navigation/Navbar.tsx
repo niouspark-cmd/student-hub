@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import { UNIVERSITY_REGISTRY } from '@/lib/geo/distance';
 import { usePathname } from 'next/navigation';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
@@ -26,7 +27,7 @@ export default function Navbar() {
     const pathname = usePathname();
     const { user, isLoaded: clerkLoaded } = useUser();
     const { getItemCount } = useCart();
-    const [dbUser, setDbUser] = useState<{ role: string; vendorStatus: string; isRunner: boolean; onboarded: boolean } | null>(null);
+    const [dbUser, setDbUser] = useState<{ role: string; vendorStatus: string; isRunner: boolean; onboarded: boolean; university?: string } | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [globalNotice, setGlobalNotice] = useState<string | null>(null);
 
@@ -276,7 +277,9 @@ export default function Navbar() {
                                     <div className="flex items-center gap-2 mt-3 bg-surface/50 p-2 rounded-lg w-fit border border-surface-border/50">
                                         <MapPinIcon className="w-3 h-3 text-primary" />
                                         <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-wide">
-                                            University of Ghana
+                                            {dbUser?.university && UNIVERSITY_REGISTRY[dbUser.university as keyof typeof UNIVERSITY_REGISTRY]
+                                                ? UNIVERSITY_REGISTRY[dbUser.university as keyof typeof UNIVERSITY_REGISTRY].name
+                                                : (dbUser?.university || 'Select Campus')}
                                         </span>
                                     </div>
                                 </SignedIn>
