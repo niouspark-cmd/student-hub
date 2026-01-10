@@ -172,7 +172,7 @@ export default function VendorOrdersPage() {
                                         {order.status === 'READY' && (
                                             <div className="px-6 py-3 bg-foreground/5 rounded-xl border border-foreground/10 text-foreground/40 font-black text-xs uppercase tracking-widest flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse" />
-                                                Waiting for Runner
+                                                {order.fulfillmentType === 'PICKUP' ? 'Ready for Pickup (Customer)' : 'Waiting for Runner'}
                                             </div>
                                         )}
                                     </div>

@@ -57,6 +57,68 @@ export const UNIVERSITY_REGISTRY = {
             CAFETERIA: 'Main Cafeteria',
             BAKERY: 'VVU Bakery',
         }
+    },
+    UCC: {
+        id: 'UCC',
+        name: 'University of Cape Coast',
+        hotspots: {
+            CASFORD: 'Casford Hall',
+            VALCO: 'Valco Hall',
+            OGUAA: 'Oguaa Hall',
+            ADEHYE: 'Adehye Hall',
+            ATL: 'Atlantic Hall',
+            PSI: 'PSI Hostel',
+            SRC: 'SRC Hall',
+            SCIENCE: 'Science Market',
+        }
+    },
+    UPSA: {
+        id: 'UPSA',
+        name: 'University of Professional Studies, Accra',
+        hotspots: {
+            HOSTEL_A: 'Hostel A',
+            HOSTEL_B: 'Hostel B',
+            HOSTEL_C: 'Hostel C',
+            LBC: 'Lecture Block Complex',
+            STUDENT_CENTRE: 'Student Centre',
+            MAIN_AUDITORIUM: 'Main Auditorium',
+        }
+    },
+    UEW: {
+        id: 'UEW',
+        name: 'University of Education, Winneba',
+        hotspots: {
+            SIMPA: 'Simpa Hall',
+            GHITEL: 'Ghartey Hall',
+            AGGREY: 'Aggrey Hall',
+            UNIVERISTY_HALL: 'University Hall',
+            NORTH_CAMPUS: 'North Campus Main',
+            SOUTH_CAMPUS: 'South Campus Main',
+        }
+    },
+    ASHESI: {
+        id: 'ASHESI',
+        name: 'Ashesi University',
+        hotspots: {
+            STUDENT_DORMS: 'Student Dormitories',
+            DORM_NORTH: 'Dorm North',
+            DORM_SOUTH: 'Dorm South',
+            CAFETERIA: 'The Cafeteria',
+            ENGINEERING: 'Engineering Lab',
+            FAB_LAB: 'Fab Lab',
+            LIBRARY: 'Radric Library',
+        }
+    },
+    UDS: {
+        id: 'UDS',
+        name: 'University for Development Studies',
+        hotspots: {
+            TAMALE_CAMPUS: 'Tamale Campus Main',
+            WA_CAMPUS: 'Wa Campus Main',
+            NYANKPALA: 'Nyankpala Campus',
+            NAVRONGO: 'Navrongo Campus',
+            MEDICAL_SCHOOL: 'Medical School Hostel',
+        }
     }
 } as const;
 
