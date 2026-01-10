@@ -1,14 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
 
 export default function InsightUplink() {
     const { user } = useUser();
     const [isOpen, setIsOpen] = useState(false);
+    const [name, setName] = useState('');
     const [content, setContent] = useState('');
     const [sending, setSending] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    // Auto-fill name if logged in, but allow edit
+    useEffect(() => {
+        if (user) {
+            setName(user.fullName || user.firstName || '');
+        }
+    }, [user]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +29,7 @@ export default function InsightUplink() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content,
-                    userName: user ? `${user.fullName || user.firstName} (${user.primaryEmailAddress?.emailAddress || 'No Email'})` : 'Anonymous Tester',
+                    userName: name || 'Anonymous Agent',
                 })
             });
             const data = await res.json();
@@ -76,7 +84,7 @@ export default function InsightUplink() {
                             {success ? (
                                 <div className="py-12 flex flex-col items-center justify-center text-center">
                                     <div className="text-5xl mb-4">✅</div>
-                                    <h3 className="text-xl font-black text-[#39FF14] uppercase tracking-tight">Signal Received</h3>
+                                    <h3 className="text-xl font-black text-[#39FF14] uppercase tracking-tight">Feedback Sent</h3>
                                     <p className="text-xs text-white/60 mt-2">KCS HQ thanks you.</p>
                                 </div>
                             ) : (
@@ -90,6 +98,13 @@ export default function InsightUplink() {
 
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                placeholder="Codename / ID (Optional)"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/20 text-sm font-medium focus:outline-none focus:border-[#39FF14] transition-colors"
+                                            />
                                             <textarea
                                                 value={content}
                                                 onChange={(e) => setContent(e.target.value)}
