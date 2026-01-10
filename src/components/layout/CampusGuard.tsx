@@ -15,19 +15,17 @@ export default function CampusGuard({ children }: { children: React.ReactNode })
     const pathname = usePathname();
 
     // Skip checks for onboarding and auth pages to allow sequential flow
-    if (pathname?.startsWith('/onboarding') || pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up')) {
-        return <>{children}</>;
-    }
+    const isOnboarding = pathname?.startsWith('/onboarding') || pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up');
 
     useEffect(() => {
-        if (isLoaded && user) {
+        if (isLoaded && user && !isOnboarding) {
             // Check if user has university in metadata OR if we need to fetch from DB
             // Ideally, we sync this to metadata. For now, fetch from API check?
             // Or trust metadata if we put it there.
             // Let's assume we fetch profile to be sure.
             checkProfile();
         }
-    }, [isLoaded, user]);
+    }, [isLoaded, user, isOnboarding]);
 
     const checkProfile = async () => {
         try {

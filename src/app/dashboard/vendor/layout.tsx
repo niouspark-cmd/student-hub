@@ -53,7 +53,7 @@ export default function VendorLayout({
                         {/* Switch Back / Exit Terminal */}
                         <Link
                             href="/marketplace"
-                            className="flex items-center gap-2 text-xs font-bold text-red-500 transition-colors"
+                            className="flex items-center gap-2 text-xs font-bold text-green-500 transition-colors"
                             title="Exit Terminal"
                         >
                             <span className="md:hidden text-[10px] uppercase font-black tracking-widest border-2 border-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg shadow-sm">Exit</span>
