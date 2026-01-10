@@ -1,5 +1,6 @@
+```typescript
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getHybridUser } from '@/lib/auth/hybrid-auth';
 import { prisma } from '@/lib/db/prisma';
 import { cookies } from 'next/headers';
 
@@ -7,7 +8,7 @@ import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     try {
-        const { userId: authUserId, sessionClaims } = await auth();
+        const { userId } = await getHybridUser();
         const searchParams = request.nextUrl.searchParams;
         const queryClerkId = searchParams.get('clerkId');
         const cookieStore = await cookies();

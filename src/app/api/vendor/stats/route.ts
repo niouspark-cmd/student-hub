@@ -1,14 +1,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/db/prisma';
+import { getHybridUser } from '@/lib/auth/hybrid-auth';
 
 // export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
     try {
-        const { userId } = await auth();
+        const { userId } = await getHybridUser();
 
         if (!userId) {
             return NextResponse.json(
