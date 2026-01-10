@@ -21,7 +21,7 @@ export default function InsightUplink() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content,
-                    userName: user?.fullName || user?.firstName || 'Anonymous Tester',
+                    userName: user ? `${user.fullName || user.firstName} (${user.primaryEmailAddress?.emailAddress || 'No Email'})` : 'Anonymous Tester',
                 })
             });
             const data = await res.json();
