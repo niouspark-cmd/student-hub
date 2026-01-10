@@ -130,9 +130,9 @@ export default function VendorProductsPage() {
                                             ₵{product.price.toFixed(2)}
                                         </span>
                                         <div className="flex gap-2">
-                                            <button className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                                            <Link href={`/products/edit/${product.id}`} className="px-4 py-2 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
                                                 Edit
-                                            </button>
+                                            </Link>
                                             <button className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/20">
                                                 Delete
                                             </button>
