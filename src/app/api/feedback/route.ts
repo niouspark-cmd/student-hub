@@ -54,3 +54,25 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Failed' }, { status: 500 });
     }
 }
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { userId } = await auth();
+        if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+        if (user?.role !== 'ADMIN' && user?.role !== 'GOD_MODE') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        const { id } = await request.json();
+
+        await prisma.feedback.delete({
+            where: { id }
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    }
+}

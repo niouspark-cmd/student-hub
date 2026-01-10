@@ -152,6 +152,18 @@ export default function CommandCenterPage() {
         }
     }
 
+    const deleteSignal = async (id: string) => {
+        if (!confirm('DELETE SIGNAL PERMANENTLY?')) return;
+        setSignals(prev => prev.filter(s => s.id !== id));
+        try {
+            await fetch('/api/feedback', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+        } catch (e) { fetchSignals(); }
+    }
+
     const handleUnlock = async (e: React.FormEvent) => {
         e.preventDefault();
         if (password === 'omniadmin.com') {
@@ -855,30 +867,49 @@ export default function CommandCenterPage() {
 
                 {/* SIGNALS TAB */}
                 {activeTab === 'SIGNALS' && (
-                    <div className="space-y-4">
-                        <h1 className="text-3xl font-black text-[#39FF14] uppercase tracking-tighter mb-4 flex items-center gap-4">
-                            <span>📡</span> Signal Intelligence
-                        </h1>
-                        <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-8 pb-32">
+                        <div className="flex justify-between items-end border-b border-[#39FF14]/20 pb-4">
+                            <h1 className="text-3xl font-black text-[#39FF14] uppercase tracking-tighter flex items-center gap-4">
+                                <span>📡</span> Signal Intelligence
+                            </h1>
+                            <span className="text-xs text-gray-500 font-mono">{signals.length} intercepted</span>
+                        </div>
+
+                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                             {signals.length === 0 ? (
-                                <div className="col-span-full text-center py-12 text-gray-500">
-                                    No signals intercepted.
+                                <div className="col-span-full py-24 text-center border-2 border-dashed border-[#333] rounded-3xl">
+                                    <div className="text-6xl mb-4 opacity-20">📭</div>
+                                    <div className="text-gray-500 font-bold uppercase tracking-widest">No signals intercepted</div>
                                 </div>
                             ) : (
                                 signals.map(signal => (
-                                    <div key={signal.id} className="bg-[#111] border border-[#333] p-6 rounded-2xl hover:border-[#39FF14]/50 transition-colors">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h3 className="font-bold text-white mb-1">{signal.userName}</h3>
-                                                <p className="text-xs text-gray-500">{new Date(signal.createdAt).toLocaleString()}</p>
+                                    <div key={signal.id} className="bg-[#050505] border border-[#222] p-6 rounded-3xl relative group hover:border-[#39FF14]/50 transition-all hover:bg-[#0A0A0A] flex flex-col justify-between min-h-[200px]">
+                                        <div>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-1">{signal.userName.split('(')[0]}</h3>
+                                                    <p className="text-[10px] text-gray-600 font-mono">{signal.userName.includes('(') ? signal.userName.split('(')[1].replace(')', '') : 'No Contact'}</p>
+                                                    <p className="text-[9px] text-[#39FF14]/60 font-mono mt-1">{new Date(signal.createdAt).toLocaleString()}</p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); deleteSignal(signal.id); }}
+                                                    className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                                                    title="Delete Signal"
+                                                >
+                                                    🗑️
+                                                </button>
                                             </div>
-                                            <span className={`text-[10px] uppercase font-black px-2 py-1 rounded ${signal.status === 'OPEN' ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
+                                            <div className="bg-[#111] p-4 rounded-xl border border-white/5 h-full">
+                                                <p className="text-gray-300 text-xs font-mono whitespace-pre-wrap leading-relaxed">
+                                                    {signal.content}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 flex justify-between items-center">
+                                            <span className={`text-[9px] uppercase font-black px-3 py-1 rounded-full ${signal.status === 'OPEN' ? 'bg-red-900/30 text-red-400 border border-red-900/50' : 'bg-green-900/30 text-green-400 border border-green-900/50'}`}>
                                                 {signal.status}
                                             </span>
                                         </div>
-                                        <p className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-black/50 p-3 rounded-lg border border-white/5">
-                                            {signal.content}
-                                        </p>
                                     </div>
                                 ))
                             )}
