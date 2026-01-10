@@ -66,13 +66,15 @@ export async function ensureUserExists() {
         const rawEmail = clerkUser.emailAddresses?.[0]?.emailAddress || `${clerkUser.username || clerkUser.id}@omni-marketplace.com`;
         const email = rawEmail.trim().toLowerCase();
 
-        user = await prisma.user.create({
-            data: {
+        user = await prisma.user.upsert({
+            where: { clerkId: userId },
+            update: {}, // No updates if exists, just fetch
+            create: {
                 clerkId: userId,
                 email: email,
                 name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Anonymous Student',
                 role: 'STUDENT', // Default role
-                university: 'KNUST', // Default for now, can be changed later
+                // university field omitted -> defaults to null, triggering CampusGuard
             },
             select: {
                 id: true,
