@@ -92,16 +92,33 @@ export const stopTracking = async () => {
     }
 };
 
+let lastTrackTime = 0;
+
 /**
  * Manually update the user's location (one-off).
+ * Includes a simple 2-second throttle to prevent Rate Limit errors during React Strict Mode or rapid updates.
  */
 export const trackOnce = async () => {
     if (!PUBLISHABLE_KEY) return;
+
+    // Throttle: Prevent calling more than once every 2 seconds
+    const now = Date.now();
+    if (now - lastTrackTime < 2000) {
+        // console.log('Skipping Radar.trackOnce (Throttled)');
+        return null;
+    }
+
     try {
+        lastTrackTime = now;
         // trackOnce() automatically handles permission prompt if needed
         const result = await Radar.trackOnce();
         return result;
-    } catch (error) {
+    } catch (error: any) {
+        // Gracefully handle Rate Limits
+        if (error?.code === 'RATE_LIMIT' || error?.message?.includes('Rate limit')) {
+            console.warn('Radar Rate Limit hit. Ignoring.');
+            return null;
+        }
         console.error('Error tracking once:', error);
         throw error;
     }

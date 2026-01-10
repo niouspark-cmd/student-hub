@@ -4,29 +4,89 @@
  * Campus hotspots for location-based matching
  * These represent common landmarks on Ghanaian university campuses
  */
-export const CAMPUS_HOTSPOTS = {
-    // KNUST Hotspots
-    KNUST_BALME_LIBRARY: 'Balme Library',
-    KNUST_NIGHT_MARKET: 'Night Market',
-    KNUST_PENT_HOSTEL: 'Pent Hostel',
-    KNUST_BUSH_CANTEEN: 'Bush Canteen',
-    KNUST_GREAT_HALL: 'Great Hall',
-    KNUST_CASFORD: 'Casford',
-
-    // UG Hotspots
-    UG_BALME_LIBRARY: 'Balme Library (UG)',
-    UG_NIGHT_MARKET: 'Night Market (UG)',
-    UG_COMMONWEALTH_HALL: 'Commonwealth Hall',
-    UG_VOLTA_HALL: 'Volta Hall',
-    UG_MAIN_GATE: 'Main Gate',
-
-    // Generic
-    LECTURE_HALL: 'Lecture Hall',
-    CAFETERIA: 'Cafeteria',
-    SPORTS_COMPLEX: 'Sports Complex',
+// University Registry System
+export const UNIVERSITY_REGISTRY = {
+    AAMUSTED: {
+        id: 'AAMUSTED',
+        name: 'AAMUSTED (Main)',
+        hotspots: {
+            OPOKU_WARE_II: 'Opoku Ware Hall II',
+            CANTEEN: 'Campus Canteen',
+            ADMIN: 'Administration Block',
+            ATWIMA: 'Atwima Hall',
+            AUTONOMY: 'Autonomy Hall',
+            MLT: 'Main Lecture Theatre',
+            SCIENCE: 'Science Block',
+            NEW_LIB: 'New Library',
+            COUNCIL: 'Student Council Office',
+            MARKET: 'Campus Market',
+        }
+    },
+    KNUST: {
+        id: 'KNUST',
+        name: 'Kwame Nkrumah Uni. of Science & Tech.',
+        hotspots: {
+            BALME: 'Balme Library',
+            NIGHT_MARKET: 'Night Market',
+            PENT: 'Pent Hostel',
+            BUSH_CANTEEN: 'Bush Canteen',
+            GREAT_HALL: 'Great Hall',
+            CASFORD: 'Casford Hall',
+        }
+    },
+    UG: {
+        id: 'UG',
+        name: 'University of Ghana',
+        hotspots: {
+            BALME: 'Balme Library (UG)',
+            NIGHT_MARKET: 'Night Market (UG)',
+            COMMONWEALTH: 'Commonwealth Hall',
+            VOLTA: 'Volta Hall',
+            MAIN_GATE: 'Main Gate',
+        }
+    },
+    VVU: {
+        id: 'VVU',
+        name: 'Valley View University',
+        hotspots: {
+            EG_WHITE: 'E.G. White Hall',
+            RENATE: 'Renate Kraus Hall',
+            BEDIAKO: 'Bediako Hall',
+            NAGEL: 'Nagel Hall',
+            HOSPITAL: 'VVU Hospital',
+            CAFETERIA: 'Main Cafeteria',
+            BAKERY: 'VVU Bakery',
+        }
+    }
 } as const;
 
-export type Hotspot = typeof CAMPUS_HOTSPOTS[keyof typeof CAMPUS_HOTSPOTS];
+export const GENERIC_HOTSPOTS = {
+    MAIN_GATE: 'Main Gate / Entrance',
+    ADMIN_BLOCK: 'Administration Block',
+    LIBRARY: 'University Library',
+    CAFETERIA: 'Main Cafeteria',
+    SRC_HOSTEL: 'SRC / Student Union Hostel',
+    SPORTS_COMPLEX: 'Sports Complex',
+    OTHER: 'Other (Custom)'
+} as const;
+
+// Helper to get hotspots for a given university ID
+export function getHotspotsForUniversity(uniId: string | null) {
+    if (uniId && uniId in UNIVERSITY_REGISTRY) {
+        return (UNIVERSITY_REGISTRY as any)[uniId].hotspots;
+    }
+    return GENERIC_HOTSPOTS;
+}
+
+// Backward compatibility for existing code using CAMPUS_HOTSPOTS
+// (Maps to AAMUSTED by default for now, or FLATTENED list)
+export const CAMPUS_HOTSPOTS = {
+    ...UNIVERSITY_REGISTRY.AAMUSTED.hotspots,
+    ...UNIVERSITY_REGISTRY.KNUST.hotspots,
+    ...GENERIC_HOTSPOTS
+};
+
+export type Hotspot = string;
 
 /**
  * Calculate proximity score between two hotspots

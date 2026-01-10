@@ -42,6 +42,13 @@ export async function GET(request: NextRequest) {
             where.categoryId = categoryId;
         }
 
+        const university = searchParams.get('university');
+        if (university) {
+            where.vendor = {
+                university: university
+            };
+        }
+
         if (categoryId && !query && !vendorOnly) {
             const products = await getCachedProductsByCategory(categoryId);
             return NextResponse.json({ success: true, products });
@@ -99,6 +106,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const validUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { id: true, shopLandmark: true }
+        });
+
+        const finalHotspot = hotspot || validUser?.shopLandmark || 'Campus Canteen';
+
         const product = await prisma.product.create({
             data: {
                 title,
@@ -106,7 +120,7 @@ export async function POST(request: NextRequest) {
                 price: parseFloat(price),
                 categoryId,
                 imageUrl,
-                hotspot,
+                hotspot: finalHotspot,
                 details,
                 vendorId: user.id,
             },

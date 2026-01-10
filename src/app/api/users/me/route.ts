@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
                 banned: true,
                 banReason: true,
                 shopName: true,
+                shopLandmark: true,
                 university: true
             }
         });

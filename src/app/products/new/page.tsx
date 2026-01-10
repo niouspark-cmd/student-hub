@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { CAMPUS_HOTSPOTS } from '@/lib/geo/distance';
+import { getHotspotsForUniversity, UNIVERSITY_REGISTRY } from '@/lib/geo/distance';
 import ImageUpload from '@/components/products/ImageUpload';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -21,6 +21,7 @@ export default function NewProductPage() {
 
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [userUniversity, setUserUniversity] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -31,14 +32,31 @@ export default function NewProductPage() {
         details: {} as Record<string, any>,
     });
 
-    const hotspots = Object.values(CAMPUS_HOTSPOTS);
+    const hotspots = Object.values(getHotspotsForUniversity(userUniversity));
 
     useEffect(() => {
+        // Fetch Categories
         fetch('/api/categories')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
                     setCategories(data.categories);
+                }
+            });
+
+        // Fetch User Profile for Default Location and University
+        fetch('/api/users/me')
+            .then(res => res.json())
+            .then(data => {
+                if (data) {
+                    if (data.university) setUserUniversity(data.university);
+
+                    if (data.shopLandmark) {
+                        setFormData(prev => ({
+                            ...prev,
+                            hotspot: prev.hotspot || data.shopLandmark
+                        }));
+                    }
                 }
             });
     }, []);
@@ -176,15 +194,43 @@ export default function NewProductPage() {
                                         Pickup Location
                                     </label>
                                     <select
-                                        value={formData.hotspot}
-                                        onChange={(e) => setFormData({ ...formData, hotspot: e.target.value })}
+                                        value={hotspots.includes(formData.hotspot) ? formData.hotspot : 'Other (Custom)'}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === 'Other (Custom)') {
+                                                // Keep 'Other (Custom)' temporarily to show input
+                                                setFormData({ ...formData, hotspot: 'Other (Custom)' });
+                                            } else {
+                                                setFormData({ ...formData, hotspot: val });
+                                            }
+                                        }}
                                         className="w-full px-4 py-4 bg-background border border-surface-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-bold uppercase text-xs"
                                     >
                                         <option value="">Select Hotspot...</option>
                                         {hotspots.map((hotspot) => (
                                             <option key={hotspot} value={hotspot}>📍 {hotspot}</option>
                                         ))}
+                                        {!hotspots.includes('Other (Custom)') &&
+                                            <option value="Other (Custom)">✏️ Other (Type Custom)</option>
+                                        }
                                     </select>
+
+                                    {/* Custom Location Input for Global Support */}
+                                    {(formData.hotspot === 'Other (Custom)' || !hotspots.includes(formData.hotspot) && formData.hotspot !== '') && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-2"
+                                        >
+                                            <input
+                                                type="text"
+                                                placeholder="Enter specific location (e.g. Pentagon Block B)..."
+                                                value={formData.hotspot === 'Other (Custom)' ? '' : formData.hotspot}
+                                                onChange={(e) => setFormData({ ...formData, hotspot: e.target.value })}
+                                                className="w-full px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/50 font-bold text-sm"
+                                            />
+                                        </motion.div>
+                                    )}
                                 </div>
                             </div>
                         </div>

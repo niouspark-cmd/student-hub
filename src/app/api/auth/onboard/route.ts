@@ -70,15 +70,49 @@ export async function POST(request: NextRequest) {
         // Check existing user status to prevent resetting Active vendors
         const existingUser = await prisma.user.findUnique({
             where: { clerkId: userId },
-            select: { vendorStatus: true }
+            select: { vendorStatus: true, id: true }
         });
 
         const isAlreadyApproved = ['ACTIVE', 'SUSPENDED'].includes(existingUser?.vendorStatus || '');
+        let targetVendorStatus: 'ACTIVE' | 'PENDING' | 'NOT_APPLICABLE' = 'NOT_APPLICABLE';
 
-        // If they are already approved/suspended, keep it. Otherwise, if becoming a vendor, set PENDING.
-        const targetVendorStatus = isAlreadyApproved
-            ? undefined // Don't update it in 'update' clause
-            : (role === 'VENDOR' ? 'PENDING' : 'NOT_APPLICABLE');
+        if (isAlreadyApproved) {
+            // Preserve existing status if they are already established
+            // We pass undefined to the update query to avoid changing it
+            // ensuring we don't accidentally demote an active vendor
+        } else if (role === 'VENDOR') {
+            // === AUTOMATED VENDOR APPROVAL LOGIC ===
+
+            // 1. Uniqueness Check
+            const nameTaken = await prisma.user.findFirst({
+                where: {
+                    shopName: { equals: shopName, mode: 'insensitive' },
+                    NOT: { clerkId: userId } // Ignore self
+                }
+            });
+
+            if (nameTaken) {
+                return NextResponse.json({
+                    error: 'Shop name is already taken. Please choose a unique name.'
+                }, { status: 409 });
+            }
+
+            // 2. Risk/Keyword Analysis
+            const prohibitedKeywords = ['admin', 'omni', 'support', 'official', 'staff', 'manager', 'scam', 'test'];
+            const textToScan = `${shopName} ${shopLandmark}`.toLowerCase();
+            const hasRiskKeywords = prohibitedKeywords.some(word => textToScan.includes(word));
+
+            // 3. Decision Engine
+            if (hasRiskKeywords) {
+                console.warn(`[Risk Flag] Vendor ${user.id} flagged for manual review due to keywords.`);
+                targetVendorStatus = 'PENDING';
+            } else {
+                console.log(`[Auto-Approve] Vendor ${user.id} passed all checks. Activating immediately.`);
+                targetVendorStatus = 'ACTIVE';
+
+                // TODO: Trigger "Welcome" Email/Notification here
+            }
+        }
 
         // Upsert user in database
         await prisma.user.upsert({
@@ -88,7 +122,7 @@ export async function POST(request: NextRequest) {
                 isRunner: !!isRunner,
                 onboarded: true,
                 // Only update vendorStatus if we aren't preserving an existing Approved state
-                ...(targetVendorStatus ? { vendorStatus: targetVendorStatus } : {}),
+                ...(isAlreadyApproved ? {} : { vendorStatus: targetVendorStatus }),
                 ...vendorData
             },
             create: {
@@ -98,7 +132,7 @@ export async function POST(request: NextRequest) {
                 role: role,
                 isRunner: !!isRunner,
                 onboarded: true,
-                vendorStatus: role === 'VENDOR' ? 'PENDING' : 'NOT_APPLICABLE',
+                vendorStatus: targetVendorStatus,
                 university: 'KNUST',
                 ...vendorData
             }
