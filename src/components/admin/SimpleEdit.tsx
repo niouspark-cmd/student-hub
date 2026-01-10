@@ -20,12 +20,12 @@ export default function SimpleEdit({ id, text, tag = 'div', className = '' }: Si
 
     const handleSave = async (newText: string) => {
         try {
-            // Save to database
-            const response = await fetch('/api/admin/content', {
+            // Save to database via centralized System Config
+            const response = await fetch('/api/system/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ id, content: newText })
+                body: JSON.stringify({ updateKey: id, updateValue: newText })
             });
 
             if (response.ok) {
@@ -35,15 +35,16 @@ export default function SimpleEdit({ id, text, tag = 'div', className = '' }: Si
                 // Show success notification
                 const notification = document.createElement('div');
                 notification.className = 'fixed top-4 right-4 z-[10000] bg-[#39FF14] text-black font-black px-6 py-3 rounded-xl shadow-lg animate-in fade-in slide-in-from-top';
-                notification.innerHTML = '✅ Content Updated!<br/><span class="text-xs">All users will see this change</span>';
+                notification.innerHTML = '✅ Global Update Live!<br/><span class="text-xs">Synced to all devices instantly.</span>';
                 document.body.appendChild(notification);
 
                 setTimeout(() => {
                     notification.remove();
                 }, 3000);
             } else {
-                alert('❌ Failed to save. Check console for details.');
-                console.error('Save failed:', await response.text());
+                const err = await response.text();
+                alert(`❌ Failed to save: ${err}`);
+                console.error('Save failed:', err);
             }
         } catch (error) {
             console.error('[SimpleEdit] Save error:', error);

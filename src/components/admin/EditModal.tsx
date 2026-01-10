@@ -104,7 +104,8 @@ export default function EditModal({ isOpen, currentText, onSave, onClose }: Edit
                             {/* Note */}
                             <div className="mt-6 p-4 bg-[#39FF14]/5 border border-[#39FF14]/20 rounded-xl">
                                 <p className="text-foreground/60 text-xs">
-                                    💡 <span className="font-bold text-[#39FF14]">Pro Tip:</span> Changes are saved to your browser. To make them permanent for all users, contact your dev team to sync to database.
+                                    💡 <span className="font-bold text-[#39FF14]">Global Sync:</span> Changes are broadcasted to the database and will update on all client devices instantly (approx 2s).
+
                                 </p>
                             </div>
                         </div>

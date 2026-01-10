@@ -89,7 +89,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
         // Initial Config Fetch & Polling
         refreshConfig();
-        const interval = setInterval(refreshConfig, 30000); // 30s poll
+        const interval = setInterval(refreshConfig, 2000); // 2s poll for fast sync
         return () => clearInterval(interval);
     }, [isLoaded, user]); // Re-run when User changes
 
