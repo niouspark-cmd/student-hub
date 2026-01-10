@@ -10,7 +10,10 @@ interface Product {
     title: string;
     description: string;
     price: number;
-    category: string;
+    category: {
+        name: string;
+        icon: string | null;
+    };
     imageUrl: string | null;
     hotspot: string | null;
     vendor: {
@@ -134,9 +137,9 @@ export default function ProductDetailsPage() {
                 {/* Back Button */}
                 <button
                     onClick={() => router.back()}
-                    className="absolute top-28 left-6 w-12 h-12 glass-strong rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform z-20"
+                    className="absolute top-28 left-6 w-12 h-12 bg-black/50 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all z-20 shadow-lg"
                 >
-                    ←
+                    <span className="text-xl pb-1">←</span>
                 </button>
             </div>
 
@@ -202,7 +205,7 @@ export default function ProductDetailsPage() {
                                 Category
                             </h3>
                             <p className="text-lg font-black text-primary uppercase tracking-tight">
-                                {product.category}
+                                {product.category?.name || 'General'}
                             </p>
                         </div>
 

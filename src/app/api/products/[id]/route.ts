@@ -21,6 +21,7 @@ export async function GET(
                         lastActive: true,
                     },
                 },
+                category: true,
             },
         });
 
