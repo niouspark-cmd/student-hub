@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';
 
-// --- MEMBER TOUR (Authenticated Dashboard) ---
+// --- MEMBER TOUR (Authenticated Desktop) ---
 const MEMBER_STEPS = [
     {
         id: 'welcome_member',
@@ -41,6 +41,38 @@ const MEMBER_STEPS = [
         title: 'SHADOW RUNNER',
         content: 'Want to earn cash? Activate Runner Mode to deliver items.',
         position: 'bottom-left'
+    }
+];
+
+// --- MOBILE MEMBER TOUR (Authenticated Mobile) ---
+const MOBILE_MEMBER_STEPS = [
+    {
+        id: 'welcome_mobile',
+        target: null,
+        title: 'OPERATIVE WELCOME',
+        content: 'Welcome to OMNI Mobile. Let us sync your navigation.',
+        position: 'center'
+    },
+    {
+        id: 'mobile_menu',
+        target: 'omni-mobile-menu',
+        title: 'ACCESS PORT',
+        content: 'TAP THIS BUTTON to open your main command menu. Do it now, then click "Next".',
+        position: 'bottom-right'
+    },
+    {
+        id: 'mobile_marketplace',
+        target: 'omni-mobile-marketplace',
+        title: 'MARKETPLACE',
+        content: 'This is your feed. Buy, sell, and trade with students on campus.',
+        position: 'bottom'
+    },
+    {
+        id: 'mobile_pulse',
+        target: 'omni-mobile-pulse',
+        title: 'CAMPUS PULSE',
+        content: 'Watch live stories and stay updated with campus trends.',
+        position: 'bottom'
     }
 ];
 
@@ -100,9 +132,20 @@ export default function OmniGuide() {
     const [activeStep, setActiveStep] = useState<number | null>(null);
     const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
     const [isVisible, setIsVisible] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        setIsMobile(window.innerWidth < 1024);
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Determine Steps & Key
-    let STEPS = isSignedIn ? MEMBER_STEPS : GUEST_STEPS;
+    let STEPS = isSignedIn
+        ? (isMobile ? MOBILE_MEMBER_STEPS : MEMBER_STEPS)
+        : GUEST_STEPS;
+
     let STORAGE_KEY = isSignedIn ? 'omni_tour_member_v1' : 'omni_tour_guest_v1';
 
     if (pathname?.startsWith('/onboarding')) {
@@ -112,6 +155,24 @@ export default function OmniGuide() {
 
     useEffect(() => {
         if (!isLoaded) return;
+
+        // Strict Page Rules
+        const isHome = pathname === '/';
+        const isMarketplace = pathname === '/marketplace';
+        const isOnboarding = pathname?.startsWith('/onboarding');
+
+        // Rule 1: Guest Tour ONLY on Home
+        if (!isSignedIn && !isHome) {
+            setIsVisible(false); // Sanity reset
+            return;
+        }
+
+        // Rule 2: Member Tour ONLY on Marketplace (or Home fallback)
+        // We don't want it popping up on /cart or /profile randomly
+        if (isSignedIn && !isOnboarding && !isMarketplace && !isHome) {
+            setIsVisible(false);
+            return;
+        }
 
         // Poll for conditions
         const checkStart = setInterval(() => {
@@ -123,25 +184,23 @@ export default function OmniGuide() {
                 return;
             }
 
-            // Wait for Alpha Welcome (unless we are deep in the app, maybe it was skipped? but alpha needs it)
-            // Actually for Onboarding, WelcomeModal might still be active?
-            // Let's assume on Onboarding page, WelcomeModal might NOT appear if it only appears on layout?
-            // WelcomeModal is in layout. So it appears everywhere.
-            // We wait for it.
+            // Wait for Alpha Welcome to be dismissed
             if (alphaWelcomeDone) {
+                // If we are on a valid page, start
                 clearInterval(checkStart);
                 setTimeout(() => {
                     setIsVisible(true);
                     setActiveStep(0);
-                }, 500);
+                }, 1000); // 1s delay for smooth entry
             }
         }, 1000);
 
         return () => clearInterval(checkStart);
-    }, [isLoaded, STORAGE_KEY, pathname]);
+    }, [isLoaded, STORAGE_KEY, pathname, isSignedIn]);
 
     useEffect(() => {
         if (activeStep === null) return;
+        if (!STEPS[activeStep]) return; // Safety
 
         const step = STEPS[activeStep];
 
@@ -152,6 +211,13 @@ export default function OmniGuide() {
                 const el = document.getElementById(step.target!);
                 if (el) {
                     const rect = el.getBoundingClientRect();
+                    // Handle case where element is hidden (e.g. mobile menu closed)
+                    if (rect.width === 0 && rect.height === 0) {
+                        attempts++;
+                        if (attempts < 10) setTimeout(findElement, 500);
+                        return;
+                    }
+
                     setCoords({
                         top: rect.top,
                         left: rect.left,
@@ -160,11 +226,12 @@ export default function OmniGuide() {
                     });
                 } else {
                     attempts++;
-                    // More attempts for onboarding transition
-                    if (attempts < 8) {
+                    if (attempts < 10) {
                         setTimeout(findElement, 500);
                     } else {
-                        console.log(`Target ${step.target} not found, skipping...`);
+                        console.log(`Target ${step.target} not found, ignoring...`);
+                        // Don't skip automatically for mobile menu, let user figure it out? 
+                        // Or skip? Be nice and skip.
                         handleNext(true);
                     }
                 }
@@ -173,17 +240,15 @@ export default function OmniGuide() {
         } else {
             setCoords(null);
         }
-    }, [activeStep, STEPS]);
+    }, [activeStep, STEPS]); // Depend on STEPS because they change on resize
 
     const handleNext = (autoSkip = false) => {
         if (activeStep === null) return;
 
         let next = activeStep + 1;
         if (autoSkip) {
-            if (next >= STEPS.length) {
-                finishTour();
-                return;
-            }
+            // If checking next step... recursion risk if next is also missing.
+            // Simple logic: just go next. element check handles recursion naturally via useEffect
         }
 
         if (next >= STEPS.length) {
@@ -293,11 +358,11 @@ export default function OmniGuide() {
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        marginLeft: '-10rem',
-                        marginTop: '-8rem'
+                        marginLeft: 'auto',
+                        marginRight: 'auto'
                     } : tooltipStyle}
                 >
-                    <div className="bg-[#050505] border border-[#39FF14] p-6 rounded-3xl shadow-[0_0_50px_rgba(57,255,20,0.2)] relative overflow-hidden">
+                    <div className="bg-[#050505] border border-[#39FF14] p-6 rounded-3xl shadow-[0_0_50px_rgba(57,255,20,0.2)] relative overflow-hidden mx-auto">
                         {/* Background Glitch */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-[#39FF14]/50 animate-pulse"></div>
 
@@ -310,9 +375,9 @@ export default function OmniGuide() {
                             </span>
                         </div>
 
-                        <p className="text-gray-300 font-bold text-xs leading-relaxed mb-6 uppercase tracking-wide">
+                        <div className="text-gray-300 font-bold text-xs leading-relaxed mb-6 uppercase tracking-wide">
                             {current.content}
-                        </p>
+                        </div>
 
                         <div className="flex gap-3">
                             <button

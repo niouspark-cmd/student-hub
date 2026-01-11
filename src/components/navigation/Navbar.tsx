@@ -111,6 +111,7 @@ export default function Navbar() {
                     <div className="flex items-center gap-4">
                         {/* Hamburger Trigger (Mobile Only) */}
                         <button
+                            id="omni-mobile-menu"
                             onClick={() => setIsDrawerOpen(true)}
                             className="lg:hidden p-1 hover:bg-surface rounded-lg transition-colors"
                             aria-label="Open Menu"
@@ -168,11 +169,13 @@ export default function Navbar() {
                                     📹 My Pulse
                                 </NavLink>
 
-                                <div id="omni-nav-runner">
-                                    <NavLink href="/runner" isActive={isActive('/runner')}>
-                                        🏃 Runner Mode
-                                    </NavLink>
-                                </div>
+                                {dbUser?.role !== 'VENDOR' && (
+                                    <div id="omni-nav-runner">
+                                        <NavLink href="/runner" isActive={isActive('/runner')}>
+                                            🏃 Runner Mode
+                                        </NavLink>
+                                    </div>
+                                )}
                             </SignedIn>
                         </div>
                     </div>
@@ -365,7 +368,7 @@ export default function Navbar() {
                                         <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3 px-2">
                                             Shop & Save
                                         </h3>
-                                        <DrawerLink href="/marketplace" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/marketplace')} />
+                                        <DrawerLink id="omni-mobile-marketplace" href="/marketplace" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/marketplace')} />
                                         <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={getItemCount()} active={isActive('/cart')} />
                                         <DrawerLink href="/orders" icon={<PackageIcon className="w-5 h-5" />} label="My Orders" setIsOpen={setIsDrawerOpen} active={isActive('/orders')} />
                                         <DrawerLink href="/wishlist" icon={<HeartIcon className="w-5 h-5" />} label="Wishlist" setIsOpen={setIsDrawerOpen} />
@@ -375,7 +378,7 @@ export default function Navbar() {
                                         <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3 px-2">
                                             Community
                                         </h3>
-                                        <DrawerLink href="/stories" icon={<ZapIcon className="w-5 h-5 text-yellow-500" />} label="Campus Pulse" setIsOpen={setIsDrawerOpen} live={true} active={isActive('/stories')} />
+                                        <DrawerLink id="omni-mobile-pulse" href="/stories" icon={<ZapIcon className="w-5 h-5 text-yellow-500" />} label="Campus Pulse" setIsOpen={setIsDrawerOpen} live={true} active={isActive('/stories')} />
                                         <DrawerLink href="/stories/my-pulse" icon={<div className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[10px] font-black">MP</div>} label="My Pulse" setIsOpen={setIsDrawerOpen} active={isActive('/stories/my-pulse')} />
                                     </div>
 
@@ -428,9 +431,10 @@ function NavLink({ href, isActive, children }: { href: string; isActive: boolean
     );
 }
 
-function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, className }: any) {
+function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, className, id }: any) {
     return (
         <Link
+            id={id}
             href={href}
             onClick={() => setIsOpen(false)}
             className={`flex items-center justify-between p-3 rounded-xl transition-all ${active ? 'bg-surface border border-surface-border shadow-sm' : 'hover:bg-surface/50'} ${className}`}
