@@ -1,0 +1,268 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Define Tour Steps
+const STEPS = [
+    {
+        id: 'welcome',
+        target: null, // Center
+        title: 'SYSTEM INITIALIZED',
+        content: 'Welcome to the OMNI Network. Follow this guide to establish your digital presence.',
+        position: 'center'
+    },
+    {
+        id: 'signin',
+        target: 'omni-nav-signin',
+        title: 'AUTHENTICATION',
+        content: 'First, you must log in to access the marketplace feeds and secure channels.',
+        position: 'bottom-right'
+    },
+    {
+        id: 'profile',
+        target: 'omni-nav-profile',
+        title: 'IDENTITY NODE',
+        content: 'Manage your account, view wallet balance, and update settings here.',
+        position: 'bottom-right'
+    },
+    {
+        id: 'marketplace',
+        target: 'omni-nav-marketplace',
+        title: 'ACQUIRE ASSETS',
+        content: 'Browse the main feed to find products, food, and services from fellow students.',
+        position: 'bottom-left'
+    },
+    {
+        id: 'pulse',
+        target: 'omni-nav-pulse',
+        title: 'CAMPUS PULSE',
+        content: 'Intercept live signals. See what is happening on campus right now through stories.',
+        position: 'bottom-left'
+    },
+    {
+        id: 'runner',
+        target: 'omni-nav-runner',
+        title: 'SHADOW RUNNER',
+        content: 'Want to earn cash? Activate Runner Mode to deliver items securely.',
+        position: 'bottom-left'
+    },
+    {
+        id: 'escrow',
+        target: null,
+        title: 'SHIELD PROTOCOL',
+        content: 'All transactions are protected by Escrow. Funds are held until you confirm receipt.',
+        position: 'center'
+    }
+];
+
+export default function OmniGuide() {
+    const [activeStep, setActiveStep] = useState<number | null>(null);
+    const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        // Poll for Welcome Modal Completion
+        const checkStart = setInterval(() => {
+            const tutorialDone = localStorage.getItem('omni_tutorial_completed');
+            const alphaWelcomeDone = localStorage.getItem('OMNI_ALPHA_WELCOME_V1_KCS');
+
+            if (tutorialDone) {
+                clearInterval(checkStart);
+                return;
+            }
+
+            if (alphaWelcomeDone) {
+                clearInterval(checkStart);
+                // Start Tour after small delay
+                setTimeout(() => {
+                    setIsVisible(true);
+                    setActiveStep(0);
+                }, 500);
+            }
+        }, 1000);
+
+        return () => clearInterval(checkStart);
+    }, []);
+
+    useEffect(() => {
+        if (activeStep === null) return;
+
+        const step = STEPS[activeStep];
+
+        // Handle Target Highlighting
+        if (step.target) {
+            // Retry mechanism for async elements
+            let attempts = 0;
+            const findElement = () => {
+                const el = document.getElementById(step.target!);
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    setCoords({
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height
+                    });
+                } else {
+                    attempts++;
+                    if (attempts < 5) {
+                        setTimeout(findElement, 500);
+                    } else {
+                        console.log(`Target ${step.target} not found, skipping...`);
+                        handleNext(true); // Auto skip if not found (e.g. wrong auth state)
+                    }
+                }
+            };
+            findElement();
+        } else {
+            setCoords(null); // Center mode
+        }
+    }, [activeStep]);
+
+    const handleNext = (autoSkip = false) => {
+        if (activeStep === null) return;
+
+        let next = activeStep + 1;
+        if (autoSkip) {
+            if (next >= STEPS.length) {
+                finishTour();
+                return;
+            }
+        }
+
+        if (next >= STEPS.length) {
+            finishTour();
+        } else {
+            setActiveStep(next);
+        }
+    };
+
+    const finishTour = () => {
+        localStorage.setItem('omni_tutorial_completed', 'true');
+        setIsVisible(false);
+        setActiveStep(null);
+    };
+
+    if (!isVisible || activeStep === null) return null;
+
+    const current = STEPS[activeStep];
+    const isCenter = !current.target || !coords;
+
+    // Calculate Tooltip Position
+    let tooltipStyle = {};
+    if (coords && !isCenter) {
+        // Default: Bottom Center
+        tooltipStyle = {
+            top: coords.top + coords.height + 20,
+            left: coords.left + (coords.width / 2) - 160 // Center 320px width
+        };
+
+        // Edge containment
+        if (coords.left < 50) tooltipStyle = { top: coords.top + coords.height + 20, left: 20 };
+        if (coords.left > window.innerWidth - 350) tooltipStyle = { top: coords.top + coords.height + 20, left: 'auto', right: 20 };
+
+        // If element is at bottom, show above
+        if (coords.top > window.innerHeight - 200) {
+            tooltipStyle = {
+                bottom: window.innerHeight - coords.top + 20,
+                left: coords.left + (coords.width / 2) - 160,
+                top: 'auto'
+            }
+        }
+    }
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-[9999] flex flex-col pointer-events-none font-sans">
+                {/* SVG Mask Overlay */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-auto transition-all duration-500 ease-in-out">
+                    <defs>
+                        <mask id="spotlight-mask">
+                            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                            {coords && (
+                                <motion.rect
+                                    initial={{ x: coords.left, y: coords.top, width: coords.width, height: coords.height }}
+                                    animate={{ x: coords.left - 10, y: coords.top - 10, width: coords.width + 20, height: coords.height + 20 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    rx="12"
+                                    fill="black"
+                                />
+                            )}
+                        </mask>
+                    </defs>
+                    <rect
+                        x="0" y="0" width="100%" height="100%"
+                        fill="rgba(0,0,0,0.85)"
+                        mask="url(#spotlight-mask)"
+                    />
+
+                    {/* Ring Animation */}
+                    {coords && (
+                        <motion.rect
+                            initial={{ x: coords.left, y: coords.top, width: coords.width, height: coords.height }}
+                            animate={{ x: coords.left - 10, y: coords.top - 10, width: coords.width + 20, height: coords.height + 20 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            rx="12"
+                            fill="none"
+                            stroke="#39FF14"
+                            strokeWidth="2"
+                            strokeDasharray="10,5"
+                        />
+                    )}
+                </svg>
+
+                {/* Content Card */}
+                <motion.div
+                    key={current.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", duration: 0.5 }}
+                    className="absolute pointer-events-auto max-w-xs w-full"
+                    style={isCenter ? {
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        // Center override classes
+                        marginLeft: '-10rem', // w-80 is 20rem
+                        marginTop: '-8rem'
+                    } : tooltipStyle}
+                >
+                    <div className="bg-[#050505] border border-[#39FF14] p-6 rounded-3xl shadow-[0_0_50px_rgba(57,255,20,0.2)] relative overflow-hidden">
+                        {/* Background Glitch */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-[#39FF14]/50 animate-pulse"></div>
+
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-black text-[#39FF14] uppercase tracking-tighter shadow-green-glow">
+                                {current.title}
+                            </h3>
+                            <span className="text-[10px] text-gray-500 font-mono">
+                                {activeStep + 1} / {STEPS.length}
+                            </span>
+                        </div>
+
+                        <p className="text-gray-300 font-bold text-xs leading-relaxed mb-6 uppercase tracking-wide">
+                            {current.content}
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={finishTour}
+                                className="px-4 py-3 rounded-xl text-gray-500 text-[10px] font-black uppercase hover:text-white transition-colors hover:bg-white/5"
+                            >
+                                Skip
+                            </button>
+                            <button
+                                onClick={() => handleNext(false)}
+                                className="flex-1 py-3 bg-[#39FF14] text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-green-500/20"
+                            >
+                                {activeStep === STEPS.length - 1 ? 'Execute Protocol' : 'Next Step'}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
+    );
+}

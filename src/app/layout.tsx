@@ -17,6 +17,7 @@ import CampusGuard from "@/components/layout/CampusGuard";
 import "./globals.css";
 import WelcomeModal from "@/components/alpha/WelcomeModal";
 import InsightUplink from "@/components/alpha/InsightUplink";
+import OmniGuide from "@/components/guide/OmniGuide";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,6 +60,7 @@ export default function RootLayout({
                     <Footer />
                     <GhostEditToggle />
                     <WelcomeModal />
+                    <OmniGuide />
                     <InsightUplink />
                   </CartProvider>
                 </ModalProvider>

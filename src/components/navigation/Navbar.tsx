@@ -151,22 +151,28 @@ export default function Navbar() {
                         {/* Desktop Navigation Links */}
                         <div className="hidden lg:flex items-center gap-1 ml-4">
                             <SignedIn>
-                                <NavLink href="/marketplace" isActive={isActive('/marketplace')}>
-                                    🛍️ Marketplace
-                                </NavLink>
+                                <div id="omni-nav-marketplace">
+                                    <NavLink href="/marketplace" isActive={isActive('/marketplace')}>
+                                        🛍️ Marketplace
+                                    </NavLink>
+                                </div>
                                 <NavLink href="/orders" isActive={isActive('/orders')}>
                                     📦 My Orders
                                 </NavLink>
-                                <NavLink href="/stories" isActive={isActive('/stories')}>
-                                    📱 Campus Pulse
-                                </NavLink>
+                                <div id="omni-nav-pulse">
+                                    <NavLink href="/stories" isActive={isActive('/stories')}>
+                                        📱 Campus Pulse
+                                    </NavLink>
+                                </div>
                                 <NavLink href="/stories/my-pulse" isActive={isActive('/stories/my-pulse')}>
                                     📹 My Pulse
                                 </NavLink>
 
-                                <NavLink href="/runner" isActive={isActive('/runner')}>
-                                    🏃 Runner Mode
-                                </NavLink>
+                                <div id="omni-nav-runner">
+                                    <NavLink href="/runner" isActive={isActive('/runner')}>
+                                        🏃 Runner Mode
+                                    </NavLink>
+                                </div>
                             </SignedIn>
                         </div>
                     </div>
@@ -200,14 +206,14 @@ export default function Navbar() {
                             </Link>
 
                             {/* Desktop: User Avatar */}
-                            <div className="hidden lg:block">
+                            <div className="hidden lg:block" id="omni-nav-profile">
                                 <UserButton appearance={{ elements: { avatarBox: "w-9 h-9 border-2 border-surface-border" } }} />
                             </div>
                         </SignedIn>
 
                         <SignedOut>
                             <SignInButton mode="modal">
-                                <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95">
+                                <button id="omni-nav-signin" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95">
                                     Sign In
                                 </button>
                             </SignInButton>
