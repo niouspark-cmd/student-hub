@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/navigation/Footer";
@@ -62,6 +63,7 @@ export default function RootLayout({
                     <WelcomeModal />
                     <OmniGuide />
                     <InsightUplink />
+                    <Toaster richColors position="top-center" theme="dark" />
                   </CartProvider>
                 </ModalProvider>
               </LocationProvider>
