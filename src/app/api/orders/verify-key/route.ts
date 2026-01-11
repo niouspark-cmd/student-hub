@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
                         xp: remainingXP,
                         runnerLevel: newLevel,
                         runnerStatus: 'IDLE', // Back to idle
+                        balance: { increment: order.runnerEarnings || 0 }
                     }
                 });
             }
