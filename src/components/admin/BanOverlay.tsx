@@ -64,7 +64,7 @@ export default function BanOverlay() {
                                     YOU ARE BANNED
                                 </h1>
                                 <h1 className="relative text-5xl md:text-9xl font-black text-white uppercase tracking-tighter select-none mix-blend-overlay">
-                                    BANNED
+                                    YOU ARE BANNED
                                 </h1>
                                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-red-600 text-black px-4 py-1 font-black text-[10px] md:text-xs uppercase tracking-[0.5em] rotate-2 whitespace-nowrap">
                                     <span>System Lockdown</span>

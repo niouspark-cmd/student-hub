@@ -181,6 +181,22 @@ export default function CommandCenterPage() {
         } catch (e) { alert('Failed'); }
     }
 
+    const handleDeleteApplication = async (appId: string) => {
+        if (!confirm('DELETE APPLICATION? This will reset the user status.')) return;
+        try {
+            const res = await fetch('/api/admin/applications', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: appId })
+            });
+            if (res.ok) {
+                fetchApplications();
+            } else {
+                alert('Failed to delete');
+            }
+        } catch (e) { alert('Error'); }
+    }
+
     const deleteSignal = async (id: string) => {
         if (!confirm('DELETE SIGNAL PERMANENTLY?')) return;
         setSignals(prev => prev.filter(s => s.id !== id));
@@ -1048,6 +1064,12 @@ export default function CommandCenterPage() {
                                     )}
 
                                     <div className="flex justify-end gap-3">
+                                        <button
+                                            onClick={() => handleDeleteApplication(app.id)}
+                                            className="px-6 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all"
+                                        >
+                                            Reject
+                                        </button>
                                         <button
                                             onClick={() => handleApproveApplication(app.id)}
                                             className="px-6 py-2 bg-primary text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform"
