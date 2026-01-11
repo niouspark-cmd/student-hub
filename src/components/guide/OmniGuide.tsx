@@ -2,22 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUser } from '@clerk/nextjs';
 
-// Define Tour Steps
-const STEPS = [
+// Define Tour Steps for MEMBERS (Logged In)
+const MEMBER_STEPS = [
     {
         id: 'welcome',
         target: null, // Center
         title: 'SYSTEM INITIALIZED',
-        content: 'Welcome to the OMNI Network. Follow this guide to establish your digital presence.',
+        content: 'Welcome back, Agent. Quick orientation protocol initiated.',
         position: 'center'
-    },
-    {
-        id: 'signin',
-        target: 'omni-nav-signin',
-        title: 'AUTHENTICATION',
-        content: 'First, you must log in to access the marketplace feeds and secure channels.',
-        position: 'bottom-right'
     },
     {
         id: 'profile',
@@ -46,22 +40,47 @@ const STEPS = [
         title: 'SHADOW RUNNER',
         content: 'Want to earn cash? Activate Runner Mode to deliver items securely.',
         position: 'bottom-left'
+    }
+];
+
+// Define Tour Steps for GUESTS (New Users / Not Logged In)
+const GUEST_STEPS = [
+    {
+        id: 'welcome_guest',
+        target: null,
+        title: 'OMNI NETWORK',
+        content: 'The centralized marketplace for university students. Food, tech, services - all in one terminal.',
+        position: 'center'
     },
     {
-        id: 'escrow',
+        id: 'escrow_guest',
         target: null,
         title: 'SHIELD PROTOCOL',
-        content: 'All transactions are protected by Escrow. Funds are held until you confirm receipt.',
+        content: 'Your money is safe. We hold payments in Escrow until you confirm you have received your item.',
         position: 'center'
+    },
+    {
+        id: 'signin_guest',
+        target: 'omni-nav-signin',
+        title: 'INITIALIZE IDENTITY',
+        content: 'Sign in to access the network. Students and Vendors verify here.',
+        position: 'bottom-right'
     }
 ];
 
 export default function OmniGuide() {
+    const { isSignedIn, isLoaded } = useUser();
     const [activeStep, setActiveStep] = useState<number | null>(null);
     const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
     const [isVisible, setIsVisible] = useState(false);
 
+    // Determine which steps to use
+    // If not loaded yet, assume guest or empty, but the effect [isLoaded] handles the start.
+    const STEPS = isSignedIn ? MEMBER_STEPS : GUEST_STEPS;
+
     useEffect(() => {
+        if (!isLoaded) return;
+
         // Poll for Welcome Modal Completion
         const checkStart = setInterval(() => {
             const tutorialDone = localStorage.getItem('omni_tutorial_completed');
@@ -83,7 +102,7 @@ export default function OmniGuide() {
         }, 1000);
 
         return () => clearInterval(checkStart);
-    }, []);
+    }, [isLoaded]);
 
     useEffect(() => {
         if (activeStep === null) return;
@@ -110,7 +129,7 @@ export default function OmniGuide() {
                         setTimeout(findElement, 500);
                     } else {
                         console.log(`Target ${step.target} not found, skipping...`);
-                        handleNext(true); // Auto skip if not found (e.g. wrong auth state)
+                        handleNext(true); // Auto skip if not found
                     }
                 }
             };
@@ -118,7 +137,7 @@ export default function OmniGuide() {
         } else {
             setCoords(null); // Center mode
         }
-    }, [activeStep]);
+    }, [activeStep, STEPS]);
 
     const handleNext = (autoSkip = false) => {
         if (activeStep === null) return;
