@@ -104,7 +104,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-surface-border shadow-2xl transition-all duration-300">
+            <nav id="omni-navbar" className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-surface-border shadow-2xl transition-all duration-300">
                 <div className="flex justify-between items-center px-4 h-16 max-w-7xl mx-auto">
                     {/* ... (Existing Logo etc) */}
 
@@ -257,6 +257,7 @@ export default function Navbar() {
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            id="omni-drawer"
                             className="fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-background border-r border-surface-border z-[70] overflow-y-auto lg:hidden shadow-2xl"
                         >
                             {/* Drawer Header */}

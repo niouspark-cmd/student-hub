@@ -126,6 +126,12 @@ const ONBOARDING_STEPS = [
     }
 ];
 
+const CONTAINER_MAP: Record<string, string> = {
+    'omni-mobile-menu': 'omni-navbar',
+    'omni-mobile-marketplace': 'omni-drawer',
+    'omni-mobile-pulse': 'omni-drawer'
+};
+
 export default function OmniGuide() {
     const { isSignedIn, isLoaded } = useUser();
     const pathname = usePathname();
@@ -198,20 +204,22 @@ export default function OmniGuide() {
         return () => clearInterval(checkStart);
     }, [isLoaded, STORAGE_KEY, pathname, isSignedIn]);
 
+    // Handle Target Highlighting & Interaction
     useEffect(() => {
         if (activeStep === null) return;
         if (!STEPS[activeStep]) return; // Safety
 
         const step = STEPS[activeStep];
+        let highlightedElement: HTMLElement | null = null;
+        let originalStyles: { zIndex: string; position: string } | null = null;
 
-        // Handle Target Highlighting
         if (step.target) {
             let attempts = 0;
             const findElement = () => {
                 const el = document.getElementById(step.target!);
                 if (el) {
                     const rect = el.getBoundingClientRect();
-                    // Handle case where element is hidden (e.g. mobile menu closed)
+                    // Handle case where element is hidden
                     if (rect.width === 0 && rect.height === 0) {
                         attempts++;
                         if (attempts < 10) setTimeout(findElement, 500);
@@ -221,17 +229,49 @@ export default function OmniGuide() {
                     setCoords({
                         top: rect.top,
                         left: rect.left,
+                        setCoords({
+                            top: rect.top,
+                        left: rect.left,
                         width: rect.width,
                         height: rect.height
                     });
+
+                    // ELEVATE ELEMENT FOR INTERACTION
+                    highlightedElement = el;
+
+                    // Check if we need to elevate a container instead
+                    const containerId = CONTAINER_MAP[step.target!];
+                    let targetToElevate = el;
+
+                    if (containerId) {
+                        const containerEl = document.getElementById(containerId);
+                        if (containerEl) {
+                            targetToElevate = containerEl;
+                        }
+                    }
+
+                    originalStyles = {
+                        zIndex: targetToElevate.style.zIndex,
+                        position: targetToElevate.style.position
+                    };
+
+                    targetToElevate.style.zIndex = '10000'; // Above Backdrop (9998) but below UI (10002)
+
+                    // Ensure position is non-static for z-index to work
+                    const computedPos = window.getComputedStyle(targetToElevate).position;
+                    if (computedPos === 'static') {
+                        targetToElevate.style.position = 'relative';
+                    }
+
+                    // If we switched to a container, update our reference for cleanup
+                    highlightedElement = targetToElevate;
+
                 } else {
                     attempts++;
                     if (attempts < 10) {
                         setTimeout(findElement, 500);
                     } else {
                         console.log(`Target ${step.target} not found, ignoring...`);
-                        // Don't skip automatically for mobile menu, let user figure it out? 
-                        // Or skip? Be nice and skip.
                         handleNext(true);
                     }
                 }
@@ -240,7 +280,15 @@ export default function OmniGuide() {
         } else {
             setCoords(null);
         }
-    }, [activeStep, STEPS]); // Depend on STEPS because they change on resize
+
+        // Cleanup function to restore styles
+        return () => {
+            if (highlightedElement && originalStyles) {
+                highlightedElement.style.zIndex = originalStyles.zIndex;
+                highlightedElement.style.position = originalStyles.position;
+            }
+        };
+    }, [activeStep, STEPS]);
 
     const handleNext = (autoSkip = false) => {
         if (activeStep === null) return;
@@ -293,109 +341,142 @@ export default function OmniGuide() {
         }
         else {
             // Smart Fallback
-            if (coords.left < 50) tooltipStyle = { top: coords.top + coords.height + 20, left: 20 };
-            if (coords.left > window.innerWidth - 350) tooltipStyle = { top: coords.top + coords.height + 20, left: 'auto', right: 20 };
+            // If near left edge
+            if (coords.left < 50) {
+                tooltipStyle = {
+                    top: coords.top + coords.height + 20,
+                    left: 20,
+                    right: 'auto',
+                    maxWidth: 'calc(100vw - 40px)' // Ensure it fits
+                };
+            }
+            // If near right edge
+            if (coords.left > window.innerWidth - 350) {
+                tooltipStyle = {
+                    top: coords.top + coords.height + 20,
+                    left: 'auto',
+                    right: 20,
+                    maxWidth: 'calc(100vw - 40px)'
+                };
+            }
 
+            // If near bottom
             if (coords.top > window.innerHeight - 200) {
                 tooltipStyle = {
                     bottom: window.innerHeight - coords.top + 20,
                     left: coords.left + (coords.width / 2) - 160,
                     top: 'auto'
                 }
+
+                // Correction for bottom + mobile width
+                if (window.innerWidth < 400) {
+                    tooltipStyle.left = 20;
+                    tooltipStyle.maxWidth = 'calc(100vw - 40px)';
+                }
             }
         }
     }
 
     return (
+    return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[9999] flex flex-col pointer-events-none font-sans">
-                {/* SVG Mask Overlay */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-auto transition-all duration-500 ease-in-out">
-                    <defs>
-                        <mask id="spotlight-mask">
-                            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+            {isVisible && activeStep !== null && (
+                <>
+                    {/* Layer 1: Backdrop (z-9998) - Covers page, but is below lifted targets (z-10000) */}
+                    <div className="fixed inset-0 z-[9998] pointer-events-none font-sans">
+                        <svg className="absolute inset-0 w-full h-full pointer-events-auto transition-all duration-500 ease-in-out">
+                            <defs>
+                                <mask id="spotlight-mask">
+                                    <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                                    {coords && (
+                                        <motion.rect
+                                            initial={{ x: coords.left, y: coords.top, width: coords.width, height: coords.height }}
+                                            animate={{ x: coords.left - 10, y: coords.top - 10, width: coords.width + 20, height: coords.height + 20 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            rx="24"
+                                            fill="black"
+                                        />
+                                    )}
+                                </mask>
+                            </defs>
+                            <rect
+                                x="0" y="0" width="100%" height="100%"
+                                fill="rgba(0,0,0,0.85)"
+                                mask="url(#spotlight-mask)"
+                            />
+                        </svg>
+                    </div>
+
+                    {/* Layer 2: UI & Highlights (z-10002) - Topmost Layer */}
+                    <div className="fixed inset-0 z-[10002] flex flex-col pointer-events-none font-sans">
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                            {/* Ring Animation */}
                             {coords && (
                                 <motion.rect
                                     initial={{ x: coords.left, y: coords.top, width: coords.width, height: coords.height }}
                                     animate={{ x: coords.left - 10, y: coords.top - 10, width: coords.width + 20, height: coords.height + 20 }}
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     rx="24"
-                                    fill="black"
+                                    fill="none"
+                                    stroke="#39FF14"
+                                    strokeWidth="2"
+                                    strokeDasharray="10,5"
                                 />
                             )}
-                        </mask>
-                    </defs>
-                    <rect
-                        x="0" y="0" width="100%" height="100%"
-                        fill="rgba(0,0,0,0.85)"
-                        mask="url(#spotlight-mask)"
-                    />
+                        </svg>
 
-                    {/* Ring Animation */}
-                    {coords && (
-                        <motion.rect
-                            initial={{ x: coords.left, y: coords.top, width: coords.width, height: coords.height }}
-                            animate={{ x: coords.left - 10, y: coords.top - 10, width: coords.width + 20, height: coords.height + 20 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            rx="24"
-                            fill="none"
-                            stroke="#39FF14"
-                            strokeWidth="2"
-                            strokeDasharray="10,5"
-                        />
-                    )}
-                </svg>
+                        {/* Content Card */}
+                        <motion.div
+                            key={current.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ type: "spring", duration: 0.5 }}
+                            className="absolute pointer-events-auto max-w-[90vw] md:max-w-xs w-full"
+                            style={isCenter ? {
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                marginLeft: 'auto',
+                                marginRight: 'auto'
+                            } : tooltipStyle}
+                        >
+                            <div className="bg-[#050505] border border-[#39FF14] p-6 rounded-3xl shadow-[0_0_50px_rgba(57,255,20,0.2)] relative overflow-hidden mx-auto">
+                                {/* Background Glitch */}
+                                <div className="absolute top-0 left-0 w-full h-1 bg-[#39FF14]/50 animate-pulse"></div>
 
-                {/* Content Card */}
-                <motion.div
-                    key={current.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ type: "spring", duration: 0.5 }}
-                    className="absolute pointer-events-auto max-w-xs w-full"
-                    style={isCenter ? {
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        marginLeft: 'auto',
-                        marginRight: 'auto'
-                    } : tooltipStyle}
-                >
-                    <div className="bg-[#050505] border border-[#39FF14] p-6 rounded-3xl shadow-[0_0_50px_rgba(57,255,20,0.2)] relative overflow-hidden mx-auto">
-                        {/* Background Glitch */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-[#39FF14]/50 animate-pulse"></div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <h3 className="text-xl font-black text-[#39FF14] uppercase tracking-tighter shadow-green-glow">
+                                        {current.title}
+                                    </h3>
+                                    <span className="text-[10px] text-gray-500 font-mono">
+                                        {activeStep + 1} / {STEPS.length}
+                                    </span>
+                                </div>
 
-                        <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-black text-[#39FF14] uppercase tracking-tighter shadow-green-glow">
-                                {current.title}
-                            </h3>
-                            <span className="text-[10px] text-gray-500 font-mono">
-                                {activeStep + 1} / {STEPS.length}
-                            </span>
-                        </div>
+                                <div className="text-gray-300 font-bold text-xs leading-relaxed mb-6 uppercase tracking-wide">
+                                    {current.content}
+                                </div>
 
-                        <div className="text-gray-300 font-bold text-xs leading-relaxed mb-6 uppercase tracking-wide">
-                            {current.content}
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={finishTour}
-                                className="px-4 py-3 rounded-xl text-gray-500 text-[10px] font-black uppercase hover:text-white transition-colors hover:bg-white/5"
-                            >
-                                Skip
-                            </button>
-                            <button
-                                onClick={() => handleNext(false)}
-                                className="flex-1 py-3 bg-[#39FF14] text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-green-500/20"
-                            >
-                                {activeStep === STEPS.length - 1 ? 'Execute Protocol' : 'Next Step'}
-                            </button>
-                        </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={finishTour}
+                                        className="px-4 py-3 rounded-xl text-gray-500 text-[10px] font-black uppercase hover:text-white transition-colors hover:bg-white/5"
+                                    >
+                                        Skip
+                                    </button>
+                                    <button
+                                        onClick={() => handleNext(false)}
+                                        className="flex-1 py-3 bg-[#39FF14] text-black rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-green-500/20"
+                                    >
+                                        {activeStep === STEPS.length - 1 ? 'Execute Protocol' : 'Next Step'}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
-                </motion.div>
-            </div>
+                </>
+            )}
         </AnimatePresence>
     );
 }
