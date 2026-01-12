@@ -373,7 +373,7 @@ export default function Navbar() {
                                         <DrawerLink id="omni-mobile-marketplace" href="/marketplace" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/marketplace')} />
                                         <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={getItemCount()} active={isActive('/cart')} />
                                         <DrawerLink href="/orders" icon={<PackageIcon className="w-5 h-5" />} label="My Orders" setIsOpen={setIsDrawerOpen} active={isActive('/orders')} />
-                                        <DrawerLink href="/wishlist" icon={<HeartIcon className="w-5 h-5" />} label="Wishlist" setIsOpen={setIsDrawerOpen} />
+                                        <DrawerLink href="#" icon={<HeartIcon className="w-5 h-5" />} label="Wishlist" setIsOpen={setIsDrawerOpen} comingSoon={true} />
                                     </div>
 
                                     <div className="mb-6">
@@ -433,7 +433,21 @@ function NavLink({ href, isActive, children }: { href: string; isActive: boolean
     );
 }
 
-function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, className, id }: any) {
+function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, className, id, comingSoon }: any) {
+    if (comingSoon) {
+        return (
+            <div className={`flex items-center justify-between p-3 rounded-xl opacity-50 cursor-not-allowed ${className}`}>
+                <div className="flex items-center gap-4">
+                    <span className="text-foreground/60 grayscale">{icon}</span>
+                    <span className="font-bold text-sm uppercase tracking-tight text-foreground/60">{label}</span>
+                </div>
+                <span className="px-2 py-0.5 bg-foreground/10 text-foreground/50 text-[9px] font-black uppercase rounded">
+                    Soon
+                </span>
+            </div>
+        );
+    }
+
     return (
         <Link
             id={id}
