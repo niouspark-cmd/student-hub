@@ -229,9 +229,6 @@ export default function OmniGuide() {
                     setCoords({
                         top: rect.top,
                         left: rect.left,
-                        setCoords({
-                            top: rect.top,
-                        left: rect.left,
                         width: rect.width,
                         height: rect.height
                     });
@@ -377,7 +374,6 @@ export default function OmniGuide() {
         }
     }
 
-    return (
     return (
         <AnimatePresence>
             {isVisible && activeStep !== null && (
