@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { SearchIcon, ShoppingCartIcon, ChevronRightIcon } from "@/components/ui/Icons";
+
 import SmartFeed from "@/components/marketplace/SmartFeed";
+import GlobalSearch from "@/components/navigation/GlobalSearch";
 import { Suspense } from "react";
 import RefreshButton from "@/components/ui/RefreshButton";
 import * as React from "react";
@@ -39,18 +41,10 @@ export default function Home() {
 
           {/* Quick Search Bar */}
           <div className="max-w-2xl mx-auto">
-            <form action="/search" className="relative flex items-center bg-white rounded-full shadow-2xl h-14 px-5">
-              <SearchIcon className="w-5 h-5 text-gray-400 mr-3" />
-              <input
-                name="q"
-                type="text"
-                placeholder="Search for products, vendors..."
-                className="w-full bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none font-medium"
-              />
-              <button type="submit" className="p-2 bg-orange-500 rounded-full text-white hover:bg-orange-600 transition-colors">
-                <ChevronRightIcon className="w-5 h-5" />
-              </button>
-            </form>
+            {/* Quick Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <GlobalSearch variant="hero" />
+            </div>
           </div>
         </div>
       </div>

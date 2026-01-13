@@ -8,6 +8,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/n
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
+import GlobalSearch from './GlobalSearch';
 import { useCart } from '@/context/CartContext';
 import {
     MenuIcon,
@@ -30,6 +31,7 @@ export default function Navbar() {
     const { getItemCount } = useCart();
     const [dbUser, setDbUser] = useState<{ role: string; vendorStatus: string; isRunner: boolean; onboarded: boolean; university?: string } | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [globalNotice, setGlobalNotice] = useState<string | null>(null);
 
     // Triple-tap easter egg for Command Center
@@ -40,26 +42,22 @@ export default function Navbar() {
     const handleLogoClick = () => {
         // Only work for GOD_MODE users
         if (user?.publicMetadata?.role !== 'GOD_MODE') {
-            // Regular users - do nothing (let them stay on current page)
             return;
         }
 
         const newCount = tapCount + 1;
         setTapCount(newCount);
 
-        // Clear existing timeout
         if (tapTimeout) {
             clearTimeout(tapTimeout);
         }
 
-        // If triple-tapped, go to Command Center
         if (newCount === 3) {
             setTapCount(0);
             window.location.href = '/command-center-z';
             return;
         }
 
-        // Reset after 1 second of no taps
         const timeout = setTimeout(() => {
             setTapCount(0);
         }, 1000);
@@ -67,7 +65,6 @@ export default function Navbar() {
     };
 
     useEffect(() => {
-        // Fetch User
         if (clerkLoaded && user) {
             fetch('/api/users/me')
                 .then(res => res.json())
@@ -77,7 +74,6 @@ export default function Navbar() {
             setDbUser(null);
         }
 
-        // Poll Global Settings (Ticker) - Instant Sync
         const fetchTicker = () => {
             fetch('/api/system/config')
                 .then(res => res.json())
@@ -86,17 +82,16 @@ export default function Navbar() {
         };
 
         fetchTicker();
-        const interval = setInterval(fetchTicker, 3000); // 3 seconds for "Instant" feel
+        const interval = setInterval(fetchTicker, 3000);
 
         return () => clearInterval(interval);
-    }, [clerkLoaded, user]); // Removed pathname to avoid re-mounting interval purely on nav change
+    }, [clerkLoaded, user]);
 
-    // Close drawer on path change and Keyboard Shortcuts
     useEffect(() => {
         setIsDrawerOpen(false);
+        setIsMobileSearchOpen(false); // Close search on nav
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Shortcut: Shift + Alt + Z (Command Center Z)
             if (e.shiftKey && e.altKey && e.key === 'Z') {
                 if (user?.publicMetadata?.role === 'GOD_MODE') {
                     window.location.href = '/command-center-z';
@@ -108,7 +103,6 @@ export default function Navbar() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [pathname, user]);
 
-    // Prevent body scroll when drawer is open
     useEffect(() => {
         if (isDrawerOpen) {
             document.body.style.overflow = 'hidden';
@@ -121,7 +115,7 @@ export default function Navbar() {
 
     // Parse Color from Global Notice: [#ff0000]Message
     let tickerMessage = globalNotice;
-    let tickerColor = '#39FF14'; // Default Omni Green
+    let tickerColor = '#39FF14';
 
     if (globalNotice?.startsWith('[')) {
         const match = globalNotice.match(/^\[(#[a-fA-F0-9]{6}|[a-z]+)\](.*)/);
@@ -131,14 +125,13 @@ export default function Navbar() {
         }
     }
 
-    // Only hide navbar on Command Center
     if (pathname?.startsWith('/command-center-z')) {
         return null;
     }
 
     return (
         <>
-            <nav id="omni-navbar" className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-surface-border shadow-2xl transition-all duration-300">
+            <nav id="omni-navbar" className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/90 border-b border-surface-border shadow-md transition-all duration-300">
                 <div className="flex justify-between items-center px-4 h-16 max-w-7xl mx-auto gap-4">
                     {/* LEFT: Mobile Hamburger / Desktop Logo */}
                     <div className="flex items-center gap-4">
@@ -152,7 +145,7 @@ export default function Navbar() {
                             <MenuIcon className="w-6 h-6 text-foreground" />
                         </button>
 
-                        {/* Logo with Triple-Tap Easter Egg */}
+                        {/* Logo */}
                         {user?.publicMetadata?.role === 'GOD_MODE' ? (
                             <div
                                 onClick={handleLogoClick}
@@ -162,6 +155,7 @@ export default function Navbar() {
                                     src="/OMNI-LOGO.ico"
                                     alt="OMNI"
                                     className="h-10 lg:h-8 w-auto transition-transform group-hover:scale-110 invert-on-light"
+                                    style={{ filter: 'var(--invert-filter)' }}
                                 />
                                 <span className="hidden lg:block font-black tracking-tighter text-lg">OMNI</span>
                             </div>
@@ -171,24 +165,36 @@ export default function Navbar() {
                                     src="/OMNI-LOGO.ico"
                                     alt="OMNI"
                                     className="h-10 lg:h-8 w-auto transition-transform group-hover:scale-110 invert-on-light"
+                                    style={{ filter: 'var(--invert-filter)' }}
                                 />
                                 <span className="hidden lg:block font-black tracking-tighter text-lg">OMNI</span>
                             </Link>
                         )}
                     </div>
 
-                    {/* RIGHT: Actions (Cart, Profile) */}
+                    {/* CENTER: Global Search (Desktop) */}
+                    <div className="hidden lg:block flex-1 max-w-2xl px-8">
+                        <GlobalSearch />
+                    </div>
+
+                    {/* RIGHT: Actions */}
                     <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+                        {/* Mobile Search Toggle */}
+                        <button
+                            className="lg:hidden p-2 text-foreground/60 hover:text-foreground"
+                            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                        >
+                            {isMobileSearchOpen ? <XIcon className="w-5 h-5" /> : <SearchIcon className="w-5 h-5" />}
+                        </button>
+
                         <ThemeToggle />
 
                         <SignedIn>
-                            {/* Desktop Links (Icons) */}
                             <div className="hidden lg:flex items-center gap-4 mr-2">
-                                <Link href="/marketplace" className="text-sm font-bold text-foreground/60 hover:text-foreground transition-colors">Market</Link>
+                                <Link href="/" className="text-sm font-bold text-foreground/60 hover:text-foreground transition-colors">Market</Link>
                                 <Link href="/orders" className="text-sm font-bold text-foreground/60 hover:text-foreground transition-colors">Orders</Link>
                             </div>
 
-                            {/* Cart Icon */}
                             <Link
                                 href="/cart"
                                 className="relative p-2 text-foreground hover:text-primary transition-colors group"
@@ -201,7 +207,6 @@ export default function Navbar() {
                                 )}
                             </Link>
 
-                            {/* Desktop: User Avatar */}
                             <div className="hidden lg:block" id="omni-nav-profile">
                                 <UserButton appearance={{ elements: { avatarBox: "w-9 h-9 border-2 border-surface-border" } }} />
                             </div>
@@ -209,13 +214,34 @@ export default function Navbar() {
 
                         <SignedOut>
                             <SignInButton mode="modal">
-                                <button id="omni-nav-signin" className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95">
+                                <button id="omni-nav-signin" className="hidden md:block px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest transition-all omni-glow active:scale-95">
                                     Sign In
+                                </button>
+                            </SignInButton>
+                            <SignInButton mode="modal">
+                                <button className="md:hidden p-2 bg-primary/10 text-primary rounded-lg">
+                                    <UserCircleIcon className="w-5 h-5" />
                                 </button>
                             </SignInButton>
                         </SignedOut>
                     </div>
                 </div>
+
+                {/* Mobile Search Overlay */}
+                <AnimatePresence>
+                    {isMobileSearchOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="lg:hidden border-t border-surface-border bg-background/95 backdrop-blur-md overflow-hidden"
+                        >
+                            <div className="p-4">
+                                <GlobalSearch />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* GLOBAL TICKER */}
                 {tickerMessage && (
@@ -234,7 +260,6 @@ export default function Navbar() {
             <AnimatePresence>
                 {isDrawerOpen && (
                     <>
-                        {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -242,8 +267,6 @@ export default function Navbar() {
                             onClick={() => setIsDrawerOpen(false)}
                             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
                         />
-
-                        {/* Drawer Content */}
                         <motion.div
                             initial={{ x: '-100%' }}
                             animate={{ x: 0 }}
@@ -252,7 +275,7 @@ export default function Navbar() {
                             id="omni-drawer"
                             className="fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-background border-r border-surface-border z-[70] overflow-y-auto lg:hidden shadow-2xl"
                         >
-                            {/* Drawer Header */}
+                            {/* Drawer Content */}
                             <div className="p-6 bg-gradient-to-br from-primary/20 to-surface border-b border-surface-border">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="w-12 h-12 rounded-full border-2 border-primary/30 overflow-hidden bg-surface flex items-center justify-center">
@@ -290,9 +313,6 @@ export default function Navbar() {
                                     <h2 className="text-xl font-black text-foreground uppercase tracking-tight">
                                         Hello, Guest
                                     </h2>
-                                    <p className="text-xs font-bold text-foreground/60 uppercase tracking-widest mt-1">
-                                        Join the marketplace today
-                                    </p>
                                     <div className="mt-4">
                                         <SignInButton mode="modal">
                                             <button className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest shadow-lg">
@@ -303,10 +323,9 @@ export default function Navbar() {
                                 </SignedOut>
                             </div>
 
-                            {/* Drawer Links */}
                             <div className="p-4 space-y-2">
                                 <SignedIn>
-                                    {/* HUSTLE SWITCH (Dual Mode) */}
+                                    {/* HUSTLE: VENDOR */}
                                     <div className="mb-6 p-1">
                                         <Link
                                             href={dbUser?.role === 'VENDOR' ? "/dashboard/vendor" : "/become-vendor"}
@@ -322,20 +341,17 @@ export default function Navbar() {
                                                     <span className="text-xs font-black text-foreground uppercase tracking-widest">
                                                         {dbUser?.role === 'VENDOR' ? 'Vendor Mode' : (dbUser?.vendorStatus === 'PENDING' ? 'Application Pending' : 'Become a Vendor')}
                                                     </span>
-                                                    <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-wide">
-                                                        {dbUser?.role === 'VENDOR' ? 'Switch to Dashboard' : (dbUser?.vendorStatus === 'PENDING' ? 'Under Review' : 'Start Selling Today')}
-                                                    </span>
                                                 </div>
                                             </div>
                                             <ChevronRightIcon className="w-5 h-5 text-foreground/40" />
                                         </Link>
                                     </div>
 
-                                    {/* RUNNER SWITCH - Only for Non-Vendors */}
+                                    {/* HUSTLE: RUNNER */}
                                     {dbUser?.role !== 'VENDOR' && (
                                         <div className="mb-6 p-1 -mt-4">
                                             <Link
-                                                href={dbUser?.isRunner ? "/runner" : "/onboarding/runner"}
+                                                href={dbUser?.isRunner ? "/runner" : "/runner"}
                                                 onClick={() => setIsDrawerOpen(false)}
                                                 className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-background to-surface border border-yellow-500/30 rounded-2xl shadow-lg relative overflow-hidden group"
                                             >
@@ -348,12 +364,9 @@ export default function Navbar() {
                                                         <span className="text-xs font-black text-foreground uppercase tracking-widest">
                                                             {dbUser?.isRunner ? 'Runner Mode' : 'Become a Runner'}
                                                         </span>
-                                                        <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-wide">
-                                                            {dbUser?.isRunner ? 'Active Missions' : 'Earn on Campus'}
-                                                        </span>
                                                     </div>
                                                 </div>
-                                                <ChevronRightIcon className="w-5 h-5 text-foreground/40 group-hover:translate-x-1 transition-transform relative z-10" />
+                                                <ChevronRightIcon className="w-5 h-5 text-foreground/40" />
                                             </Link>
                                         </div>
                                     )}
@@ -362,18 +375,9 @@ export default function Navbar() {
                                         <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3 px-2">
                                             Shop & Save
                                         </h3>
-                                        <DrawerLink id="omni-mobile-marketplace" href="/marketplace" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/marketplace')} />
+                                        <DrawerLink href="/" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/')} />
                                         <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={getItemCount()} active={isActive('/cart')} />
                                         <DrawerLink href="/orders" icon={<PackageIcon className="w-5 h-5" />} label="My Orders" setIsOpen={setIsDrawerOpen} active={isActive('/orders')} />
-                                        <DrawerLink href="#" icon={<HeartIcon className="w-5 h-5" />} label="Wishlist" setIsOpen={setIsDrawerOpen} comingSoon={true} />
-                                    </div>
-
-                                    <div className="mb-6">
-                                        <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] mb-3 px-2">
-                                            Community
-                                        </h3>
-                                        <DrawerLink id="omni-mobile-pulse" href="/stories" icon={<ZapIcon className="w-5 h-5 text-yellow-500" />} label="Campus Pulse" setIsOpen={setIsDrawerOpen} live={true} active={isActive('/stories')} />
-                                        <DrawerLink href="/stories/my-pulse" icon={<div className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[10px] font-black">MP</div>} label="My Pulse" setIsOpen={setIsDrawerOpen} active={isActive('/stories/my-pulse')} />
                                     </div>
 
                                     {/* Specialized Modes */}
@@ -391,15 +395,6 @@ export default function Navbar() {
                                         </div>
                                     )}
 
-                                    {dbUser?.isRunner && (
-                                        <div className="mb-6 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                                            <h3 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3">
-                                                Earn Money
-                                            </h3>
-                                            <DrawerLink href="/runner" icon={<PackageIcon className="w-5 h-5 text-blue-500" />} label="Runner Dashboard" setIsOpen={setIsDrawerOpen} active={isActive('/runner')} />
-                                        </div>
-                                    )}
-
                                 </SignedIn>
                             </div>
                         </motion.div>
@@ -410,36 +405,8 @@ export default function Navbar() {
     );
 }
 
-// Sub-components
-function NavLink({ href, isActive, children }: { href: string; isActive: boolean; children: React.ReactNode }) {
-    return (
-        <Link
-            href={href}
-            className={`px-4 py-2 rounded-lg font-black text-xs uppercase tracking-widest transition-all ${isActive
-                ? 'bg-primary text-primary-foreground shadow-[0_0_15px_rgba(57,255,20,0.2)]'
-                : 'text-foreground/60 hover:bg-surface hover:text-primary'
-                }`}
-        >
-            {children}
-        </Link>
-    );
-}
-
 function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, className, id, comingSoon }: any) {
-    if (comingSoon) {
-        return (
-            <div className={`flex items-center justify-between p-3 rounded-xl opacity-50 cursor-not-allowed ${className}`}>
-                <div className="flex items-center gap-4">
-                    <span className="text-foreground/60 grayscale">{icon}</span>
-                    <span className="font-bold text-sm uppercase tracking-tight text-foreground/60">{label}</span>
-                </div>
-                <span className="px-2 py-0.5 bg-foreground/10 text-foreground/50 text-[9px] font-black uppercase rounded">
-                    Soon
-                </span>
-            </div>
-        );
-    }
-
+    if (comingSoon) return null; // Simplified
     return (
         <Link
             id={id}
@@ -452,12 +419,8 @@ function DrawerLink({ href, icon, label, setIsOpen, active, badge, live, classNa
                 <span className={`font-bold text-sm uppercase tracking-tight ${active ? 'text-foreground' : 'text-foreground/70'}`}>{label}</span>
             </div>
             <div className="flex items-center gap-2">
-                {live && (
-                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[8px] font-black uppercase rounded animate-pulse">LIVE</span>
-                )}
-                {badge > 0 && (
-                    <span className="px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-black rounded-full">{badge}</span>
-                )}
+                {live && <span className="px-1.5 py-0.5 bg-red-500 text-white text-[8px] font-black uppercase rounded animate-pulse">LIVE</span>}
+                {badge > 0 && <span className="px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-black rounded-full">{badge}</span>}
                 <ChevronRightIcon className="w-4 h-4 text-foreground/20" />
             </div>
         </Link>

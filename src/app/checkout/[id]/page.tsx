@@ -16,7 +16,7 @@ export default async function CheckoutPage({
     const { id } = await params;
 
     if (!userId) {
-        redirect('/marketplace');
+        redirect('/');
     }
 
     const clerkUser = await currentUser();
@@ -37,11 +37,11 @@ export default async function CheckoutPage({
     ]);
 
     if (systemConfig?.maintenanceMode) {
-        redirect('/marketplace');
+        redirect('/');
     }
 
     if (!product) {
-        redirect('/marketplace');
+        redirect('/');
     }
 
     const deliveryFee = systemConfig?.deliveryFee ?? 5.0;

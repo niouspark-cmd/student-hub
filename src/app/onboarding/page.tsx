@@ -23,7 +23,7 @@ export default function OnboardingPage() {
 
             // GOD_MODE bypass
             if (user.publicMetadata?.role === 'GOD_MODE') {
-                window.location.href = '/marketplace';
+                window.location.href = '/';
                 return;
             }
 
@@ -37,13 +37,13 @@ export default function OnboardingPage() {
             const data = await res.json();
 
             if (data.role === 'GOD_MODE') {
-                window.location.href = '/marketplace';
+                window.location.href = '/';
                 return;
             }
 
             if (data.onboarded) {
                 // Already onboarded
-                window.location.href = '/marketplace';
+                window.location.href = '/';
             }
         } catch (error) {
             console.error('Status check failed');
@@ -62,7 +62,7 @@ export default function OnboardingPage() {
             });
 
             if (res.ok) {
-                window.location.href = '/marketplace';
+                window.location.href = '/';
             } else {
                 alert('Onboarding failed. Please try again.');
             }
@@ -138,8 +138,8 @@ export default function OnboardingPage() {
                             onClick={handleComplete}
                             disabled={!name || !university || loading}
                             className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${name && university && !loading
-                                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:scale-105 active:scale-95 shadow-lg'
-                                    : 'bg-surface-border text-foreground/20 cursor-not-allowed'
+                                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:scale-105 active:scale-95 shadow-lg'
+                                : 'bg-surface-border text-foreground/20 cursor-not-allowed'
                                 }`}
                         >
                             {loading ? 'Setting up...' : 'Start Shopping →'}
