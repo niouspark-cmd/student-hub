@@ -22,6 +22,7 @@ model User {
   shopLandmark   String?
   vendorStatus   VendorStatus @default(NOT_APPLICABLE)
   isAcceptingOrders Boolean   @default(true)
+  phoneNumber    String?
   
   // Runner Mode fields
   isRunner     Boolean   @default(false)

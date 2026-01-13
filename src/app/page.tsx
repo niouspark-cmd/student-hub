@@ -182,8 +182,8 @@ function FlashDealCard({
       <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">{title}</h3>
 
       {/* Price */}
-      <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-xl font-black text-orange-600">₵{price}</span>
+      <div className="flex flex-col lg:flex-row lg:items-baseline gap-1 lg:gap-2 mb-2">
+        <span className="text-lg lg:text-xl font-black text-orange-600">₵{price}</span>
         <span className="text-xs text-gray-400 line-through">₵{originalPrice}</span>
       </div>
 

@@ -48,11 +48,21 @@ export default function GlobalSearch({ className = "", variant = "navbar" }: { c
             setIsLoading(true);
             try {
                 const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`);
-                const data = await res.json();
-                setResults(data);
-                setIsOpen(true);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.products) {
+                        setResults(data);
+                        setIsOpen(true);
+                    } else {
+                        // Handle unexpected structure
+                        setResults({ products: [], vendors: [], categories: [] });
+                    }
+                } else {
+                    setResults({ products: [], vendors: [], categories: [] });
+                }
             } catch (error) {
                 console.error('Search error', error);
+                setResults({ products: [], vendors: [], categories: [] });
             } finally {
                 setIsLoading(false);
             }
@@ -64,6 +74,7 @@ export default function GlobalSearch({ className = "", variant = "navbar" }: { c
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
+            // Check if we have results to navigate to, or just push to search page
             router.push(`/search?q=${encodeURIComponent(query)}`);
             setIsOpen(false);
         }
@@ -78,7 +89,7 @@ export default function GlobalSearch({ className = "", variant = "navbar" }: { c
     const isHero = variant === "hero";
 
     return (
-        <div ref={searchRef} className={`relative z-50 ${className} ${isHero ? 'w-full max-w-2xl' : 'w-full max-w-md'}`}>
+        <div ref={searchRef} className={`relative z-[100] ${className} ${isHero ? 'w-full max-w-2xl' : 'w-full max-w-md'}`}>
             <form onSubmit={handleSearchSubmit} className="relative group">
                 <input
                     type="text"

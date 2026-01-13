@@ -16,14 +16,15 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name: providedName, university } = body;
+        const { name: providedName, university, phoneNumber } = body;
 
         console.log('Onboarding User:', {
             id: user.id,
             emailAddresses: user.emailAddresses,
             primaryEmailId: user.primaryEmailAddressId,
             providedName,
-            university
+            university,
+            phoneNumber
         });
 
         const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
                 name: name,
                 university: university || 'KNUST',
                 onboarded: true,
+                phoneNumber: phoneNumber
             },
             create: {
                 clerkId: userId,
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
                 university: university || 'KNUST',
                 onboarded: true,
                 vendorStatus: 'NOT_APPLICABLE',
+                phoneNumber: phoneNumber
             }
         });
 

@@ -10,6 +10,7 @@ export default function OnboardingPage() {
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState('');
     const [university, setUniversity] = useState('KNUST');
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     const router = useRouter();
 
@@ -58,7 +59,7 @@ export default function OnboardingPage() {
             const res = await fetch('/api/auth/onboard', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, university }),
+                body: JSON.stringify({ name, university, phoneNumber }),
             });
 
             if (res.ok) {
@@ -133,11 +134,26 @@ export default function OnboardingPage() {
                             </select>
                         </div>
 
+                        {/* Phone Number */}
+                        <div className="text-left">
+                            <label className="text-xs font-black uppercase tracking-widest text-foreground/60 mb-2 block">
+                                Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                className="w-full bg-background border-2 border-surface-border rounded-xl p-4 font-bold focus:border-primary outline-none transition-colors"
+                                placeholder="e.g. 055 123 4567"
+                                required
+                            />
+                        </div>
+
                         {/* Submit Button */}
                         <button
                             onClick={handleComplete}
-                            disabled={!name || !university || loading}
-                            className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${name && university && !loading
+                            disabled={!name || !university || !phoneNumber || loading}
+                            className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${name && university && phoneNumber && !loading
                                 ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:scale-105 active:scale-95 shadow-lg'
                                 : 'bg-surface-border text-foreground/20 cursor-not-allowed'
                                 }`}
