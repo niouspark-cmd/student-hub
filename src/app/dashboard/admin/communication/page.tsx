@@ -181,8 +181,8 @@ export default function CommunicationPage() {
                                             key={user.id}
                                             onClick={() => handleToggleSelect(user.phoneNumber)}
                                             className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected
-                                                    ? 'bg-primary/5 border-primary shadow-[inset_0_0_10px_rgba(37,99,235,0.1)]'
-                                                    : 'bg-background border-surface-border hover:border-foreground/20'
+                                                ? 'bg-primary/5 border-primary shadow-[inset_0_0_10px_rgba(37,99,235,0.1)]'
+                                                : 'bg-background border-surface-border hover:border-foreground/20'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-4">
@@ -215,15 +215,24 @@ export default function CommunicationPage() {
                     <div className="bg-surface border border-surface-border rounded-[2rem] p-6 flex flex-col">
                         <div className="flex-1 space-y-6">
                             {/* Mode Toggle */}
-                            <div className="flex items-center justify-between">
+                            <div className="space-y-3">
                                 <span className="text-xs font-black uppercase tracking-widest text-foreground/40">Transmission Mode</span>
-                                <button
-                                    onClick={() => setUseManual(!useManual)}
-                                    className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border transition-all ${useManual ? 'bg-foreground text-background border-foreground' : 'text-foreground/40 border-surface-border hover:border-foreground'
-                                        }`}
-                                >
-                                    {useManual ? 'Manual Input' : 'List Selection'}
-                                </button>
+                                <div className="flex bg-background border border-surface-border rounded-xl p-1">
+                                    <button
+                                        onClick={() => setUseManual(false)}
+                                        className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!useManual ? 'bg-foreground text-background shadow-sm' : 'text-foreground/40 hover:bg-foreground/5'
+                                            }`}
+                                    >
+                                        List Selection
+                                    </button>
+                                    <button
+                                        onClick={() => setUseManual(true)}
+                                        className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${useManual ? 'bg-foreground text-background shadow-sm' : 'text-foreground/40 hover:bg-foreground/5'
+                                            }`}
+                                    >
+                                        Manual Entry
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Recipients Display */}
@@ -271,8 +280,8 @@ export default function CommunicationPage() {
                                 onClick={handleSend}
                                 disabled={sending || (!useManual && selectedPhones.size === 0) || !message}
                                 className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${sending || (!useManual && selectedPhones.size === 0) || !message
-                                        ? 'bg-foreground/10 cursor-not-allowed opacity-50'
-                                        : 'bg-primary text-primary-foreground hover:scale-[1.02] shadow-xl omni-glow'
+                                    ? 'bg-foreground/10 cursor-not-allowed opacity-50'
+                                    : 'bg-primary text-primary-foreground hover:scale-[1.02] shadow-xl omni-glow'
                                     }`}
                             >
                                 {sending ? 'TRANSMITTING...' : 'SEND MESSAGE'}
