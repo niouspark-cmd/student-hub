@@ -185,30 +185,63 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Partner Management Teaser */}
-                <div className="grid md:grid-cols-3 gap-8">
-                    <div className="p-12 bg-surface border border-surface-border rounded-[3rem] group cursor-pointer hover:border-primary/30 transition-all">
-                        <div className="text-6xl mb-8">🛠️</div>
-                        <h3 className="text-3xl font-black text-foreground mb-2 uppercase tracking-tighter">Partner Vetting</h3>
-                        <p className="text-foreground/40 mb-8 max-w-sm font-black uppercase tracking-widest text-[10px]">Review, verify, and activate campus vendors to the OMNI Network.</p>
+                {/* Command Modules */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {/* 1. Partner Vetting */}
+                    <div className="p-10 bg-surface border border-surface-border rounded-[2.5rem] group cursor-pointer hover:border-primary/30 transition-all">
+                        <div className="text-5xl mb-6">🛠️</div>
+                        <h3 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">Partner Vetting</h3>
+                        <p className="text-foreground/40 mb-6 max-w-sm font-black uppercase tracking-widest text-[9px]">Review, verify, and activate campus vendors to the OMNI Network.</p>
                         <Link href="/dashboard/admin/vetting">
-                            <button className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all omni-glow active:scale-95">Enter Protocol</button>
+                            <button className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all omni-glow active:scale-95">Enter Protocol</button>
                         </Link>
                     </div>
-                    <div className="p-12 bg-surface border border-surface-border rounded-[3rem] group cursor-pointer hover:border-primary/30 transition-all">
-                        <div className="text-6xl mb-8">🎛️</div>
-                        <h3 className="text-3xl font-black text-foreground mb-2 uppercase tracking-tighter">System Controls</h3>
-                        <p className="text-foreground/40 mb-8 max-w-sm font-black uppercase tracking-widest text-[10px]">Manage global settings, fee structure, and security parameters.</p>
+
+                    {/* 2. System Controls */}
+                    <div className="p-10 bg-surface border border-surface-border rounded-[2.5rem] group cursor-pointer hover:border-primary/30 transition-all">
+                        <div className="text-5xl mb-6">🎛️</div>
+                        <h3 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">System Controls</h3>
+                        <p className="text-foreground/40 mb-6 max-w-sm font-black uppercase tracking-widest text-[9px]">Manage global settings, fee structure, backups, and security parameters.</p>
                         <Link href="/dashboard/admin/controls">
-                            <button className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all omni-glow active:scale-95">Access Terminal</button>
+                            <button className="w-full py-4 bg-surface border-2 border-surface-border text-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:border-primary hover:text-primary transition-all active:scale-95">Access Terminal</button>
                         </Link>
                     </div>
-                    <div className="p-12 bg-surface border border-surface-border rounded-[3rem] group cursor-pointer hover:border-[#39FF14]/30 transition-all">
-                        <div className="text-6xl mb-8">📡</div>
-                        <h3 className="text-3xl font-black text-foreground mb-2 uppercase tracking-tighter">Signal Intel</h3>
-                        <p className="text-foreground/40 mb-8 max-w-sm font-black uppercase tracking-widest text-[10px]">Intercept feedback patterns and tester transmissions from the Alpha field.</p>
+
+                    {/* 3. Signal Intel */}
+                    <div className="p-10 bg-surface border border-surface-border rounded-[2.5rem] group cursor-pointer hover:border-[#39FF14]/30 transition-all">
+                        <div className="text-5xl mb-6">📡</div>
+                        <h3 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">Signal Intel</h3>
+                        <p className="text-foreground/40 mb-6 max-w-sm font-black uppercase tracking-widest text-[9px]">Intercept feedback patterns and tester transmissions from the Alpha field.</p>
                         <Link href="/dashboard/admin/signals">
-                            <button className="px-8 py-4 bg-[#39FF14] text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-lg active:scale-95">Open Uplink</button>
+                            <button className="w-full py-4 bg-[#39FF14] text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg active:scale-95">Open Uplink</button>
                         </Link>
+                    </div>
+
+                    {/* 4. Users Directory */}
+                    <div className="p-10 bg-surface border border-surface-border rounded-[2.5rem] group cursor-pointer hover:border-purple-500/30 transition-all">
+                        <div className="text-5xl mb-6">👥</div>
+                        <h3 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">Entity Database</h3>
+                        <p className="text-foreground/40 mb-6 max-w-sm font-black uppercase tracking-widest text-[9px]">Global Identity Registry. Access contact details and clearance levels.</p>
+                        <Link href="/dashboard/admin/users">
+                            <button className="w-full py-4 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(147,51,234,0.3)] active:scale-95">View Registry</button>
+                        </Link>
+                    </div>
+
+                    {/* 5. Comms Uplink */}
+                    <div className="p-10 bg-surface border border-surface-border rounded-[2.5rem] group cursor-pointer hover:border-blue-500/30 transition-all md:col-span-2 xl:col-span-2 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none"></div>
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                                <div className="text-5xl mb-6">📨</div>
+                                <h3 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tighter">Comms Uplink</h3>
+                                <p className="text-foreground/40 mb-6 max-w-md font-black uppercase tracking-widest text-[9px]">SMS Broadcast Terminal. Send direct beams or mass waves to system entities.</p>
+                            </div>
+                            <Link href="/dashboard/admin/communication">
+                                <button className="px-12 py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] active:scale-95 whitespace-nowrap">
+                                    Initialize Broadcast →
+                                </button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

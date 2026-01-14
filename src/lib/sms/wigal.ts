@@ -58,3 +58,64 @@ export async function sendSMS(to: string, message: string) {
         return { success: false, error };
     }
 }
+
+/**
+ * Send Bulk SMS via Wigal Frog API (V3)
+ */
+export async function sendBulkSMS(recipients: string[], message: string) {
+    if (!API_KEY || !USERNAME) return { success: false, error: 'Config Missing' };
+
+    // Filter and Format Numbers
+    const validRecipients = recipients
+        .filter(r => r && r.length > 5)
+        .map(r => {
+            let phone = r.replace(/\s+/g, '');
+            if (phone.startsWith('0')) phone = '233' + phone.substring(1);
+            if (phone.startsWith('+')) phone = phone.substring(1);
+            return phone;
+        });
+
+    if (validRecipients.length === 0) return { success: false, error: 'No valid recipients' };
+
+    const destinations = validRecipients.map(phone => ({
+        destination: phone,
+        msgid: `OMNI-BULK-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+    }));
+
+    // Wigal might limit destinations per request. Assuming reasonable limit or chunking needed.
+    // For Safety, chunk by 50.
+    const CHUNK_SIZE = 50;
+    const chunks = [];
+    for (let i = 0; i < destinations.length; i += CHUNK_SIZE) {
+        chunks.push(destinations.slice(i, i + CHUNK_SIZE));
+    }
+
+    const results = [];
+
+    for (const chunk of chunks) {
+        const payload = {
+            senderid: SENDER_ID,
+            destinations: chunk,
+            message: message,
+            smstype: 'text'
+        };
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/v3/sms/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'API-KEY': API_KEY,
+                    'USERNAME': USERNAME
+                },
+                body: JSON.stringify(payload)
+            });
+            results.push(await response.json());
+        } catch (e) {
+            console.error('Bulk Chunk Failed', e);
+            results.push({ error: e });
+        }
+    }
+
+    return { success: true, results };
+}
