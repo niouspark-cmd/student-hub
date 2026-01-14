@@ -83,10 +83,10 @@ export default function AdminDashboard() {
                 {/* Grid Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                        { label: 'Ecosystem Revenue', value: `₵${stats?.totalRevenue.toFixed(2)}`, icon: '💰' },
-                        { label: 'Active Protocols', value: stats?.totalOrders, icon: '📡' },
-                        { label: 'Total Entities', value: stats?.totalUsers, icon: '👤' },
-                        { label: 'Pending Partners', value: stats?.pendingVendors, icon: '🏪', color: 'text-yellow-400' },
+                        { label: 'Ecosystem Revenue', value: `₵${(stats?.totalRevenue || 0).toFixed(2)}`, icon: '💰' },
+                        { label: 'Active Protocols', value: stats?.totalOrders || 0, icon: '📡' },
+                        { label: 'Total Entities', value: stats?.totalUsers || 0, icon: '👤' },
+                        { label: 'Pending Partners', value: stats?.pendingVendors || 0, icon: '🏪', color: 'text-yellow-400' },
                     ].map((stat, i) => (
                         <div key={i} className="bg-surface border border-surface-border rounded-3xl p-8 relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>

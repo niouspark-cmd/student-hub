@@ -51,9 +51,9 @@ export default function Footer() {
                     <div>
                         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-6">Marketplace</h3>
                         <div className="space-y-4">
-                            <FooterLink href="/marketplace" label="All Drops" />
-                            <FooterLink href="/category/food-and-snacks" label="Food & Logistics" />
-                            <FooterLink href="/category/tech-and-gadgets" label="Tech Hub" />
+                            <FooterLink href="/" label="All Drops" />
+                            <FooterLink href="/category/food" label="Food & Logistics" />
+                            <FooterLink href="/category/tech" label="Tech Hub" />
                             <FooterLink href="/category/fashion" label="Fashion Gallery" />
                         </div>
                     </div>

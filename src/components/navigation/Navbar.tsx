@@ -173,19 +173,25 @@ export default function Navbar() {
                     </div>
 
                     {/* CENTER: Global Search (Desktop) */}
-                    <div className="hidden lg:block flex-1 max-w-2xl px-8">
-                        <GlobalSearch />
-                    </div>
+                    {/* CENTER: Global Search (Desktop) - Hidden on Home */
+                        pathname !== '/' && (
+                            <div className="hidden lg:block flex-1 max-w-2xl px-8">
+                                <GlobalSearch />
+                            </div>
+                        )}
 
                     {/* RIGHT: Actions */}
                     <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
                         {/* Mobile Search Toggle */}
-                        <button
-                            className="lg:hidden p-2 text-foreground/60 hover:text-foreground"
-                            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                        >
-                            {isMobileSearchOpen ? <XIcon className="w-5 h-5" /> : <SearchIcon className="w-5 h-5" />}
-                        </button>
+                        {/* Mobile Search Toggle - Hidden on Home */}
+                        {pathname !== '/' && (
+                            <button
+                                className="lg:hidden p-2 text-foreground/60 hover:text-foreground"
+                                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                            >
+                                {isMobileSearchOpen ? <XIcon className="w-5 h-5" /> : <SearchIcon className="w-5 h-5" />}
+                            </button>
+                        )}
 
                         <ThemeToggle />
 
