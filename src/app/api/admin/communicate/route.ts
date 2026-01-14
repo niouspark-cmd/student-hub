@@ -47,6 +47,14 @@ export async function POST(req: NextRequest) {
             const result = await sendBulkSMS(recipients, message);
             return NextResponse.json(result);
         }
+        else if (mode === 'SELECTION') {
+            const { recipients } = body;
+            if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+                return NextResponse.json({ error: 'No recipients selected' }, { status: 400 });
+            }
+            const result = await sendBulkSMS(recipients, message);
+            return NextResponse.json(result);
+        }
 
         return NextResponse.json({ error: 'Invalid Mode' }, { status: 400 });
 
