@@ -22,10 +22,14 @@ export async function GET(req: NextRequest) {
         const orders = await prisma.order.findMany({
             where: { vendorId: vendor.id },
             include: {
-                product: {
-                    select: {
-                        title: true,
-                        imageUrl: true
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                title: true,
+                                imageUrl: true
+                            }
+                        }
                     }
                 },
                 student: {

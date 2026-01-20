@@ -26,7 +26,11 @@ export async function GET(
         const order = await prisma.order.findUnique({
             where: { id },
             include: {
-                product: true,
+                items: {
+                    include: {
+                        product: true
+                    }
+                },
                 student: {
                     select: {
                         name: true,
@@ -54,7 +58,7 @@ export async function GET(
 
         // Check if user is student, vendor, or runner for this order
         const isStudent = order.studentId === user.id;
-        const isVendor = order.product.vendorId === user.id;
+        const isVendor = order.vendorId === user.id;
         const isRunner = order.runnerId === user.id;
 
         if (!isStudent && !isVendor && !isRunner) {
@@ -91,7 +95,6 @@ export async function PATCH(
 
         const order = await prisma.order.findUnique({
             where: { id },
-            include: { product: true }
         });
 
         if (!order) {
@@ -99,7 +102,7 @@ export async function PATCH(
         }
 
         // Only vendor can update status for now (usually)
-        if (order.product.vendorId !== user.id) {
+        if (order.vendorId !== user.id) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

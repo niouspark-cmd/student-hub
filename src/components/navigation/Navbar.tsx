@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
-import { useCart } from '@/context/CartContext';
+import { useCartStore } from '@/lib/store/cart';
 import {
     MenuIcon,
     XIcon,
@@ -28,7 +28,13 @@ import {
 export default function Navbar() {
     const pathname = usePathname();
     const { user, isLoaded: clerkLoaded } = useUser();
-    const { getItemCount } = useCart();
+    const itemCount = useCartStore((state) => state.getItemCount());
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const [dbUser, setDbUser] = useState<{ role: string; vendorStatus: string; isRunner: boolean; onboarded: boolean; university?: string } | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -206,9 +212,9 @@ export default function Navbar() {
                                 className="relative p-2 text-foreground hover:text-primary transition-colors group"
                             >
                                 <ShoppingCartIcon className="w-6 h-6 group-hover:scale-110 transition-transform block" />
-                                {getItemCount() > 0 && (
+                                {mounted && itemCount > 0 && (
                                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-background shadow-sm">
-                                        <span className="text-[10px] font-black text-white">{getItemCount()}</span>
+                                        <span className="text-[10px] font-black text-white">{itemCount}</span>
                                     </div>
                                 )}
                             </Link>
@@ -382,7 +388,7 @@ export default function Navbar() {
                                             Shop & Save
                                         </h3>
                                         <DrawerLink href="/" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/')} />
-                                        <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={getItemCount()} active={isActive('/cart')} />
+                                        <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={itemCount} active={isActive('/cart')} />
                                         <DrawerLink href="/orders" icon={<PackageIcon className="w-5 h-5" />} label="My Orders" setIsOpen={setIsDrawerOpen} active={isActive('/orders')} />
                                     </div>
 

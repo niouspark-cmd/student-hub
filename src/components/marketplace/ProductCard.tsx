@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ZapIcon, MapPinIcon } from '@/components/ui/Icons';
-import { useCart } from '@/context/CartContext';
+import { useCartStore } from '@/lib/store/cart';
 
 interface Product {
     id: string;
@@ -17,7 +17,7 @@ interface Product {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-    const { addToCart } = useCart();
+    const addToCart = useCartStore((state) => state.addToCart);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 

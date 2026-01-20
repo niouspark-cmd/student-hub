@@ -20,15 +20,28 @@ interface Order {
     updatedAt?: string;
     releaseKey: string | null;
     fulfillmentType?: string;
-    product: {
-        title: string;
-        imageUrl: string | null;
-    };
+    items: Array<{
+        quantity: number;
+        price: number;
+        product: {
+            title: string;
+            imageUrl: string | null;
+        };
+    }>;
     vendor: {
         name: string | null;
         currentHotspot: string | null;
     };
 }
+
+// Helper function to get display info for an order
+const getOrderDisplay = (order: Order) => {
+    const primaryItem = order.items?.[0];
+    const itemTitle = primaryItem ? primaryItem.product.title : 'Unknown Item';
+    const displayTitle = order.items?.length > 1 ? `${itemTitle} + ${order.items.length - 1} more` : itemTitle;
+    const imageUrl = primaryItem?.product.imageUrl;
+    return { displayTitle, imageUrl, primaryItem };
+};
 
 // --- Icons & Helpers ---
 const StatusIcon = ({ status, fulfillment }: { status: string, fulfillment?: string }) => {
@@ -63,6 +76,7 @@ const getStatusLabel = (status: string, fulfillment: string) => {
 // Styles updated for Light/Dark Mode compatibility
 const ExpandedPriorityCard = ({ order, handleCancel }: { order: Order, handleCancel: (id: string) => void }) => {
     const isTransit = order.status === 'PICKED_UP';
+    const { displayTitle, imageUrl } = getOrderDisplay(order);
 
     return (
         <motion.div
@@ -72,8 +86,8 @@ const ExpandedPriorityCard = ({ order, handleCancel }: { order: Order, handleCan
         >
             {/* Live Map / Visual Header */}
             <div className="h-48 w-full bg-zinc-100 dark:bg-zinc-900 relative overflow-hidden group">
-                {order.product.imageUrl ? (
-                    <img src={order.product.imageUrl} className="w-full h-full object-cover opacity-90 dark:opacity-60 group-hover:scale-105 transition-transform duration-1000" />
+                {imageUrl ? (
+                    <img src={imageUrl} className="w-full h-full object-cover opacity-90 dark:opacity-60 group-hover:scale-105 transition-transform duration-1000" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-white/5">
                         <span className="text-4xl opacity-20">📦</span>
@@ -90,7 +104,7 @@ const ExpandedPriorityCard = ({ order, handleCancel }: { order: Order, handleCan
 
                 {/* Product Title Overlaid */}
                 <div className="absolute bottom-4 left-6">
-                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none shadow-black drop-shadow-lg">{order.product.title}</h2>
+                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none shadow-black drop-shadow-lg">{displayTitle}</h2>
                     <p className="text-primary text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Vendor: {order.vendor.name}</p>
                 </div>
             </div>
@@ -157,6 +171,7 @@ const ExpandedPriorityCard = ({ order, handleCancel }: { order: Order, handleCan
 
 // 2. Condensed Status Strip (For Queue Items)
 const CondensedOrderStrip = ({ order, onClick }: { order: Order, onClick: () => void }) => {
+    const { displayTitle, imageUrl } = getOrderDisplay(order);
     return (
         <motion.div
             layoutId={`order-strip-${order.id}`}
@@ -166,13 +181,13 @@ const CondensedOrderStrip = ({ order, onClick }: { order: Order, onClick: () => 
             <div className="flex items-center gap-4">
                 {/* Tiny Image Thumbnail */}
                 <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative">
-                    {order.product.imageUrl && <img src={order.product.imageUrl} className="w-full h-full object-cover" />}
+                    {imageUrl && <img src={imageUrl} className="w-full h-full object-cover" />}
                     <div className="absolute inset-0 bg-black/5 dark:bg-black/20"></div>
                 </div>
 
                 {/* Info */}
                 <div>
-                    <h3 className="font-bold text-foreground text-sm uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{order.product.title}</h3>
+                    <h3 className="font-bold text-foreground text-sm uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{displayTitle}</h3>
                     <div className="flex items-center gap-2">
                         <span className={`w-1.5 h-1.5 rounded-full ${order.status === 'READY' ? 'bg-primary animate-pulse' : 'bg-zinc-400 dark:bg-zinc-600'}`}></span>
                         <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{getStatusLabel(order.status, order.fulfillmentType || 'PICKUP')}</span>
@@ -191,6 +206,7 @@ const CondensedOrderStrip = ({ order, onClick }: { order: Order, onClick: () => 
 // 3. Ledger Row (For Archive)
 const LedgerRow = ({ order, onClick }: { order: Order, onClick: () => void }) => {
     const isSuccess = order.status === 'COMPLETED';
+    const { displayTitle } = getOrderDisplay(order);
 
     return (
         <div
@@ -203,7 +219,7 @@ const LedgerRow = ({ order, onClick }: { order: Order, onClick: () => void }) =>
                 </div>
                 <div>
                     <div className="font-mono text-xs text-zinc-500">#{order.id.slice(0, 8).toUpperCase()}</div>
-                    <div className="text-sm font-bold text-foreground line-clamp-1">{order.product.title}</div>
+                    <div className="text-sm font-bold text-foreground line-clamp-1">{displayTitle}</div>
                 </div>
             </div>
             <div className="text-right">
@@ -255,7 +271,7 @@ Order ID:      ${order.id}
 Date:          ${new Date(order.createdAt).toLocaleString()}
 Status:        ${order.status}
 ----------------------------------
-Item:          ${order.product.title}
+Items:         ${getOrderDisplay(order).displayTitle}
 Vendor:        ${order.vendor.name || 'Unknown'}
 Amount:        ₵${order.amount.toFixed(2)}
 ----------------------------------
@@ -431,7 +447,7 @@ Live. Learn. Earn.
                         <div className="relative z-10 grid grid-cols-2 gap-8 mb-12">
                             <div>
                                 <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">Product Items</div>
-                                <div className="text-2xl font-bold">{order.product.title}</div>
+                                <div className="text-2xl font-bold">{getOrderDisplay(order).displayTitle}</div>
                                 <div className="text-sm text-zinc-400 mt-1">Vendor: {order.vendor.name}</div>
                             </div>
                             <div className="text-right">

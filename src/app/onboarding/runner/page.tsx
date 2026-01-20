@@ -7,8 +7,28 @@ import { useUser } from '@clerk/nextjs';
 
 export default function RunnerOnboardingPage() {
     const router = useRouter();
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
     const [loading, setLoading] = useState(false);
+
+    if (isLoaded && user?.publicMetadata?.role === 'VENDOR') {
+        return (
+            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
+                    🚫
+                </div>
+                <h1 className="text-2xl font-black uppercase tracking-tighter mb-4">Vendor Access Restricted</h1>
+                <p className="text-white/60 mb-8 max-w-md">
+                    Vendors play a crucial role in managing shops and cannot simultaneously be Runners in the fleet to avoid operational conflicts.
+                </p>
+                <button
+                    onClick={() => router.push('/dashboard/vendor')}
+                    className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all"
+                >
+                    Return to Vendor Dashboard
+                </button>
+            </div>
+        );
+    }
 
     const handleJoin = async () => {
         setLoading(true);

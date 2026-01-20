@@ -6,9 +6,9 @@ import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/navigation/Footer";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import OnboardingCheck from "@/components/providers/OnboardingCheck";
-import { CartProvider } from "@/context/CartContext";
 import { AdminProvider } from "@/context/AdminContext";
 import { ModalProvider } from "@/context/ModalContext";
+import QueryProvider from "@/components/providers/QueryProvider";
 import GhostEditToggle from "@/components/admin/GhostEditToggle";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import BanOverlay from "@/components/admin/BanOverlay";
@@ -49,8 +49,8 @@ export default function RootLayout({
           <ThemeProvider>
             <AdminProvider>
               <LocationProvider>
-                <ModalProvider>
-                  <CartProvider>
+                <QueryProvider>
+                  <ModalProvider>
                     <OnboardingCheck />
                     <Navbar />
                     <ImpersonationBanner />
@@ -64,8 +64,8 @@ export default function RootLayout({
 
                     <InsightUplink />
                     <Toaster richColors position="top-center" theme="dark" />
-                  </CartProvider>
-                </ModalProvider>
+                  </ModalProvider>
+                </QueryProvider>
               </LocationProvider>
             </AdminProvider>
           </ThemeProvider>

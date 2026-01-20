@@ -22,21 +22,44 @@ export default function RunnerPage() {
 
     useEffect(() => {
         if (isLoaded) {
+            // Check Vendor Status First
+            const isVendor = user?.publicMetadata?.role === 'VENDOR';
+            if (isVendor) {
+                // Redirect or blocked state handled in render
+                return;
+            }
+
             // Check Clerk Metadata first for speed
             const metaRunner = user?.publicMetadata?.isRunner === true || user?.publicMetadata?.role === 'RUNNER';
             if (metaRunner) {
                 setIsRunner(true);
                 setCheckingStatus(false);
             } else {
-                // Double check API just in case metadata is stale? 
-                // Alternatively, just trust metadata for UI speed, API will block specific actions.
-                // Let's rely on metadata + db sync.
-                // Assuming sync is good.
                 setIsRunner(false);
                 setCheckingStatus(false);
             }
         }
     }, [isLoaded, user]);
+
+    if (isLoaded && user?.publicMetadata?.role === 'VENDOR' && !isGhostAdmin) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                    <span className="text-3xl">🚫</span>
+                </div>
+                <h1 className="text-2xl font-black uppercase tracking-tighter mb-2">Vendor Restricted Area</h1>
+                <p className="text-foreground/60 max-w-md mb-8">
+                    Vendors cannot participate in the Runner Fleet to prevent conflicts of interest. Please manage your orders from the Vendor Dashboard.
+                </p>
+                <Link
+                    href="/dashboard/vendor"
+                    className="px-8 py-4 bg-primary text-primary-foreground font-black uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all"
+                >
+                    Go to Vendor Dashboard
+                </Link>
+            </div>
+        );
+    }
 
     if (checkingStatus) {
         return (

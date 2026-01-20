@@ -11,9 +11,11 @@ interface Order {
     escrowStatus: string;
     amount: number;
     createdAt: string;
-    product: {
-        title: string;
-    };
+    items: Array<{
+        product: {
+            title: string;
+        };
+    }>;
     student: {
         name: string | null;
     };
@@ -24,6 +26,9 @@ interface BentoOrderCardProps {
 }
 
 export default function BentoOrderCard({ order }: BentoOrderCardProps) {
+    const primaryItem = order.items?.[0];
+    const displayTitle = order.items?.length > 1 ? `${primaryItem?.product.title} + ${order.items.length - 1} more` : (primaryItem?.product.title || 'Unknown Item');
+
     const router = useRouter();
     // Combine both contexts: Global Modal for system alerts, Local state for the custom Verify UI
     const modal = useModal();
@@ -152,7 +157,7 @@ export default function BentoOrderCard({ order }: BentoOrderCardProps) {
 
                 {/* Product Title */}
                 <h3 className="text-foreground font-black text-lg uppercase tracking-tight leading-tight mb-2 line-clamp-2">
-                    {order.product.title}
+                    {displayTitle}
                 </h3>
 
                 {/* Customer Info */}

@@ -24,10 +24,16 @@ export async function POST(request: NextRequest) {
 
         // Parameters to sign
         // Note: For signed uploads, we usually specify 'folder' here if we want to enforce it
+        const body = await request.json().catch(() => ({})); // Handle empty body safely
+        const requestedFolder = body.folder || 'student-hub/uploads';
+
+        // Simple validation to prevent arbitrary folder structure abuse if strictness needed
+        // For now, allow subfolders of student-hub
+        const folder = requestedFolder.startsWith('student-hub/') ? requestedFolder : `student-hub/${requestedFolder}`;
+
         const paramsToSign = {
             timestamp,
-            folder: 'student-hub/stories',
-            // eager: 'c_pad,h_300,w_400|c_crop,h_200,w_260', // Example eager transformations
+            folder: folder,
         };
 
         const signature = cloudinary.utils.api_sign_request(
@@ -40,7 +46,7 @@ export async function POST(request: NextRequest) {
             timestamp,
             cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
             apiKey: process.env.CLOUDINARY_API_KEY,
-            folder: 'student-hub/stories'
+            folder: folder
         });
 
     } catch (error) {

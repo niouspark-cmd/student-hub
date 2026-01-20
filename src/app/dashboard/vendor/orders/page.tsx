@@ -8,10 +8,12 @@ interface Order {
     id: string;
     amount: number;
     status: string;
-    product: {
-        title: string;
-        imageUrl: string | null;
-    };
+    items: Array<{
+        product: {
+            title: string;
+            imageUrl: string | null;
+        };
+    }>;
     student: {
         name: string;
         email: string;
@@ -22,8 +24,18 @@ interface Order {
     createdAt: string;
 }
 
+// Helper (Shared with Student Page logic basically)
+const getOrderDisplay = (order: Order) => {
+    const primaryItem = order.items?.[0];
+    const itemTitle = primaryItem ? primaryItem.product.title : 'Unknown Item';
+    const displayTitle = order.items?.length > 1 ? `${itemTitle} + ${order.items.length - 1} more` : itemTitle;
+    const imageUrl = primaryItem?.product.imageUrl;
+    return { displayTitle, imageUrl, primaryItem };
+};
+
 export default function VendorOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
+    // ... rest of state
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'NEW' | 'ACTIVE' | 'HISTORY'>('NEW');
     const [currentPage, setCurrentPage] = useState(1);
@@ -47,91 +59,53 @@ export default function VendorOrdersPage() {
             setLoading(false);
         }
     };
-
-    const handleMarkReady = async (orderId: string) => {
+    // ... handlers ...
+    const handleMarkReady = async (orderId: string) => { /* ... */
         try {
             const res = await fetch(`/api/vendor/orders/${orderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'READY' }), // Use strict Enum 'READY'
+                body: JSON.stringify({ status: 'READY' }),
             });
-
-            if (res.ok) {
-                alert('✅ Order marked READY');
-                fetchOrders();
-            } else {
-                alert('❌ Update failed');
-            }
-        } catch (error) {
-            console.error('Update error:', error);
-        }
+            if (res.ok) { alert('✅ Order marked READY'); fetchOrders(); }
+            else { alert('❌ Update failed'); }
+        } catch (error) { console.error('Update error:', error); }
     };
-
-    const handleSelfDeliver = async (orderId: string) => {
+    const handleSelfDeliver = async (orderId: string) => { /* ... */
         if (!confirm('Deliver this yourself? You will earn the delivery fee.')) return;
         try {
             const res = await fetch(`/api/vendor/orders/${orderId}/self-deliver`, { method: 'POST' });
-            if (res.ok) {
-                alert('✅ Self-Delivery Protocol Initiated');
-                fetchOrders();
-            } else {
-                const data = await res.json();
-                alert(`❌ Error: ${data.error}`);
-            }
-        } catch (error) {
-            console.error(error);
-        }
+            if (res.ok) { alert('✅ Self-Delivery Protocol Initiated'); fetchOrders(); }
+            else { const data = await res.json(); alert(`❌ Error: ${data.error}`); }
+        } catch (error) { console.error(error); }
     };
-
-    const handleCompleteDelivery = async (orderId: string) => {
+    const handleCompleteDelivery = async (orderId: string) => { /* ... */
         const key = releaseKeyInput[orderId];
-        if (!key || key.length !== 6) {
-            alert('Please enter the 6-digit Release Key provided by the student.');
-            return;
-        }
-
+        if (!key || key.length !== 6) { alert('Please enter 6-digit Release Key'); return; }
         try {
-            // Verify Key and Complete
-            // Using a new endpoint or existing patch?
-            // Existing patch usually expects status update. 
-            // We need to verify key.
-            // Let's try sending status 'COMPLETED' and 'releaseKey' in body.
-            // Assuming backend logic handles verification.
-            // If not, we might fail. 
-            // For now, assume a robust backend or I'll fix it if it fails.
-
             const res = await fetch(`/api/vendor/orders/${orderId}/complete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ releaseKey: key })
             });
-
-            if (res.ok) {
-                alert('✅ Order Completed! Funds Released.');
-                fetchOrders();
-            } else {
-                const data = await res.json();
-                alert(`❌ ${data.error || 'Failed to complete'}`);
-            }
-        } catch (e) {
-            console.error(e);
-        }
+            if (res.ok) { alert('✅ Order Completed!'); fetchOrders(); }
+            else { const data = await res.json(); alert(`❌ ${data.error}`); }
+        } catch (e) { console.error(e); }
     };
 
     // Filter Logic
     const getFilteredOrders = () => {
         return orders.filter(order => {
-            if (activeTab === 'NEW') return order.status === 'PAID'; // Paid, waiting for vendor
+            if (activeTab === 'NEW') return order.status === 'PAID';
             if (activeTab === 'ACTIVE') return ['PREPARING', 'READY', 'PICKED_UP'].includes(order.status);
             if (activeTab === 'HISTORY') return ['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(order.status);
             return false;
         });
     };
-
+    // ... pagination ...
     const filtered = getFilteredOrders();
     const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
-
     const getCount = (statuses: string[]) => orders.filter(o => statuses.includes(o.status)).length;
 
     if (loading) return (
@@ -152,6 +126,7 @@ export default function VendorOrdersPage() {
                         <h1 className="text-3xl font-black uppercase tracking-tighter">Vendor Command</h1>
                         <p className="text-xs font-bold text-foreground/40 uppercase tracking-widest mt-1">Order Fulfillment Terminal</p>
                     </div>
+                    {/* ... stats ... */}
                     <div className="flex items-center gap-4">
                         <div className="px-4 py-2 bg-surface border border-surface-border rounded-xl flex flex-col items-end">
                             <span className="text-[10px] font-black text-foreground/40 uppercase tracking-wider">Shift Revenue</span>
@@ -163,6 +138,7 @@ export default function VendorOrdersPage() {
 
             <div className="max-w-7xl mx-auto p-4 md:p-8">
                 {/* Tabs */}
+                {/* ... same tabs ... */}
                 <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
                     {[
                         { id: 'NEW', label: 'New Orders', icon: PackageIcon, count: getCount(['PAID']) },
@@ -173,8 +149,8 @@ export default function VendorOrdersPage() {
                             key={tab.id}
                             onClick={() => { setActiveTab(tab.id as any); setCurrentPage(1); }}
                             className={`flex items-center gap-3 px-6 py-4 rounded-2xl border-2 transition-all min-w-[160px] ${activeTab === tab.id
-                                    ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(var(--primary),0.2)]'
-                                    : 'bg-surface border-surface-border text-foreground/60 hover:border-foreground/20'
+                                ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(var(--primary),0.2)]'
+                                : 'bg-surface border-surface-border text-foreground/60 hover:border-foreground/20'
                                 }`}
                         >
                             <tab.icon className="w-5 h-5" />
@@ -194,90 +170,93 @@ export default function VendorOrdersPage() {
                             <p className="text-sm font-black uppercase tracking-widest">No Orders in this sector</p>
                         </div>
                     ) : (
-                        paginated.map(order => (
-                            <div key={order.id} className="bg-surface border border-surface-border rounded-3xl p-6 md:p-8 hover:border-primary/20 transition-all group">
-                                <div className="flex flex-col md:flex-row gap-6 md:items-center">
-                                    {/* Icon/Image */}
-                                    <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center text-3xl shadow-inner overflow-hidden">
-                                        {order.product.imageUrl ? <img src={order.product.imageUrl} className="w-full h-full object-cover" /> : '📦'}
-                                    </div>
+                        paginated.map(order => {
+                            const { displayTitle, imageUrl } = getOrderDisplay(order);
+                            return (
+                                <div key={order.id} className="bg-surface border border-surface-border rounded-3xl p-6 md:p-8 hover:border-primary/20 transition-all group">
+                                    <div className="flex flex-col md:flex-row gap-6 md:items-center">
+                                        {/* Icon/Image */}
+                                        <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center text-3xl shadow-inner overflow-hidden">
+                                            {imageUrl ? <img src={imageUrl} className="w-full h-full object-cover" /> : '📦'}
+                                        </div>
 
-                                    {/* Info */}
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-black uppercase tracking-tight">{order.product.title}</h3>
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'PAID' ? 'bg-green-500/10 text-green-500' :
+                                        {/* Info */}
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-lg font-black uppercase tracking-tight">{displayTitle}</h3>
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'PAID' ? 'bg-green-500/10 text-green-500' :
                                                     order.status === 'READY' ? 'bg-orange-500/10 text-orange-500' :
                                                         'bg-foreground/10 text-foreground/60'
-                                                }`}>
-                                                {order.status}
-                                            </span>
+                                                    }`}>
+                                                    {order.status}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-4 text-xs text-foreground/60">
+                                                <span className="flex items-center gap-2">
+                                                    <span className="opacity-50">CUSTOMER:</span>
+                                                    <span className="font-bold text-foreground">{order.student.name}</span>
+                                                </span>
+                                                <span className="flex items-center gap-2">
+                                                    <span className="opacity-50">#</span>
+                                                    <span className="font-mono">{order.id.slice(0, 8)}</span>
+                                                </span>
+                                                <span className="flex items-center gap-2">
+                                                    <span className="opacity-50">EARNINGS:</span>
+                                                    <span className="font-black text-primary">₵{(order.amount * 0.95).toFixed(2)}</span>
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-wrap gap-4 text-xs text-foreground/60">
-                                            <span className="flex items-center gap-2">
-                                                <span className="opacity-50">CUSTOMER:</span>
-                                                <span className="font-bold text-foreground">{order.student.name}</span>
-                                            </span>
-                                            <span className="flex items-center gap-2">
-                                                <span className="opacity-50">#</span>
-                                                <span className="font-mono">{order.id.slice(0, 8)}</span>
-                                            </span>
-                                            <span className="flex items-center gap-2">
-                                                <span className="opacity-50">EARNINGS:</span>
-                                                <span className="font-black text-primary">₵{(order.amount * 0.95).toFixed(2)}</span>
-                                            </span>
-                                        </div>
-                                    </div>
 
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-3">
-                                        {(order.status === 'PAID' || order.status === 'PREPARING') && (
-                                            <button
-                                                onClick={() => handleMarkReady(order.id)}
-                                                className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg omni-glow"
-                                            >
-                                                Mark Ready
-                                            </button>
-                                        )}
-
-                                        {order.status === 'READY' && !order.runnerId && (
-                                            <button
-                                                onClick={() => handleSelfDeliver(order.id)}
-                                                className="px-6 py-3 bg-orange-500 text-white rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg hover:bg-orange-600"
-                                            >
-                                                Deliver Myself
-                                            </button>
-                                        )}
-
-                                        {/* Vendor Self-Delivery Completion */}
-                                        {order.status === 'PICKED_UP' /* && order.runnerId === vendorId (implicitly checked via UI logic) */ && (
-                                            <div className="flex items-center gap-2 bg-background p-2 rounded-xl border border-surface-border">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Release Key"
-                                                    maxLength={6}
-                                                    value={releaseKeyInput[order.id] || ''}
-                                                    onChange={(e) => setReleaseKeyInput({ ...releaseKeyInput, [order.id]: e.target.value })}
-                                                    className="bg-transparent border-none outline-none w-24 text-center font-mono font-bold text-sm placeholder:text-foreground/20"
-                                                />
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-3">
+                                            {(order.status === 'PAID' || order.status === 'PREPARING') && (
                                                 <button
-                                                    onClick={() => handleCompleteDelivery(order.id)}
-                                                    className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                                    onClick={() => handleMarkReady(order.id)}
+                                                    className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg omni-glow"
                                                 >
-                                                    <CheckCircleIcon className="w-4 h-4" />
+                                                    Mark Ready
                                                 </button>
-                                            </div>
-                                        )}
+                                            )}
 
-                                        {order.status === 'COMPLETED' && (
-                                            <div className="px-6 py-3 bg-green-500/10 text-green-500 rounded-xl font-black uppercase text-xs tracking-widest">
-                                                Fulfilled
-                                            </div>
-                                        )}
+                                            {order.status === 'READY' && !order.runnerId && (
+                                                <button
+                                                    onClick={() => handleSelfDeliver(order.id)}
+                                                    className="px-6 py-3 bg-orange-500 text-white rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg hover:bg-orange-600"
+                                                >
+                                                    Deliver Myself
+                                                </button>
+                                            )}
+
+                                            {/* Vendor Self-Delivery Completion */}
+                                            {order.status === 'PICKED_UP' /* && order.runnerId === vendorId */ && (
+                                                <div className="flex items-center gap-2 bg-background p-2 rounded-xl border border-surface-border">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Release Key"
+                                                        maxLength={6}
+                                                        value={releaseKeyInput[order.id] || ''}
+                                                        onChange={(e) => setReleaseKeyInput({ ...releaseKeyInput, [order.id]: e.target.value })}
+                                                        className="bg-transparent border-none outline-none w-24 text-center font-mono font-bold text-sm placeholder:text-foreground/20"
+                                                    />
+                                                    <button
+                                                        onClick={() => handleCompleteDelivery(order.id)}
+                                                        className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                                    >
+                                                        <CheckCircleIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {order.status === 'COMPLETED' && (
+                                                <div className="px-6 py-3 bg-green-500/10 text-green-500 rounded-xl font-black uppercase text-xs tracking-widest">
+                                                    Fulfilled
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
 

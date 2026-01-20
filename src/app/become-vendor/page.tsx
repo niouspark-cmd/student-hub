@@ -32,8 +32,8 @@ export default function BecomeVendorPage() {
             });
 
             if (res.ok) {
-                alert('✅ Application Submitted!\n\nYour vendor application has been received. We\'ll review it and get back to you within 24 hours.');
-                router.push('/marketplace');
+                alert('✅ Application Submitted!\n\nYour vendor account is active. Welcome to OMNI!');
+                router.push('/dashboard/vendor');
             } else {
                 const error = await res.json();
                 alert(`❌ ${error.error || 'Failed to submit application'}`);

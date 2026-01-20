@@ -14,11 +14,15 @@ interface OrderDetail {
     escrowStatus: string;
     amount: number;
     createdAt: string;
-    product: {
-        title: string;
-        description: string;
-        imageUrl: string | null;
-    };
+    items: Array<{
+        product: {
+            title: string;
+            description: string;
+            imageUrl: string | null;
+        };
+        quantity: number;
+        price: number;
+    }>;
     student: {
         name: string | null;
         email: string;
@@ -148,16 +152,24 @@ export default function VendorOrderDetails() {
                                 </div>
                             </div>
 
-                            <div className="flex gap-6 pt-6 border-t border-surface-border">
-                                <div className="w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center text-4xl border border-primary/20 overflow-hidden">
-                                    {order.product.imageUrl ? (
-                                        <img src={order.product.imageUrl} alt="" className="w-full h-full object-cover" />
-                                    ) : '📦'}
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-xl font-black text-foreground mb-1 uppercase tracking-tight">{order.product.title}</h3>
-                                    <p className="text-foreground/30 text-xs font-medium leading-relaxed">{order.product.description}</p>
-                                </div>
+                            <div className="flex flex-col gap-6 pt-6 border-t border-surface-border">
+                                <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-widest">Order Items</h3>
+                                {order.items.map((item, idx) => (
+                                    <div key={idx} className="flex gap-4">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center text-2xl border border-primary/20 overflow-hidden shrink-0">
+                                            {item.product.imageUrl ? (
+                                                <img src={item.product.imageUrl} alt="" className="w-full h-full object-cover" />
+                                            ) : '📦'}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-sm font-black text-foreground mb-1 uppercase tracking-tight">{item.product.title}</h3>
+                                            <p className="text-foreground/30 text-[10px] font-medium leading-relaxed mb-1 line-clamp-1">{item.product.description}</p>
+                                            <div className="text-[10px] font-bold text-foreground/60">
+                                                Qty: {item.quantity} × ₵{item.price.toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 

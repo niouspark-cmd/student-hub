@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { title, description, price, categoryId, imageUrl, stockQuantity } = body;
+        const { title, description, price, categoryId, imageUrl, images, stockQuantity, details } = body;
 
         // Validate
         if (!title || !price || !categoryId) {
@@ -78,6 +78,8 @@ export async function POST(req: NextRequest) {
                 categoryId,
                 vendorId: vendor.id,
                 imageUrl: imageUrl || null,
+                images: images || [], // New Field
+                details: details || {}, // New Field
                 stockQuantity: stockQuantity ? parseInt(stockQuantity) : 0,
                 isInStock: stockQuantity ? parseInt(stockQuantity) > 0 : false,
             }

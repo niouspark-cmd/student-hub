@@ -33,7 +33,11 @@ export async function PATCH(
             where: { id: params.id },
             include: {
                 student: { select: { phoneNumber: true, name: true } },
-                product: { select: { title: true } }
+                items: {
+                    include: {
+                        product: { select: { title: true } }
+                    }
+                }
             }
         });
 
@@ -51,7 +55,11 @@ export async function PATCH(
         if (status === 'READY') {
             if (order.student.phoneNumber) {
                 // SMS: "OMNI: Your order [Item] is READY at [Shop]. Assigning runner..."
-                const msg = `OMNI: Your order for ${order.product.title} is marked READY at ${vendor.shopName || 'Vendor'}. Runners are being notified.`;
+                const primaryItem = order.items?.[0];
+                const itemTitle = primaryItem ? primaryItem.product.title : 'Details';
+                const displayTitle = order.items.length > 1 ? `${itemTitle} +${order.items.length - 1}` : itemTitle;
+
+                const msg = `OMNI: Your order for ${displayTitle} is marked READY at ${vendor.shopName || 'Vendor'}. Runners are being notified.`;
                 await sendSMS(order.student.phoneNumber, msg);
             }
         }

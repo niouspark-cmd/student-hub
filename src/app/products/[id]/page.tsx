@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { useCart } from '@/context/CartContext';
+import { useCartStore } from '@/lib/store/cart';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProductDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const { user } = useUser();
-    const { addToCart } = useCart();
+    const addToCart = useCartStore((state) => state.addToCart);
 
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);

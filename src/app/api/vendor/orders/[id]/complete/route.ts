@@ -34,7 +34,11 @@ export async function POST(
             where: { id: orderId },
             include: {
                 student: { select: { phoneNumber: true, name: true } },
-                product: { select: { title: true } }
+                items: {
+                    include: {
+                        product: { select: { title: true } }
+                    }
+                }
             }
         });
 
@@ -77,9 +81,13 @@ export async function POST(
 
         // Send Notification
         if (order.student?.phoneNumber) {
+            const primaryItem = order.items?.[0];
+            const itemTitle = primaryItem ? primaryItem.product.title : 'Order';
+            const displayTitle = order.items.length > 1 ? `${itemTitle} +${order.items.length - 1}` : itemTitle;
+
             await sendSMS(
                 order.student.phoneNumber,
-                `OMNI: Order Completed. Delivery confirmed for ${order.product.title}. Thank you for trading.`
+                `OMNI: Order Completed. Delivery confirmed for ${displayTitle}. Thank you for trading.`
             );
         }
 

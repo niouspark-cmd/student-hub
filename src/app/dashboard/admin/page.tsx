@@ -118,7 +118,7 @@ export default function AdminDashboard() {
                                 {recentOrders.map((order) => (
                                     <tr key={order.id} className="border-b border-surface-border hover:bg-foreground/5 transition-all">
                                         <td className="p-6 font-mono text-[10px] opacity-30">{order.id.slice(0, 8)}...</td>
-                                        <td className="p-6 text-foreground">{order.product.title}</td>
+                                        <td className="p-6 text-foreground">{order.items?.[0]?.product?.title || 'Unknown Item'}</td>
                                         <td className="p-6">
                                             <div className="flex flex-col">
                                                 <span>S: {order.student?.name || 'ANON'}</span>

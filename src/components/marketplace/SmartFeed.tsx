@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 
 interface FeedProduct {
     id: string;
@@ -26,41 +27,18 @@ interface DiscoveryFeedData {
 }
 
 export default function SmartFeed() {
+    const { user } = useUser(); // Hook added
     const [feed, setFeed] = useState<DiscoveryFeedData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchFeed = async () => {
-            try {
-                const res = await fetch('/api/marketplace/discovery');
-                const data = await res.json();
-                if (data.success) {
-                    setFeed(data.feed);
-                }
-            } catch (e) {
-                console.error("Feed Error", e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchFeed();
-    }, []);
-
-    if (loading) return (
-        <div className="space-y-8 animate-pulse">
-            <div className="h-64 bg-surface/50 rounded-3xl"></div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="h-48 bg-surface/50 rounded-2xl"></div>
-                <div className="h-48 bg-surface/50 rounded-2xl"></div>
-            </div>
-        </div>
-    );
-
+    // ... existing useEffect ...
 
     // NEW: Premium Empty State
     const isEmpty = !feed || (feed.newArrivals.length === 0 && feed.trending.length === 0 && feed.recommended.length === 0);
 
     if (isEmpty) {
+        const isVendor = user?.publicMetadata?.role === 'VENDOR';
+
         return (
 
             <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 animate-in fade-in zoom-in duration-500">
@@ -80,12 +58,21 @@ export default function SmartFeed() {
                     </p>
                 </div>
                 <div className="flex flex-col gap-3 w-full max-w-xs">
-                    <Link
-                        href="/become-vendor"
-                        className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
-                    >
-                        <span>🚀</span> Register as a Seller
-                    </Link>
+                    {isVendor ? (
+                        <Link
+                            href="/dashboard/vendor"
+                            className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
+                        >
+                            <span>📦</span> Manage Shop
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/become-vendor"
+                            className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
+                        >
+                            <span>🚀</span> Register as a Seller
+                        </Link>
+                    )}
                     <p className="text-[10px] uppercase font-bold text-foreground/30">
                         Limited Spots for Alpha Launch
                     </p>

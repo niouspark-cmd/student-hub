@@ -41,6 +41,7 @@ model User {
   
   // Relations
   products     Product[]
+  orderGroups  OrderGroup[] @relation("StudentOrderGroups")
   orders       Order[]   @relation("StudentOrders")
   deliveries   Order[]   @relation("RunnerDeliveries")
   vendorOrders Order[]   @relation("VendorOrders")
@@ -104,7 +105,8 @@ model Product {
   
   details     Json?    // For dynamic fields like "spicyLevel", "condition", etc.
 
-  imageUrl    String?  // Cloudinary link
+  imageUrl    String?  // Primary Cover Image (compatibility)
+  images      String[] @default([]) // Gallery Images (NEW)
   
   // Hotspot-based location for Flash-Match
   hotspot     String?  // e.g., "Bush Canteen", "Balme Library"
@@ -129,7 +131,7 @@ model Product {
   updatedAt   DateTime @updatedAt
   
   // Relations
-  orders      Order[]
+  orderItems  OrderItem[]
   reviews     Review[]
   flashSale   FlashSale?
   
@@ -198,22 +200,39 @@ model Category {
   description String?
 }
 
+// Consolidated Payment Transaction (The "Cart" Checkout)
+model OrderGroup {
+  id            String   @id @default(uuid())
+  paystackRef   String   @unique // The single payment reference covering all orders
+  totalAmount   Float    // Grand total paid
+  
+  studentId     String
+  student       User     @relation("StudentOrderGroups", fields: [studentId], references: [id])
+  
+  orders        Order[]  // The split shipments resulting from this payment
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([paystackRef])
+}
+
 model Order {
   id              String      @id @default(uuid())
   
   // Order status tracking
   status          OrderStatus @default(PENDING)
-  
-  // Escrow payment tracking
   escrowStatus    EscrowStatus @default(PENDING)
-  paystackRef     String?     @unique // Paystack payment reference
+  
+  // Link to the parent Group
+  orderGroupId    String?
+  orderGroup      OrderGroup? @relation(fields: [orderGroupId], references: [id])
 
-
+  // Subtotal for this specific vendor shipment
   amount          Float
   
-  // Product and customer info
-  productId       String
-  product         Product     @relation(fields: [productId], references: [id])
+  // Items in this shipment
+  items           OrderItem[]
   
   studentId       String
   student         User        @relation("StudentOrders", fields: [studentId], references: [id], onDelete: Cascade)
@@ -246,6 +265,25 @@ model Order {
   @@index([vendorId])
   @@index([status])
   @@index([escrowStatus])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId String? // Optional in case product is deleted later? No, keep it.
+  product   Product? @relation(fields: [productId], references: [id])
+  productSnapshot Json? // Backup title, image, etc.
+  
+  quantity  Int
+  price     Float   // Price at time of purchase
+  
+  createdAt DateTime @default(now())
+  
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Mission {

@@ -55,10 +55,16 @@ export async function GET() {
                 paidAt: true,
                 pickedUpAt: true,
                 deliveredAt: true,
-                product: {
+                items: {
                     select: {
-                        title: true,
-                        imageUrl: true,
+                        quantity: true,
+                        price: true,
+                        product: {
+                            select: {
+                                title: true,
+                                imageUrl: true,
+                            },
+                        },
                     },
                 },
                 vendor: {

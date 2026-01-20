@@ -41,7 +41,11 @@ export async function GET(request: NextRequest) {
                 runnerId: null,
             },
             include: {
-                product: true,
+                items: {
+                    include: {
+                        product: true
+                    }
+                },
                 vendor: {
                     select: {
                         name: true,
@@ -67,8 +71,12 @@ export async function GET(request: NextRequest) {
         const deliveries = orders.map((order: OrderWithRelations) => {
             // Calculate mock distance/earnings if not set
             // In a real app, use Google Maps API or GeoLib with coordinates
-            const pickup = order.product.hotspot || order.vendor.currentHotspot || 'Unknown Vendor Loc';
+            const primaryItem = order.items?.[0]; // Access first item
+            const pickup = primaryItem?.product.hotspot || order.vendor.currentHotspot || 'Unknown Vendor Loc';
             const dropoff = order.student.currentHotspot || 'Unknown Student Loc';
+            const itemTitle = primaryItem ? primaryItem.product.title : 'Unknown Item';
+            const displayTitle = order.items.length > 1 ? `${itemTitle} + ${order.items.length - 1} more` : itemTitle;
+
 
             // Base fee + distance (mocked)
             // If runnerEarnings is null, estimate it (e.g., 20% of order amount or fixed fee)
@@ -77,7 +85,7 @@ export async function GET(request: NextRequest) {
             return {
                 id: order.id,
                 product: {
-                    title: order.product.title,
+                    title: displayTitle,
                 },
                 amount: order.amount,
                 pickupLocation: pickup,

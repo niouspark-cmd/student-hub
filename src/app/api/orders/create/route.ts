@@ -5,165 +5,179 @@ import { ensureUserExists } from '@/lib/auth/sync';
 
 // export const runtime = 'edge';
 
+// src/app/api/orders/create/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { ensureUserExists } from '@/lib/auth/sync';
+
 export async function POST(request: NextRequest) {
     try {
-        // Sync user and get their DB record
-        let student = await ensureUserExists();
-
-        // Hybrid Auth Fallback for WebViews
+        const student = await ensureUserExists();
         if (!student) {
-            try {
-                const { cookies } = await import('next/headers');
-                const cookieStore = await cookies();
-                const isVerified = cookieStore.get('OMNI_IDENTITY_VERIFIED')?.value === 'TRUE';
-                const hybridClerkId = cookieStore.get('OMNI_HYBRID_SYNCED')?.value;
-
-                if (isVerified && hybridClerkId) {
-                    student = await prisma.user.findUnique({
-                        where: { clerkId: hybridClerkId },
-                        select: {
-                            id: true,
-                            clerkId: true,
-                            email: true,
-                            name: true,
-                            role: true,
-                            university: true,
-                            onboarded: true,
-                            isRunner: true,
-                            runnerStatus: true,
-                            xp: true,
-                            runnerLevel: true,
-                            currentHotspot: true,
-                            lastActive: true,
-                            walletFrozen: true,
-                            banned: true,
-                            banReason: true,
-                            createdAt: true,
-                            updatedAt: true,
-                        }
-                    });
-                }
-            } catch (e) {
-                console.error('Hybrid auth fallback failed:', e);
-            }
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        if (!student) {
-            return NextResponse.json(
-                { error: 'Unauthorized', details: 'User sync failed or not authenticated' },
-                { status: 401 }
-            );
-        }
-
-        // Check for Admin Blocks (Freeze/Ban)
-        // Note: ensureUserExists has been updated to return these fields
-        const studentData = student as any; // Type assertion since return type might not be fully inferred yet
-
-        if (studentData.banned) {
-            return NextResponse.json(
-                { error: `Account banned: ${studentData.banReason || 'Contact support'}` },
-                { status: 403 }
-            );
-        }
-
-        if (studentData.walletFrozen) {
-            return NextResponse.json(
-                { error: 'Your wallet has been frozen by an administrator. Purchases are disabled.' },
-                { status: 403 }
-            );
+        const studentData = student as any;
+        if (studentData.banned || studentData.walletFrozen) {
+            return NextResponse.json({ error: 'Account restricted' }, { status: 403 });
         }
 
         const body = await request.json();
-        const { productId, quantity = 1, fulfillmentType = 'PICKUP' } = body;
 
-        if (!productId) {
-            return NextResponse.json({ error: 'Missing Product ID' }, { status: 400 });
+        // Normalize input: Support both new "items" array and legacy "productId" single mode
+        let cartItems = [];
+        const { fulfillmentType = 'PICKUP' } = body;
+
+        if (body.items && Array.isArray(body.items)) {
+            cartItems = body.items;
+        } else if (body.productId) {
+            cartItems = [{ id: body.productId, quantity: body.quantity || 1 }];
+        } else {
+            return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
         }
 
-        // Get the product with active flash sale
-        const product = await prisma.product.findUnique({
-            where: { id: productId },
+        // 1. Fetch all products to validate prices & stock
+        const productIds = cartItems.map((i: any) => i.id);
+        const products = await prisma.product.findMany({
+            where: { id: { in: productIds } },
             include: {
                 vendor: true,
-                flashSale: {
-                    where: { isActive: true }
-                }
-            },
+                flashSale: { where: { isActive: true } }
+            }
         });
 
-        if (!product) {
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-        }
+        // Map for quick lookup
+        const productMap = new Map(products.map(p => [p.id, p]));
 
-        // --- PRICE CALCULATION LOGIC ---
-        let finalPrice = product.price;
-        let activeFlashSaleId = null;
+        // 2. Group items by Vendor
+        const vendorGroups: Record<string, typeof cartItems> = {};
+        let grandTotal = 0;
 
-        if (product.flashSale) {
-            const now = new Date();
-            const { startTime, endTime, salePrice, stockSold, stockLimit } = product.flashSale;
-
-            // Check if within time window AND has stock
-            if (now >= startTime && now <= endTime && stockSold < stockLimit) {
-                console.log(`⚡ Applying Flash Sale Price: ${salePrice} (Original: ${product.price})`);
-                finalPrice = salePrice;
-                activeFlashSaleId = product.flashSale.id;
+        // Validation & Grouping Loop
+        for (const item of cartItems) {
+            const product = productMap.get(item.id);
+            if (!product) {
+                return NextResponse.json({ error: `Product not found: ${item.id}` }, { status: 404 });
             }
+
+            // Determine Price (Flash Sale Logic)
+            let finalPrice = product.price;
+            let activeFlashSaleId = null;
+
+            if (product.flashSale) {
+                const now = new Date();
+                const { startTime, endTime, salePrice, stockSold, stockLimit } = product.flashSale;
+                if (now >= startTime && now <= endTime && stockSold < stockLimit) {
+                    finalPrice = salePrice;
+                    activeFlashSaleId = product.flashSale.id;
+                }
+            }
+
+            // check stock (TODO in future: use product.stockQuantity)
+
+            // Add metadata to item for processing
+            const processedItem = {
+                ...item,
+                finalPrice,
+                title: product.title,
+                vendorId: product.vendorId,
+                activeFlashSaleId
+            };
+
+            if (!vendorGroups[product.vendorId]) {
+                vendorGroups[product.vendorId] = [];
+            }
+            vendorGroups[product.vendorId].push(processedItem);
         }
 
-        // Calculation
-        const deliveryFee = fulfillmentType === 'DELIVERY' ? 5.00 : 0.00;
-        const totalAmount = (finalPrice * quantity) + deliveryFee;
+        // 3. Create Database Records (Transaction)
+        const paystackRef = `OMNI-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        // Create order in database (PENDING status)
-        console.log(`Creating order for product ${productId}, student ${student.id}, vendor ${product.vendorId}`);
-
-        // Use transaction to ensure we update flash sale stock atomically if needed
-        const order = await prisma.$transaction(async (tx) => {
-            // 1. Create the order
-            const newOrder = await tx.order.create({
+        await prisma.$transaction(async (tx) => {
+            // A. Create OrderGroup
+            const orderGroup = await tx.orderGroup.create({
                 data: {
-                    productId: product.id,
+                    paystackRef,
+                    totalAmount: 0, // Will update after summing
                     studentId: student.id,
-                    vendorId: product.vendorId,
-                    amount: totalAmount,
-                    fulfillmentType: fulfillmentType as 'PICKUP' | 'DELIVERY',
-                    status: 'PENDING',
-                    escrowStatus: 'PENDING',
-                },
+                    status: 'PENDING'
+                }
             });
 
-            // 2. If it was a flash sale, increment the stockSold
-            if (activeFlashSaleId) {
-                await tx.flashSale.update({
-                    where: { id: activeFlashSaleId },
-                    data: { stockSold: { increment: quantity } }
+            let calculatedGrandTotal = 0;
+
+            // B. Create Order per Vendor
+            for (const [vendorId, items] of Object.entries(vendorGroups)) {
+                let vendorSubtotal = 0;
+
+                // Sum items
+                for (const item of items) {
+                    vendorSubtotal += (item.finalPrice * item.quantity);
+                }
+
+                // Add Delivery Fee (Per Vendor Shipment)
+                // Logic: If fulfillmentType is DELIVERY, add fee. 
+                // Future: Check if specific vendor supports delivery.
+                const deliveryFee = fulfillmentType === 'DELIVERY' ? 10.00 : 0.00;
+                const vendorTotal = vendorSubtotal + deliveryFee;
+                calculatedGrandTotal += vendorTotal;
+
+                // Create Order
+                const order = await tx.order.create({
+                    data: {
+                        orderGroupId: orderGroup.id,
+                        studentId: student.id,
+                        vendorId: vendorId,
+                        amount: vendorTotal,
+                        fulfillmentType: fulfillmentType as 'PICKUP' | 'DELIVERY',
+                        status: 'PENDING',
+                        escrowStatus: 'PENDING',
+                    }
                 });
+
+                // Create OrderItems
+                for (const item of items) {
+                    await tx.orderItem.create({
+                        data: {
+                            orderId: order.id,
+                            productId: item.id,
+                            quantity: item.quantity,
+                            price: item.finalPrice,
+                            productSnapshot: { title: item.title } // Keep record of title
+                        }
+                    });
+
+                    // Increment Flash Sale Stock
+                    if (item.activeFlashSaleId) {
+                        await tx.flashSale.update({
+                            where: { id: item.activeFlashSaleId },
+                            data: { stockSold: { increment: item.quantity } }
+                        });
+                    }
+                }
             }
 
-            return newOrder;
+            // C. Update Grand Total
+            await tx.orderGroup.update({
+                where: { id: orderGroup.id },
+                data: { totalAmount: calculatedGrandTotal }
+            });
+
+            grandTotal = calculatedGrandTotal;
         });
 
-        console.log(`✅ Order created successfully: ${order.id}`);
-
+        // 4. Return Success
         return NextResponse.json({
             success: true,
-            orderId: order.id,
-            totalAmount,
+            paystackRef, // Frontend uses this to initialize Paystack
+            totalAmount: grandTotal,
             email: student.email,
             publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-            productTitle: product.title,
-            fulfillmentType,
         });
+
     } catch (error) {
-        console.error('❌ Order creation error:', error);
-        return NextResponse.json(
-            {
-                error: 'Failed to create order',
-                details: error instanceof Error ? error.message : 'Unknown database error'
-            },
-            { status: 500 }
-        );
+        console.error('Create Order Error:', error);
+        return NextResponse.json({ error: 'System Error', details: String(error) }, { status: 500 });
     }
 }
 
