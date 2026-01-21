@@ -17,11 +17,22 @@ export async function POST(request: NextRequest) {
 
         // 1. Verify payment with Paystack
         const { verifyTransaction } = await import('@/lib/payments/paystack');
-        const verification = await verifyTransaction(reference);
+        console.log(`[PaymentVerify] Verifying reference: ${reference}`);
+
+        let verification;
+        try {
+            verification = await verifyTransaction(reference);
+        } catch (e) {
+            console.error(`[PaymentVerify] Paystack API Call Failed:`, e);
+            return NextResponse.json({ error: 'Payment Provider Error', details: String(e) }, { status: 502 });
+        }
 
         if (!verification.status || verification.data.status !== 'success') {
-            return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 });
+            console.error(`[PaymentVerify] Failed. Status: ${verification.data.status}, Message: ${verification.message}`);
+            return NextResponse.json({ error: 'Payment Failed or Declined', details: verification.message }, { status: 400 });
         }
+
+        console.log(`[PaymentVerify] Paystack Success. Amount: ${verification.data.amount}`);
 
         // 2. Find OrderGroup
         const orderGroup = await prisma.orderGroup.findUnique({
@@ -30,7 +41,8 @@ export async function POST(request: NextRequest) {
         });
 
         if (!orderGroup) {
-            return NextResponse.json({ error: 'Order Group not found' }, { status: 404 });
+            console.error(`[PaymentVerify] OrderGroup Not Found for ref: ${reference}`);
+            return NextResponse.json({ error: 'Order Record Not Found', ref: reference }, { status: 404 });
         }
 
         // Idempotency check (if already paid, return existing)

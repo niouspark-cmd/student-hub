@@ -157,12 +157,12 @@ export default function CartPage() {
                                     clearCart();
                                     window.location.href = '/orders?success=true';
                                 } else {
-                                    modal.alert('Payment verification failed. Contact support.', 'Verification Error');
+                                    modal.alert(`Verification failed: ${vData.error || 'Unknown error'}`, 'Payment Error');
                                     setIsCreatingOrder(false);
                                 }
                             } catch (e) {
                                 console.error(e);
-                                modal.alert('Payment verification error.', 'Error');
+                                modal.alert('Payment verification connection error.', 'System Error');
                                 setIsCreatingOrder(false);
                             }
                         };
