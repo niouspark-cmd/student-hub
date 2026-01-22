@@ -29,6 +29,7 @@ export default function ProductDetailsPage() {
     const { user } = useUser();
     const { openSignIn } = useClerk();
     const addToCart = useCartStore((state) => state.addToCart);
+    const cartItems = useCartStore((state) => state.items);
     const [quantity, setQuantity] = useState(1);
     const [isGhostAdmin, setIsGhostAdmin] = useState(false);
 
@@ -101,6 +102,7 @@ export default function ProductDetailsPage() {
             title: product.title,
             price: currentPrice,
             imageUrl: product.imageUrl || '',
+            vendorId: product.vendorId,
             vendorName: product.vendor.shopName || product.vendor.name,
             flashSaleId: product.flashSale?.isActive ? 'active' : undefined
         }, quantity);
@@ -147,7 +149,7 @@ export default function ProductDetailsPage() {
                         >
                             <span className="mr-2">Cart</span>
                             <span className="bg-primary text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                                {useCartStore.getState().items.length}
+                                {cartItems.length}
                             </span>
                         </Button>
                     </div>

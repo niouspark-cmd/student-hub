@@ -16,6 +16,7 @@ export async function GET(
             include: {
                 vendor: {
                     select: {
+                        id: true,
                         name: true,
                         clerkId: true,
                         currentHotspot: true,
