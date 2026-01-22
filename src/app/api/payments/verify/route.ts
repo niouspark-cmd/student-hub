@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
             });
         });
 
-        await Promise.all(updates);
+        const updatedOrders = await Promise.all(updates);
 
         // Update Group Status? (Optional, if I added status field)
         // prisma.orderGroup.update(...)
@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: 'Payment verified. Orders confirmed.',
+            order: updatedOrders[0],
+            orders: updatedOrders
         });
 
     } catch (error) {

@@ -592,7 +592,7 @@ export default function OrdersPage() {
                 <div className="flex bg-surface p-1 rounded-xl border border-surface-border shadow-sm">
                     <button
                         onClick={() => setActiveTab('ACTIVE')}
-                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === 'ACTIVE' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === 'ACTIVE' ? 'bg-black text-white dark:bg-primary dark:text-black shadow-lg shadow-black/20 dark:shadow-primary/20' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}
                     >
                         Active Acquisitions
                     </button>

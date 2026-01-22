@@ -138,10 +138,10 @@ export default function CartPage() {
                     email: userEmail,
                     amount: Math.ceil(total * 100),
                     currency: 'GHS',
-                    ref: data.orderId,
+                    ref: data.paystackRef,
                     metadata: {
                         custom_fields: [
-                            { display_name: "Order ID", variable_name: "order_id", value: data.orderId }
+                            { display_name: "Order ID", variable_name: "order_id", value: data.paystackRef }
                         ]
                     },
                     callback: function (response: { reference: string }) {

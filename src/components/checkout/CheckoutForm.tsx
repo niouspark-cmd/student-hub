@@ -91,13 +91,13 @@ export default function CheckoutForm({
                     email: email,
                     amount: total * 100,
                     currency: 'GHS',
-                    ref: data.orderId,
+                    ref: data.paystackRef,
                     metadata: {
                         custom_fields: [
                             {
                                 display_name: "Order ID",
                                 variable_name: "order_id",
-                                value: data.orderId
+                                value: data.paystackRef
                             }
                         ]
                     },

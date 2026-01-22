@@ -115,199 +115,320 @@ export default function ProductDetailsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background pb-32 md:pb-12">
-            {/* Navbar Placeholder / Back Button */}
-            <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <span className="text-xl">←</span>
-                    </Button>
-                    <span className="font-bold text-sm md:text-lg truncate opacity-80">{product.title}</span>
-                </div>
-            </div>
-
-            <main className="max-w-7xl mx-auto px-4 py-8">
-                <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
-
-                    {/* LEFT COLUMN: Image Gallery */}
-                    <div className="w-full">
-                        <div className="rounded-2xl overflow-hidden border border-border shadow-sm bg-card [&_.image-gallery-content_.image-gallery-slide_.image-gallery-image]:object-contain [&_.image-gallery-content_.image-gallery-slide_.image-gallery-image]:h-[400px] md:[&_.image-gallery-content_.image-gallery-slide_.image-gallery-image]:h-[500px] [&_.image-gallery-thumbnail.active]:border-primary">
-                            <ImageGallery
-                                items={galleryImages}
-                                showPlayButton={false}
-                                showFullscreenButton={true}
-                                showNav={true}
-                                autoPlay={false}
-                                infinite={true}
-                                showThumbnails={galleryImages.length > 1}
-                                isRTL={false}
-                                thumbnailPosition="bottom"
-                            />
-                        </div>
-                        {isOutOfStock && (
-                            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600">
-                                <ClockIcon className="w-6 h-6" />
-                                <span className="font-bold uppercase tracking-wide">Currently Out of Stock</span>
-                            </div>
-                        )}
+        <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#050505] transition-colors duration-500 pb-32">
+            {/* Minimalist Sticky Header */}
+            <motion.div
+                initial={{ y: -100 }}
+                animate={{ y: 0 }}
+                className="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5"
+            >
+                <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => router.back()}
+                            className="rounded-full hover:bg-black/5 dark:hover:bg-white/10"
+                        >
+                            <span className="text-xl">←</span>
+                        </Button>
+                        <div className="h-6 w-px bg-black/10 dark:bg-white/10 hidden md:block"></div>
+                        <span className="font-bold text-sm md:text-base tracking-tight opacity-0 md:opacity-100 transition-opacity">
+                            {product.title}
+                        </span>
                     </div>
 
-                    {/* RIGHT COLUMN: Product Details (Buy Box) */}
-                    <div className="flex flex-col gap-6">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push('/cart')}
+                            className="relative"
+                        >
+                            <span className="mr-2">Cart</span>
+                            <span className="bg-primary text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                {useCartStore.getState().items.length}
+                            </span>
+                        </Button>
+                    </div>
+                </div>
+            </motion.div>
 
-                        {/* Header Section */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Link href={`/category/${product.categoryId}`} className="text-primary text-xs font-bold uppercase tracking-wider hover:underline">
-                                    {product.category?.name || 'Item'}
-                                </Link>
-                                {product.hotspot && (
-                                    <Badge variant="outline" className="text-[10px] h-5 gap-1 border-primary/20 bg-primary/5 text-primary">
-                                        <MapPinIcon className="w-3 h-3" />
-                                        {product.hotspot}
-                                    </Badge>
+            <main className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+                <div className="grid lg:grid-cols-[1.2fr,1fr] gap-12 lg:gap-24 relative">
+
+                    {/* LEFT COLUMN: Immersive Gallery */}
+                    <div className="relative">
+                        <div className="sticky top-32 space-y-8">
+                            <div className="relative rounded-[2rem] overflow-hidden bg-white dark:bg-zinc-900 shadow-2xl shadow-black/5 dark:shadow-white/5 border border-black/5 dark:border-white/5 group">
+                                <ImageGallery
+                                    items={galleryImages}
+                                    showPlayButton={false}
+                                    showFullscreenButton={true}
+                                    showNav={true}
+                                    autoPlay={false}
+                                    infinite={true}
+                                    showThumbnails={galleryImages.length > 1}
+                                    isRTL={false}
+                                    thumbnailPosition="bottom"
+                                    additionalClass="premium-gallery"
+                                />
+                                {isOutOfStock && (
+                                    <div className="absolute top-6 right-6 z-20">
+                                        <span className="px-4 py-2 bg-red-500 text-white text-xs font-black uppercase tracking-widest rounded-full shadow-lg shadow-red-500/20 backdrop-blur-md">
+                                            Sold Out
+                                        </span>
+                                    </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
 
-                            <h1 className="text-2xl md:text-4xl font-black text-foreground leading-tight mb-2">
-                                {product.title}
-                            </h1>
+                    {/* RIGHT COLUMN: Premium Buy Box */}
+                    <div className="flex flex-col pt-4">
 
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center text-yellow-400 gap-0.5">
-                                    <StarIcon className="w-4 h-4" fill={rating >= 1} />
-                                    <StarIcon className="w-4 h-4" fill={rating >= 2} />
-                                    <StarIcon className="w-4 h-4" fill={rating >= 3} />
-                                    <StarIcon className="w-4 h-4" fill={rating >= 4} />
-                                    <StarIcon className="w-4 h-4" fill={rating >= 5} />
+                        {/* Breadcrumbs & Badges */}
+                        <div className="flex flex-wrap items-center gap-3 mb-6">
+                            <Link href={`/category/${product.categoryId}`} className="px-3 py-1 rounded-full border border-black/10 dark:border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">
+                                {product.category?.name || 'Collection'}
+                            </Link>
+                            {product.hotspot && (
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
+                                    <MapPinIcon className="w-3 h-3" />
+                                    {product.hotspot}
                                 </div>
-                                <span className="text-sm text-muted-foreground font-medium underline decoration-dotted">
-                                    {reviewCount} ratings
-                                </span>
+                            )}
+                            {isOnSale && (
+                                <div className="px-3 py-1 rounded-full bg-red-500 text-white text-[10px] font-black uppercase tracking-widest animate-pulse">
+                                    Flash Sale
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Product Title */}
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-black dark:text-white tracking-tighter leading-[0.9] mb-6">
+                            {product.title}
+                        </h1>
+
+                        {/* Ratings & Vendor */}
+                        <div className="flex items-center gap-6 mb-8 pb-8 border-b border-black/5 dark:border-white/5">
+                            <div className="flex items-center gap-2">
+                                <div className="flex text-primary">
+                                    {[...Array(5)].map((_, i) => (
+                                        <StarIcon key={i} className="w-4 h-4" fill={i < Math.round(rating)} />
+                                    ))}
+                                </div>
+                                <span className="text-sm font-bold opacity-60">({reviewCount} verified reviews)</span>
+                            </div>
+                            <div className="h-4 w-px bg-black/10 dark:bg-white/10"></div>
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="opacity-60">Sold by</span>
+                                <Link
+                                    href={`/vendor/${product.vendor.id}`}
+                                    className="font-bold border-b border-primary hover:text-primary transition-colors"
+                                >
+                                    {product.vendor.shopName || product.vendor.name}
+                                </Link>
                             </div>
                         </div>
 
-                        {/* Price Section */}
-                        <div className="p-6 bg-card border border-border rounded-2xl shadow-sm">
-                            <div className="flex items-baseline gap-2 mb-2">
-                                <span className="text-sm font-medium text-red-500">-{discount}%</span>
-                                <span className="text-4xl font-black text-foreground">₵{currentPrice.toFixed(2)}</span>
+                        {/* Price Block */}
+                        <div className="mb-8">
+                            <div className="flex items-baseline gap-4">
+                                <span className="text-6xl font-black tracking-tighter text-black dark:text-white">
+                                    ₵{currentPrice.toFixed(2)}
+                                </span>
+                                {isOnSale && originalPrice && (
+                                    <span className="text-xl font-medium text-black/40 dark:text-white/40 line-through decoration-2 decoration-red-500/50">
+                                        ₵{originalPrice.toFixed(2)}
+                                    </span>
+                                )}
                             </div>
                             {isOnSale && (
-                                <p className="text-sm text-muted-foreground">
-                                    List Price: <span className="line-through">₵{originalPrice?.toFixed(2)}</span>
+                                <p className="mt-2 text-red-500 text-sm font-bold uppercase tracking-wide">
+                                    You save <span className="underline decoration-wavy">₵{(originalPrice! - currentPrice).toFixed(2)}</span> ({discount}% off)
                                 </p>
                             )}
+                        </div>
 
-                            {/* Stock Status */}
-                            <div className="mt-4 mb-6">
-                                {isOutOfStock ? (
-                                    <p className="text-red-500 font-bold text-lg">Currently Unavailable</p>
-                                ) : (
-                                    <p className="text-green-600 font-bold text-lg">In Stock</p>
-                                )}
-                            </div>
-
-                            {/* Actions */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between bg-muted/50 p-2 rounded-xl border border-border">
-                                    <span className="pl-4 font-bold text-sm uppercase">Qty:</span>
-                                    <div className="flex items-center gap-4">
-                                        <Button variant="ghost" size="icon" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1 || isOutOfStock}>-</Button>
-                                        <span className="font-bold w-4 text-center">{quantity}</span>
-                                        <Button variant="ghost" size="icon" onClick={() => setQuantity(quantity + 1)} disabled={isOutOfStock}>+</Button>
+                        {/* Action Module */}
+                        <div className="p-1 rounded-[2rem] bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-black border border-black/5 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-white/5 mb-10">
+                            <div className="p-6 md:p-8">
+                                {/* Stock Status Text */}
+                                <div className="mb-6 flex items-center justify-between">
+                                    <div>
+                                        {isOutOfStock ? (
+                                            <p className="text-red-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                                Unavailable
+                                            </p>
+                                        ) : (
+                                            <p className="text-green-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                Ready for Dispatch
+                                            </p>
+                                        )}
                                     </div>
+                                    {!isOutOfStock && product.stockQuantity && product.stockQuantity < 10 && (
+                                        <span className="text-xs font-bold text-orange-500">
+                                            Only {product.stockQuantity} left
+                                        </span>
+                                    )}
                                 </div>
 
-                                <Button
-                                    size="lg"
-                                    className="w-full text-lg h-14 font-black uppercase tracking-widest bg-yellow-400 hover:bg-yellow-500 text-black shadow-none border-b-4 border-yellow-600 active:border-b-0 active:translate-y-1 transition-all"
-                                    onClick={handleAddToCart}
-                                    disabled={isOutOfStock || isGhostAdmin}
-                                >
-                                    {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-                                </Button>
-                                <Button
-                                    size="lg"
-                                    variant="secondary"
-                                    className="w-full h-12 font-bold uppercase tracking-wider"
-                                    onClick={handleAddToCart} // Technically standard buy now is immediate checkout, but cart strict for now
-                                    disabled={isOutOfStock || isGhostAdmin}
-                                >
-                                    Buy Now
-                                </Button>
-                            </div>
+                                {/* Controls */}
+                                <div className="space-y-4">
+                                    <div className="flex gap-4">
+                                        {/* Quantity Pill */}
+                                        <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1 border border-black/5 dark:border-white/5 h-16 w-40">
+                                            <button
+                                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                disabled={quantity <= 1 || isOutOfStock}
+                                                className="w-12 h-full flex items-center justify-center text-xl font-medium hover:bg-white dark:hover:bg-zinc-800 rounded-full transition-all disabled:opacity-30"
+                                            >
+                                                −
+                                            </button>
+                                            <span className="flex-1 text-center font-black text-xl tabular-nums">{quantity}</span>
+                                            <button
+                                                onClick={() => setQuantity(quantity + 1)}
+                                                disabled={isOutOfStock}
+                                                className="w-12 h-full flex items-center justify-center text-xl font-medium hover:bg-white dark:hover:bg-zinc-800 rounded-full transition-all disabled:opacity-30"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
 
-                            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1"><ZapIcon className="w-3 h-3" /> Secure Transaction</span>
-                                <span>Sold by <strong className="text-foreground">{product.vendor.shopName || product.vendor.name}</strong></span>
+                                        {/* Add To Cart */}
+                                        <button
+                                            onClick={handleAddToCart}
+                                            disabled={isOutOfStock || isGhostAdmin}
+                                            className="flex-1 h-16 bg-black dark:bg-white text-white dark:text-black rounded-full font-black text-sm md:text-base uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/20 dark:shadow-white/20 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3"
+                                        >
+                                            <div className="w-1 h-1 rounded-full bg-current"></div>
+                                            {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
+                                        </button>
+                                    </div>
+
+                                    {/* Quick Buy Button */}
+                                    <button
+                                        onClick={handleAddToCart}
+                                        disabled={isOutOfStock || isGhostAdmin}
+                                        className="w-full h-14 rounded-full border-2 border-black/10 dark:border-white/10 font-bold uppercase tracking-widest text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                    >
+                                        Instant Checkout
+                                    </button>
+                                </div>
+
+                                {/* Trust Indicators */}
+                                <div className="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-dashed border-black/10 dark:border-white/10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                            <ZapIcon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Guarantee</span>
+                                            <span className="text-xs font-bold">Omni Secure™</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+                                            <CheckCircleIcon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Verified</span>
+                                            <span className="text-xs font-bold">Campus Partner</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Tabs: Details, Specs, Reviews */}
+                        {/* Content Tabs */}
                         <div className="mt-8">
                             <Tabs defaultValue="details" className="w-full">
-                                <TabsList className="grid w-full grid-cols-3">
-                                    <TabsTrigger value="details">Details</TabsTrigger>
-                                    <TabsTrigger value="specs">Specs</TabsTrigger>
-                                    <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                                <TabsList className="w-full bg-transparent border-b border-black/5 dark:border-white/5 p-0 h-auto gap-8 justify-start rounded-none">
+                                    {['details', 'specs', 'reviews'].map(tab => (
+                                        <TabsTrigger
+                                            key={tab}
+                                            value={tab}
+                                            className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-0 py-4 font-black text-xs uppercase tracking-widest text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors shadow-none"
+                                        >
+                                            {tab}
+                                        </TabsTrigger>
+                                    ))}
                                 </TabsList>
-                                <TabsContent value="details" className="mt-6">
-                                    <div
-                                        className="prose prose-invert max-w-none text-foreground/80 leading-relaxed"
-                                        dangerouslySetInnerHTML={{ __html: product.description || '<p>No description available.</p>' }}
-                                    />
-                                </TabsContent>
-                                <TabsContent value="specs" className="mt-6">
-                                    <div className="border border-border rounded-xl overflow-hidden">
-                                        <table className="w-full text-sm">
-                                            <tbody>
-                                                {/* Fallback Specs if 'details' JSON is missing */}
-                                                <tr className="border-b border-border bg-muted/50">
-                                                    <td className="p-3 font-bold text-muted-foreground w-1/3">Condition</td>
-                                                    <td className="p-3 font-medium">New</td>
-                                                </tr>
-                                                <tr className="border-b border-border">
-                                                    <td className="p-3 font-bold text-muted-foreground w-1/3">Category</td>
-                                                    <td className="p-3 font-medium">{product.category?.name}</td>
-                                                </tr>
-                                                {/* Dynamic Specs (Example mapping) */}
-                                                {product.details && Object.entries(product.details).map(([key, value]) => (
-                                                    <tr key={key} className="border-b border-border last:border-0 odd:bg-muted/30">
-                                                        <td className="p-3 font-bold text-muted-foreground w-1/3 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</td>
-                                                        <td className="p-3 font-medium">{String(value)}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </TabsContent>
-                                <TabsContent value="reviews" className="mt-6">
-                                    {reviewCount > 0 ? (
-                                        <div className="space-y-4">
-                                            {/* Here you would map real reviews. Placeholder for data structure */}
-                                            <div className="p-4 border border-border rounded-xl bg-card">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-bold text-sm">Verified Student</span>
-                                                    <div className="flex text-yellow-400 text-xs">★★★★★</div>
-                                                </div>
-                                                <p className="text-sm text-foreground/80">Great product, exactly as described! Delivery was super fast to the JCR.</p>
-                                                <span className="text-xs text-muted-foreground mt-2 block">2 days ago</span>
+
+                                <AnimatePresence mode="wait">
+                                    <TabsContent key="details" value="details" className="mt-8 focus:outline-none">
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="prose prose-lg prose-neutral dark:prose-invert max-w-none leading-relaxed font-light"
+                                            dangerouslySetInnerHTML={{ __html: product.description || '<p class="opacity-50 italic">No description available.</p>' }}
+                                        />
+                                    </TabsContent>
+
+                                    <TabsContent key="specs" value="specs" className="mt-8 focus:outline-none">
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                        >
+                                            <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 flex justify-between items-center">
+                                                <span className="font-bold text-xs uppercase tracking-widest opacity-50">Condition</span>
+                                                <span className="font-medium">New</span>
                                             </div>
+                                            <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 flex justify-between items-center">
+                                                <span className="font-bold text-xs uppercase tracking-widest opacity-50">Category</span>
+                                                <span className="font-medium">{product.category?.name}</span>
+                                            </div>
+                                            {product.details && Object.entries(product.details).map(([key, value]) => (
+                                                <div key={key} className="p-4 rounded-xl bg-black/5 dark:bg-white/5 flex justify-between items-center">
+                                                    <span className="font-bold text-xs uppercase tracking-widest opacity-50 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                                    <span className="font-medium">{String(value)}</span>
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    </TabsContent>
+
+                                    <TabsContent key="reviews" value="reviews" className="mt-8 focus:outline-none">
+                                        <div className="text-center py-24 border border-dashed border-black/10 dark:border-white/10 rounded-3xl">
+                                            <div className="text-4xl mb-4 opacity-20">💬</div>
+                                            <p className="font-black text-sm uppercase tracking-widest mb-4 opacity-50">No reviews yet</p>
+                                            <Button variant="outline" className="rounded-full">Be the first to review</Button>
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
-                                            <p className="font-medium text-muted-foreground mb-4">No reviews yet</p>
-                                            <Button variant="outline" size="sm">Write a Review</Button>
-                                        </div>
-                                    )}
-                                </TabsContent>
+                                    </TabsContent>
+                                </AnimatePresence>
                             </Tabs>
                         </div>
 
                     </div>
                 </div>
             </main>
+
+            {/* Global Style overrides for Gallery */}
+            <style jsx global>{`
+                .premium-gallery .image-gallery-content .image-gallery-slide .image-gallery-image {
+                    max-height: 600px;
+                    object-fit: contain; /* or cover for cleaner look depending on aspect ratio */
+                    padding: 2rem;
+                    background: transparent;
+                }
+                .premium-gallery .image-gallery-thumbnail.active, .premium-gallery .image-gallery-thumbnail:hover {
+                    border: 2px solid currentColor;
+                    border-radius: 8px;
+                    opacity: 1;
+                }
+                .premium-gallery .image-gallery-thumbnail {
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                }
+                .premium-gallery .image-gallery-icon {
+                    color: white;
+                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+                }
+            `}</style>
         </div>
     );
 }
