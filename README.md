@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Student Hub
 
-## Getting Started
+**Student Hub** is a comprehensive campus marketplace and service platform designed to connect students, vendors, and runners. It facilitates buying and selling products, managing deliveries, and participating in campus activities through a unified digital ecosystem.
 
-First, run the development server:
+> **Note:** This is a private repository. Access is restricted to authorized personnel only.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+- **Database:** PostgreSQL with [Prisma ORM](https://www.prisma.io/)
+- **Authentication:** [Clerk](https://clerk.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Radix UI](https://www.radix-ui.com/)
+- **State Management:** [TanStack Query](https://tanstack.com/query/latest)
+- **Media:** [Cloudinary](https://cloudinary.com/)
+- **Maps:** Leaflet / Mapbox
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✨ Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **🛍️ Marketplace:** Browse and purchase products across various categories.
+- **⚡ Flash Sales:** Time-limited deals and special offers.
+- **🚚 Runner System:** Integrated delivery network allowing students to earn by delivering orders.
+- **🏪 Vendor Dashboard:** Complete tools for vendors to manage inventory, orders, and earnings.
+- **🛡️ Admin Control:** Comprehensive admin panel for user management, content moderation, and system configuration.
+- **💬 Messaging:** Built-in communication tools for users and support.
 
-## Learn More
+## 🛠️ Getting Started
 
-To learn more about Next.js, take a look at the following resources:
+### Prerequisites
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Node.js (LTS version recommended)
+- npm, yarn, pnpm, or bun
+- PostgreSQL database instance
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Installation
 
-## Deploy on Vercel
+1.  **Clone the repository**
+    ```bash
+    git clone <repository-url>
+    cd student-hub
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2.  **Install dependencies**
+    ```bash
+    npm install
+    # or
+    yarn install
+    # or
+    pnpm install
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3.  **Environment Setup**
+    Copy the example environment file and update the variables:
+    ```bash
+    cp .env.example .env
+    ```
+    *Refer to `docs/ENV_TEMPLATE.md` for detailed environment variable descriptions.*
+
+4.  **Database Setup**
+    ```bash
+    npx prisma generate
+    npx prisma db push
+    ```
+
+5.  **Run Development Server**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## 📂 Project Structure
+
+- `src/app`: Application routes and pages (Next.js App Router).
+- `src/components`: Reusable UI components.
+- `prisma`: Database schema and migrations.
+- `public`: Static assets.
+- `docs`: Project documentation and guides.
+
+## 📜 License
+
+This project is proprietary software. All rights reserved. See the [LICENSE](LICENSE) file for details.
