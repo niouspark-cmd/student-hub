@@ -22,8 +22,8 @@ export default function GlobalNav() {
     if (hideNav) return null;
 
     const navItems = [
-        { label: 'Market', href: '/marketplace', icon: '🏪' },
-        { label: 'Pulse', href: '/pulse', icon: '📱' },
+        { label: 'Market', href: '/', icon: '🏪' },
+        { label: 'Pulse', href: '/stories', icon: '📱' },
         { label: 'Dashboard', href: '/dashboard', icon: '📊' },
     ];
 
@@ -39,7 +39,7 @@ export default function GlobalNav() {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex items-center justify-between h-20">
                         {/* Logo */}
-                        <Link href="/marketplace" className="flex items-center gap-3 group">
+                        <Link href="/" className="flex items-center gap-3 group">
                             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <span className="text-2xl">⚡</span>
                             </div>

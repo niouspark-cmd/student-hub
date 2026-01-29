@@ -86,8 +86,8 @@ export default function Footer() {
                         © 2025 OMNI ECOSYSTEM • ALPHA SECTOR 01
                     </div>
                     <div className="flex gap-8">
-                        <span className="text-[10px] font-black text-foreground/20 uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Privacy Protocol</span>
-                        <span className="text-[10px] font-black text-foreground/20 uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Terms of Service</span>
+                        <Link href="/privacy" className="text-[10px] font-black text-foreground/20 uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Privacy Protocol</Link>
+                        <Link href="/terms" className="text-[10px] font-black text-foreground/20 uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Terms of Service</Link>
                     </div>
                 </div>
             </div>
