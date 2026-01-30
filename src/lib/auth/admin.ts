@@ -15,7 +15,10 @@ export async function isAuthorizedAdmin() {
         if (!userId) return false;
 
         // 1. Check Claims (Fastest)
-        const roleFromClaims = (sessionClaims?.metadata as any)?.role?.toUpperCase();
+        // Check common metadata paths in case the JWT template is slightly different
+        const metadata = (sessionClaims?.metadata || sessionClaims?.publicMetadata || {}) as any;
+        const roleFromClaims = metadata?.role?.toUpperCase();
+
         if (roleFromClaims === 'ADMIN' || roleFromClaims === 'GOD_MODE') return true;
 
         // 2. Check Database Role (Fallback)
@@ -25,6 +28,9 @@ export async function isAuthorizedAdmin() {
         });
 
         const dbRole = user?.role?.toUpperCase();
+
+        console.log(`[SECURITY] Admin Check for ${userId}: Claims Role=${roleFromClaims}, DB Role=${dbRole}`);
+
         return dbRole === 'ADMIN' || dbRole === 'GOD_MODE';
     } catch (error) {
         console.error('[SECURITY] Admin authorization check failed:', error);

@@ -66,6 +66,7 @@ export default function Navbar() {
         }
 
         if (tapCountRef.current === 3) {
+            if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
             tapCountRef.current = 0;
             router.push('/command-center-z');
             return;
@@ -73,11 +74,13 @@ export default function Navbar() {
 
         // Reset count after 500ms of inactivity
         tapTimeoutRef.current = setTimeout(() => {
-            if (tapCountRef.current === 1) {
+            const finalCount = tapCountRef.current;
+            tapCountRef.current = 0;
+
+            if (finalCount === 1) {
                 // If only one tap was recorded, navigate home normally
                 if (pathname !== '/') router.push('/');
             }
-            tapCountRef.current = 0;
         }, 500);
     };
 
