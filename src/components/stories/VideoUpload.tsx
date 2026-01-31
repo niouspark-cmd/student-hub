@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useModal } from '@/context/ModalContext';
 
 interface VideoUploadProps {
     value: string;
@@ -12,13 +13,14 @@ export default function VideoUpload({ value, onChange, onError }: VideoUploadPro
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const modal = useModal();
 
     // Helper for errors
     const handleError = (msg: string) => {
         setUploading(false);
         setProgress(0);
         if (onError) onError(msg);
-        else alert(msg); // Fallback if no error handler
+        else modal.alert(msg, 'Upload Protocol Failure', 'error');
     };
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {

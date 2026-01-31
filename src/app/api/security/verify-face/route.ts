@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const distance = euclideanDistance(storedDescriptor, faceDescriptor)
     
     // Threshold for face matching (typically 0.6 or lower is considered a match)
-    const threshold = 0.6
+    const threshold = 0.65
     const isMatch = distance < threshold
     
     if (isMatch) {

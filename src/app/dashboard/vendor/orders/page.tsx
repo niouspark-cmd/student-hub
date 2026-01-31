@@ -11,8 +11,12 @@ import {
     CheckCircleIcon, 
     ClockIcon,
     MoreHorizontal,
-    Eye
+    Eye,
+    ArrowLeft
 } from 'lucide-react';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Table,
@@ -74,6 +78,7 @@ const formatDate = (dateString: string) => {
 };
 
 export default function VendorOrdersPage() {
+    const modal = useModal();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'ALL' | 'NEW' | 'ACTIVE' | 'HISTORY'>('ALL');
@@ -107,32 +112,60 @@ export default function VendorOrdersPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'READY' }),
             });
-            if (res.ok) { fetchOrders(); }
-            else { alert('Update failed'); }
-        } catch (error) { console.error('Update error:', error); }
+            if (res.ok) { 
+                toast.success('Order status updated to READY');
+                fetchOrders(); 
+            }
+            else { modal.alert('Failed to update order status. Please try again.', 'Update Error', 'error'); }
+        } catch (error) { 
+            console.error('Update error:', error); 
+            modal.alert('Communication error with the server.', 'Network Error', 'error');
+        }
     };
 
     const handleSelfDeliver = async (orderId: string) => {
-        if (!confirm('Deliver this yourself? You will earn the delivery fee.')) return;
+        const confirmed = await modal.confirm('Deliver this yourself? You will earn the delivery fee and be responsible for the fulfillment.', 'Self-Delivery Protocol', false);
+        if (!confirmed) return;
         try {
             const res = await fetch(`/api/vendor/orders/${orderId}/self-deliver`, { method: 'POST' });
-            if (res.ok) { fetchOrders(); }
-            else { const data = await res.json(); alert(`Error: ${data.error}`); }
-        } catch (error) { console.error(error); }
+            if (res.ok) { 
+                toast.success('Assigned to self-delivery');
+                fetchOrders(); 
+            }
+            else { 
+                const data = await res.json(); 
+                modal.alert(`Protocol Error: ${data.error}`, 'Submission Failed', 'error'); 
+            }
+        } catch (error) { 
+            console.error(error); 
+            modal.alert('A network error occurred.', 'Link Lost', 'error');
+        }
     };
 
     const handleCompleteDelivery = async (orderId: string) => {
         const key = releaseKeyInput[orderId];
-        if (!key || key.length !== 6) { alert('Please enter 6-digit Release Key'); return; }
+        if (!key || key.length !== 6) { 
+            toast.error('Please enter a valid 6-digit Release Key'); 
+            return; 
+        }
         try {
             const res = await fetch(`/api/vendor/orders/${orderId}/complete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ releaseKey: key })
             });
-            if (res.ok) { alert('Order Completed!'); fetchOrders(); }
-            else { const data = await res.json(); alert(`${data.error}`); }
-        } catch (e) { console.error(e); }
+            if (res.ok) { 
+                modal.alert('✅ Order successfully completed and funds released from escrow.', 'Mission Success', 'success'); 
+                fetchOrders(); 
+            }
+            else { 
+                const data = await res.json(); 
+                modal.alert(data.error || 'Verification failed.', 'Invalid Shield Key', 'error'); 
+            }
+        } catch (e) { 
+            console.error(e); 
+            modal.alert('Connection to security vault failed.', 'Network Error', 'error');
+        }
     };
 
     // Filter Logic
@@ -186,7 +219,8 @@ export default function VendorOrdersPage() {
         <div className="space-y-8 pb-12">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+                <div className="space-y-2">
+                    <GoBack fallback="/dashboard/vendor" />
                     <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
                     <p className="text-muted-foreground text-sm">Manage and track your customer orders.</p>
                 </div>

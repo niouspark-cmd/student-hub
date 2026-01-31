@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 interface NewRelease {
     id: string;
@@ -39,6 +41,7 @@ export default function NewReleases() {
     const [releases, setReleases] = useState<NewRelease[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const modal = useModal();
     const { addToCart } = useCart();
 
     useEffect(() => {
@@ -185,7 +188,8 @@ export default function NewReleases() {
                                                     <button
                                                         onClick={async (e) => {
                                                             e.stopPropagation();
-                                                            if (confirm('DELETE PRODUCT? This cannot be undone.')) {
+                                                            const confirmed = await modal.confirm('Initiate terminal purge of this product asset? This action is irreversible.', 'System Sanitization');
+                                                            if (confirmed) {
                                                                 try {
                                                                     const res = await fetch(`/api/admin/products/${product.id}`, {
                                                                         method: 'DELETE',
@@ -195,13 +199,13 @@ export default function NewReleases() {
                                                                     });
                                                                     if (res.ok) {
                                                                         setReleases(prev => prev.filter(p => p.id !== product.id));
-                                                                        alert('ASSET TERMINATED');
+                                                                        toast.success('Asset Terminated from Global Database');
                                                                     } else {
-                                                                        alert('TERMINATION FAILED');
+                                                                        modal.alert('The purge command was rejected by the server.', 'Sanitization Failed', 'error');
                                                                     }
                                                                 } catch (err) {
                                                                     console.error(err);
-                                                                    alert('SYSTEM ERROR');
+                                                                    modal.alert('A network disturbance prevented the purge command.', 'Uplink Error', 'error');
                                                                 }
                                                             }
                                                         }}

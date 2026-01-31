@@ -4,6 +4,8 @@ import { useState, useEffect, createElement } from 'react';
 import type { JSX } from 'react';
 import EditModal from './EditModal';
 import { useAdmin } from '@/context/AdminContext';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 interface SimpleEditProps {
     id: string;
@@ -16,6 +18,7 @@ type HtmlTag = keyof JSX.IntrinsicElements & string;
 
 export default function SimpleEdit({ id, text, tag = 'div', className = '' }: SimpleEditProps) {
     const { contentOverrides, refreshConfig, superAccess } = useAdmin();
+    const modal = useModal();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Use override from database if exists, otherwise use default text
@@ -46,12 +49,12 @@ export default function SimpleEdit({ id, text, tag = 'div', className = '' }: Si
                 }, 3000);
             } else {
                 const err = await response.text();
-                alert(`❌ Failed to save: ${err}`);
+                modal.alert(err || 'The Nexus rejected the configuration update.', 'System Error', 'error');
                 console.error('Save failed:', err);
             }
         } catch (error) {
             console.error('[SimpleEdit] Save error:', error);
-            alert('❌ Connection error. Could not save.');
+            modal.alert('A link failure prevented the global synchronization.', 'Connection Breach', 'error');
         }
     };
 

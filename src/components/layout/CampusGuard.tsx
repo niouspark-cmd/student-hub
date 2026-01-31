@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { UNIVERSITY_REGISTRY } from '@/lib/geo/distance';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
+import { useModal } from '@/context/ModalContext';
 
 export default function CampusGuard({ children }: { children: React.ReactNode }) {
     const { user, isLoaded } = useUser();
@@ -14,6 +15,7 @@ export default function CampusGuard({ children }: { children: React.ReactNode })
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
+    const modal = useModal();
 
     // Skip checks for onboarding and auth pages to allow sequential flow
     const isOnboarding = pathname?.startsWith('/onboarding') || pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up');
@@ -59,7 +61,7 @@ export default function CampusGuard({ children }: { children: React.ReactNode })
             setNeedsSelection(false);
             window.location.reload(); // Refresh to apply filters
         } catch (e) {
-            alert('Failed to save campus');
+            modal.alert('The campus registry rejected your location signal.', 'Registration Failed', 'error');
         } finally {
             setLoading(false);
         }

@@ -3,6 +3,8 @@
 import { useState, createElement, useEffect } from 'react';
 import type { JSX } from 'react';
 import { useAdmin } from '@/context/AdminContext';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
 import { XIcon, CheckIcon } from 'lucide-react'; // Assuming lucide-react or similar icons exist, or usage generic text
 
@@ -24,6 +26,7 @@ export default function EditableContent({
     multiline = false
 }: EditableContentProps) {
     const { contentOverrides, ghostEditMode, refreshConfig } = useAdmin();
+    const modal = useModal();
     const [isEditing, setIsEditing] = useState(false);
     const [tempContent, setTempContent] = useState('');
     const [saving, setSaving] = useState(false);
@@ -50,13 +53,14 @@ export default function EditableContent({
             });
             if (res.ok) {
                 await refreshConfig(); // Fast sync
+                toast.success(`Content ID [${id}] updated globally.`);
                 setIsEditing(false);
             } else {
-                alert('Save failed');
+                modal.alert('The core engine rejected the content override.', 'Synchronization Failure', 'error');
             }
         } catch (e) {
             console.error(e);
-            alert('Save failed');
+            modal.alert('A link disturbance prevented the ghost edit synchronization.', 'Communication Error', 'error');
         } finally {
             setSaving(false);
         }

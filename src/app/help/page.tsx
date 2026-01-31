@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, Send, MessageSquare, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 interface FAQItem {
   question: string;
@@ -59,6 +61,7 @@ export default function HelpPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modal = useModal();
 
   const filteredFaqs = activeCategory === 'all' 
     ? faqs 
@@ -70,7 +73,7 @@ export default function HelpPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSubmitting(false);
-    alert('Support ticket created. We will contact you shortly.');
+    toast.success('Support ticket created. We will contact you shortly.');
   };
 
   return (

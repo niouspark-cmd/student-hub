@@ -3,14 +3,18 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
+import "@tensorflow/tfjs"
 import * as faceapi from "face-api.js"
 import QRCode from "qrcode"
-import { motion } from "framer-motion"
-import { Shield, Camera, Lock, Key, CheckCircle2, AlertCircle, Fingerprint } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Shield, Camera, Lock, Key, CheckCircle2, AlertCircle, Fingerprint, Smartphone, Scan } from "lucide-react"
+import GoBack from "@/components/navigation/GoBack"
+import { useModal } from "@/context/ModalContext"
+import { toast } from "sonner"
 
 export default function SecuritySetupPage() {
-  const router = useRouter()
   const { user, isLoaded } = useUser()
+  const modal = useModal()
   
   // State Management
   const [step, setStep] = useState<"intro" | "biometric" | "2fa" | "complete">("intro")
@@ -53,6 +57,10 @@ export default function SecuritySetupPage() {
   const startCamera = async () => {
     try {
       setError("")
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError("Camera access is restricted. Please ensure you are using a secure connection (HTTPS) or localhost.")
+        return
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -89,7 +97,7 @@ export default function SecuritySetupPage() {
     setInterval(async () => {
       if (!video.paused && !video.ended) {
         const detections = await faceapi
-          .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+          .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.5 }))
           .withFaceLandmarks()
           .withFaceDescriptors()
         
@@ -120,7 +128,7 @@ export default function SecuritySetupPage() {
     
     try {
       const detections = await faceapi
-        .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 608, scoreThreshold: 0.5 }))
         .withFaceLandmarks()
         .withFaceDescriptors()
       
@@ -529,35 +537,83 @@ export default function SecuritySetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step !== "intro" ? "bg-green-600 text-white" : "bg-blue-600 text-white"}`}>
-              {step !== "intro" ? "✓" : "1"}
-            </div>
-            <div className="w-16 h-1 bg-gray-300 dark:bg-gray-700"></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${["2fa", "complete"].includes(step) ? "bg-green-600 text-white" : step === "biometric" ? "bg-blue-600 text-white" : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"}`}>
-              {["2fa", "complete"].includes(step) ? "✓" : "2"}
-            </div>
-            <div className="w-16 h-1 bg-gray-300 dark:bg-gray-700"></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "complete" ? "bg-green-600 text-white" : step === "2fa" ? "bg-blue-600 text-white" : "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400"}`}>
-              {step === "complete" ? "✓" : "3"}
-            </div>
+    <div className="min-h-screen bg-background transition-colors duration-300">
+      {/* Premium Header Decoration */}
+      <div className="absolute top-0 inset-x-0 h-[40vh] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+      
+      <div className="max-w-4xl mx-auto px-4 py-8 relative z-10">
+        <div className="flex items-center justify-between mb-12">
+          <GoBack />
+          <div className="text-right">
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Protocol</span>
+            <h1 className="text-xl font-black text-foreground uppercase tracking-tighter">Security Setup</h1>
           </div>
-          <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 px-4">
-            <span>Introduction</span>
-            <span>Biometric</span>
-            <span>2FA</span>
+        </div>
+
+        {/* Progress System - Premium Desktop & Stacked Mobile */}
+        <div className="mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-2 mb-4">
+            <StepIndicator 
+              current={step === "intro"} 
+              done={["biometric", "2fa", "complete"].includes(step)} 
+              num="1" 
+              label="Intro" 
+            />
+            <div className="hidden sm:block w-12 h-0.5 bg-surface-border" />
+            <StepIndicator 
+              current={step === "biometric"} 
+              done={["2fa", "complete"].includes(step)} 
+              num="2" 
+              label="Biometric" 
+            />
+            <div className="hidden sm:block w-12 h-0.5 bg-surface-border" />
+            <StepIndicator 
+              current={step === "2fa"} 
+              done={step === "complete"} 
+              num="3" 
+              label="Auth" 
+            />
           </div>
         </div>
         
-        {/* Step Content */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          {renderStep()}
+        {/* Main Content Container - Glassmorphism */}
+        <div className="glass-strong rounded-[2.5rem] p-6 sm:p-12 shadow-2xl border border-surface-border hover:border-primary/20 transition-all duration-500 min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
+          {/* Subtle glow background */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 blur-3xl rounded-full" />
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/5 blur-3xl rounded-full" />
+          
+          <AnimatePresence mode="wait">
+            <div key={step} className="w-full">
+              {renderStep()}
+            </div>
+          </AnimatePresence>
+        </div>
+
+        <div className="mt-8 text-center">
+            <p className="text-[9px] font-black text-foreground/20 uppercase tracking-[0.5em]">
+              🔒 Encrypted with End-to-End OMNI Security Protocol
+            </p>
         </div>
       </div>
+    </div>
+  )
+}
+
+function StepIndicator({ current, done, num, label }: { current: boolean; done: boolean; num: string; label: string }) {
+  return (
+    <div className="flex items-center gap-3 bg-surface/50 px-4 py-2 rounded-2xl border border-surface-border">
+      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black transition-all ${
+        done ? "bg-[#39FF14] text-black" : 
+        current ? "bg-primary text-primary-foreground omni-glow" : 
+        "bg-surface-hover text-foreground/20"
+      }`}>
+        {done ? "✓" : num}
+      </div>
+      <span className={`text-[10px] font-black uppercase tracking-widest ${
+        current || done ? "text-foreground" : "text-foreground/20"
+      }`}>
+        {label}
+      </span>
     </div>
   )
 }

@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 export default function ImpersonationBanner() {
     const [impersonating, setImpersonating] = useState<string | null>(null);
     const [userData, setUserData] = useState<any>(null);
+    const modal = useModal();
 
     useEffect(() => {
         // Check if we're impersonating
@@ -54,11 +57,12 @@ export default function ImpersonationBanner() {
             document.cookie = 'IMPERSONATE_USER_ID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             setImpersonating(null);
             setUserData(null);
+            toast.success('Exited impersonation mode.');
 
             // Optionally reload to clear any cached user data
             window.location.reload();
         } catch (e) {
-            alert('Failed to stop impersonation');
+            modal.alert('The impersonation protocol failed to terminate.', 'System Error', 'error');
         }
     };
 

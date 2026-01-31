@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import "@tensorflow/tfjs"
 import * as faceapi from "face-api.js"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Camera, Key, AlertCircle, CheckCircle2, Shield } from "lucide-react"
@@ -41,6 +42,10 @@ export default function SecurityVerificationModal({
   const startCamera = async () => {
     try {
       setError("")
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError("Camera access is restricted. Please ensure you are using a secure connection (HTTPS) or localhost.")
+        return
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
         audio: false
@@ -66,7 +71,7 @@ export default function SecurityVerificationModal({
     
     try {
       const detections = await faceapi
-        .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 608, scoreThreshold: 0.5 }))
         .withFaceLandmarks()
         .withFaceDescriptors()
       

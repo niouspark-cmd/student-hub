@@ -9,6 +9,8 @@ import { Save, Loader2, DollarSign, Package, Layers, Image as ImageIcon } from '
 import { ImageUploader } from './ImageUploader';
 import { DescriptionEditor } from './DescriptionEditor';
 import { Button } from '@/components/ui/button';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +42,7 @@ const productSchema = z.object({
 
 export default function ProductForm({ initialData, showTitle = true }: ProductFormProps) {
     const router = useRouter();
+    const modal = useModal();
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -135,12 +138,13 @@ export default function ProductForm({ initialData, showTitle = true }: ProductFo
 
             if (!res.ok) throw new Error(initialData ? 'Failed to update product' : 'Failed to create product');
 
+            toast.success(initialData ? 'Product specifications updated successfully' : 'New product listed on marketplace');
             router.refresh();
             router.push('/dashboard/vendor/products');
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('Something went wrong. Please try again.');
+            modal.alert(error.message || 'The system could not synchronize your product data.', 'Uplink Error', 'error');
         } finally {
             setLoading(false);
             setUploading(false);

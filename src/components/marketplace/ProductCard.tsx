@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useModal } from '@/context/ModalContext';
 import { motion } from 'framer-motion';
 import { ZapIcon, MapPinIcon, PlusIcon } from '@/components/ui/Icons';
 import { useCartStore } from '@/lib/store/cart';
@@ -50,6 +51,7 @@ export default function ProductCard({
     badgeColor?: string;
 }) {
     const addToCart = useCartStore((state) => state.addToCart);
+    const modal = useModal();
     const [isAdmin, setIsAdmin] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -60,7 +62,13 @@ export default function ProductCard({
     const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!confirm(`Permanently delete ${product.title}?`)) return;
+        
+        const confirmed = await modal.confirm(
+            `Permanently purge ${product.title} from the marketplace? This operation is irreversible.`,
+            'Sanitization Protocol'
+        );
+        
+        if (!confirmed) return;
 
         setIsDeleting(true);
         try {
@@ -227,7 +235,7 @@ export default function ProductCard({
                     <Button
                         size="sm"
                         variant="secondary"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); alert('Quick Edit (Coming Soon)'); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toast.info('Quick Edit terminal currently offline.', { description: 'Please use the main dashboard for modifications.' }); }}
                     >
                         Edit
                     </Button>

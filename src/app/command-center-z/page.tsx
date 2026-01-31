@@ -5,6 +5,7 @@ import { useUser, useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 // Mock types for now
 interface SystemSettings {
@@ -164,7 +165,7 @@ export default function CommandCenterPage() {
     }
 
     const handleApproveApplication = async (appId: string) => {
-        if (!confirm('APPROVE VENDOR APPLICATION? This will promote user to VENDOR role.')) return;
+        if (!await modal.confirm('Initiate vendor promotion sequence? This will elevate the user to VENDOR status.', 'Promote Candidate')) return;
         try {
             const res = await fetch('/api/admin/vendor-applications', {
                 method: 'POST',
@@ -173,16 +174,16 @@ export default function CommandCenterPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert(`SUCCESS: ${data.message}`);
+                toast.success(`SUCCESS: ${data.message}`);
                 fetchApplications();
             } else {
-                alert(`ERROR: ${data.error}`);
+                toast.error(`ERROR: ${data.error}`);
             }
-        } catch (e) { alert('Failed'); }
+        } catch (e) { toast.error('Failed'); }
     }
 
     const handleDeleteApplication = async (appId: string) => {
-        if (!confirm('REJECT APPLICATION? User will be able to reapply.')) return;
+        if (!await modal.confirm('Terminal rejection of vendor request? The user remains eligible for re-application.', 'Reject Protocol')) return;
         try {
             const res = await fetch('/api/admin/vendor-applications', {
                 method: 'POST',
@@ -191,14 +192,15 @@ export default function CommandCenterPage() {
             });
             if (res.ok) {
                 fetchApplications();
+                toast.success('Application rejected');
             } else {
-                alert('Failed to reject');
+                toast.error('Failed to reject');
             }
-        } catch (e) { alert('Error'); }
+        } catch (e) { toast.error('Error'); }
     }
 
     const deleteSignal = async (id: string) => {
-        if (!confirm('DELETE SIGNAL PERMANENTLY?')) return;
+        if (!await modal.confirm('Permanently purge this intercepted signal from the intelligence database?', 'Purge Signal')) return;
         setSignals(prev => prev.filter(s => s.id !== id));
         try {
             await fetch('/api/feedback', {
@@ -646,15 +648,15 @@ export default function CommandCenterPage() {
                                                     if (response.ok) {
                                                         const data = await response.json();
                                                         setSettings(data);
-                                                        alert('✅ BROADCAST SYNCED!\n\nYour message is now live across the platform.');
+                                                        modal.alert('The message has been synchronized across all terminal interfaces.', 'Broadcast Uplinked');
                                                     } else {
                                                         const errorText = await response.text();
                                                         console.error('[BROADCAST] Sync failed:', response.status, errorText);
-                                                        alert('❌ SYNC FAILED\n\nPlease check console for details.');
+                                                        modal.alert(`The synchronization sequence failed: ${response.status}`, 'Uplink Failed', 'error');
                                                     }
                                                 } catch (error) {
                                                     console.error('[BROADCAST] Error:', error);
-                                                    alert('❌ CONNECTION ERROR\n\nCould not reach server.');
+                                                    modal.alert('A network disturbance prevented the global broadcast synchronization.', 'Connection Severed', 'error');
                                                 }
                                             }
                                         }}
@@ -685,14 +687,14 @@ export default function CommandCenterPage() {
                                                     if (response.ok) {
                                                         const data = await response.json();
                                                         setSettings(data);
-                                                        alert('✅ BROADCAST CLEARED');
+                                                        toast.success('Broadcast protocols deactivated.');
                                                     } else {
                                                         console.error('[BROADCAST] Clear failed:', response.status);
-                                                        alert('❌ CLEAR FAILED');
+                                                        modal.alert('The purge command was rejected by the server.', 'Clear Failed', 'error');
                                                     }
                                                 } catch (error) {
                                                     console.error('[BROADCAST] Error:', error);
-                                                    alert('❌ CONNECTION ERROR');
+                                                    modal.alert('A link failure prevented the broadcast termination.', 'Connection Error', 'error');
                                                 }
                                             }
                                         }}

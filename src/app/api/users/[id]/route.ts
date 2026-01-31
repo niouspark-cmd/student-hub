@@ -11,8 +11,9 @@ import { errorResponse, successResponse } from '@/lib/security/api-response';
 import { sanitizeInput } from '@/lib/security/validation';
 import { prisma } from '@/lib/db/prisma';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const { userId } = await auth();
 
     if (!userId) {
@@ -25,8 +26,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const user = await prisma.user.findFirst({
       where: {
         OR: [
-          { clerkId: params.id },
-          { id: params.id },
+          { clerkId: id },
+          { id: id },
         ],
       },
       select: {
@@ -58,8 +59,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const { userId } = await auth();
 
     if (!userId) {
@@ -72,8 +74,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const targetUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { clerkId: params.id },
-          { id: params.id },
+          { clerkId: id },
+          { id: id },
         ],
       },
       select: {

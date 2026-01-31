@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 export default function OnboardingPage() {
     const { user, isLoaded } = useUser();
+    const modal = useModal();
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState('');
     const [university, setUniversity] = useState('KNUST');
@@ -65,11 +68,11 @@ export default function OnboardingPage() {
             if (res.ok) {
                 window.location.href = '/';
             } else {
-                alert('Onboarding failed. Please try again.');
+                modal.alert('The onboarding protocol failed to initialize. Please verify your data and try again.', 'Handshake Failure', 'error');
             }
         } catch (error) {
             console.error('Onboarding failed:', error);
-            alert('Something went wrong. Please try again.');
+            modal.alert('A network disturbance prevented the onboarding handshake.', 'Link Error', 'error');
         } finally {
             setLoading(false);
         }

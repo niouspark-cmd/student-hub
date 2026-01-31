@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { getHotspotsForUniversity, UNIVERSITY_REGISTRY } from '@/lib/geo/distance';
 import ImageUpload from '@/components/products/ImageUpload';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 interface Category {
     id: string;
@@ -18,6 +20,7 @@ import ProtocolGuard from '@/components/admin/ProtocolGuard';
 
 export default function NewProductPage() {
     const router = useRouter();
+    const modal = useModal();
 
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -77,14 +80,14 @@ export default function NewProductPage() {
             const data = await response.json();
 
             if (data.success) {
-                // alert('Product created successfully! 🎉'); // Replaced with toast-like UX later if needed
+                toast.success('Product created successfully! 🎉');
                 router.push('/dashboard/vendor');
             } else {
-                alert(`Error: ${data.error}`);
+                modal.alert(data.error || 'The marketplace engine rejected the submission.', 'Creation Error', 'error');
             }
         } catch (error) {
             console.error('Failed to create product:', error);
-            alert('Failed to create product');
+            modal.alert('A link failure prevented the product from being listed.', 'Transmission Error', 'error');
         } finally {
             setLoading(false);
         }

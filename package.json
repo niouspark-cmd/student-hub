@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
@@ -23,6 +23,7 @@
     "@tanstack/react-query": "^5.90.19",
     "@tanstack/react-query-devtools": "^5.91.2",
     "@tanstack/react-table": "^8.21.3",
+    "@tensorflow/tfjs": "^4.22.0",
     "@tiptap/extension-placeholder": "^3.16.0",
     "@tiptap/react": "^3.16.0",
     "@tiptap/starter-kit": "^3.16.0",

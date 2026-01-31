@@ -6,6 +6,9 @@ import { useUser } from '@clerk/nextjs';
 import { useAdmin } from '@/context/AdminContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import OmniDialog from '@/components/ui/OmniDialog';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
+import { useModal } from '@/context/ModalContext';
 
 // --- Interfaces ---
 interface Order {
@@ -140,7 +143,10 @@ const ExpandedPriorityCard = ({ order, handleCancel }: { order: Order, handleCan
                                 </div>
                             </div>
                             <button
-                                onClick={() => { navigator.clipboard.writeText(order.releaseKey || ''); alert('Key copied to clipboard'); }}
+                                onClick={() => { 
+                                    navigator.clipboard.writeText(order.releaseKey || ''); 
+                                    toast.success('Secure Key copied to clipboard');
+                                }}
                                 className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white"
                             >
                                 📋
@@ -337,7 +343,7 @@ Live. Learn. Earn.
                 }
             } catch (err) {
                 console.error('Failed to generate receipt image', err);
-                alert('Could not generate image. Try TXT version.');
+                toast.error('Visual render failed. Please use the TXT version.');
             } finally {
                 setGenerating(false);
                 setShowFormats(false);
@@ -487,6 +493,7 @@ Live. Learn. Earn.
 // --- MAIN PAGE ---
 export default function OrdersPage() {
     const { user } = useUser();
+    const modal = useModal();
     const [error, setError] = useState<string | null>(null);
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
@@ -510,11 +517,12 @@ export default function OrdersPage() {
             const data = await res.json();
             if (data.success) {
                 fetchOrders(true);
+                toast.success('Mission successfully aborted. Funds returned to student.');
             } else {
-                alert(data.error || 'Failed to abort');
+                modal.alert(data.error || 'The cancellation protocol failed to execute.', 'System Error', 'error');
             }
         } catch (error) {
-            alert('Error aborting mission');
+            modal.alert('A network error interfered with the cancellation protocol.', 'Communication Link Lost', 'error');
         }
     };
 
@@ -587,8 +595,14 @@ export default function OrdersPage() {
         <div className="min-h-screen bg-background text-foreground pt-32 pb-24 px-4 sm:px-6">
 
             {/* Header */}
-            <div className="max-w-md mx-auto mb-8 text-center">
-                <h1 className="text-2xl font-black uppercase tracking-tight text-foreground mb-2">Order Command Center</h1>
+            <div className="max-w-md mx-auto mb-8">
+                <div className="flex items-center justify-between mb-4">
+                    <GoBack />
+                    <div className="text-right">
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Tracking</span>
+                    </div>
+                </div>
+                <h1 className="text-2xl font-black uppercase tracking-tight text-foreground mb-2 text-center">Order Command Center</h1>
                 <div className="flex bg-surface p-1 rounded-xl border border-surface-border shadow-sm">
                     <button
                         onClick={() => setActiveTab('ACTIVE')}

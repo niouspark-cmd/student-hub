@@ -8,10 +8,8 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useModal } from '@/context/ModalContext';
 import ProtocolGuard from '@/components/admin/ProtocolGuard';
-import { Trash2Icon, MinusIcon, PlusIcon, StoreIcon, ShieldIcon } from 'lucide-react'; // Using lucide-react for consistent icons if available, else stick to current
-
-// Helper Icons (Inline to avoid missing dependency if lucide not installed, though standard in modern next stacks)
-const DeleteIcon = ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>;
+import { Trash2Icon, MinusIcon, PlusIcon, StoreIcon, ShieldIcon, ShoppingBag, ArrowLeft, ChevronRight, Lock } from 'lucide-react'; 
+import GoBack from '@/components/navigation/GoBack';
 
 export default function CartPage() {
     const { items, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCartStore();
@@ -59,7 +57,7 @@ export default function CartPage() {
         // User Check (Hybrid Aware)
         // If not logged in via Clerk AND not hybrid authenticated
         if (!user && !isHybridAuth) {
-            modal.alert('Please sign in to checkout.', 'Sign In Required');
+            modal.alert('Please sign in to checkout.', 'Sign In Required', 'warning');
             return;
         }
 
@@ -115,8 +113,6 @@ export default function CartPage() {
         // Actually, let's try to send simple checkout.
 
         try {
-            // 1. Create Order (Using first item as primary for now to avoid breaking backend if it expects single)
-            // Ideally we need a /api/orders/create-bulk endpoint.
             const item = items[0];
 
             const res = await fetch('/api/orders/create', {
@@ -132,7 +128,6 @@ export default function CartPage() {
             const data = await res.json();
 
             if (data.success) {
-                // 2. Launch Payment
                 const handler = PaystackPop.setup({
                     key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
                     email: userEmail,
@@ -157,12 +152,12 @@ export default function CartPage() {
                                     clearCart();
                                     window.location.href = '/orders?success=true';
                                 } else {
-                                    modal.alert(`Verification failed: ${vData.error || 'Unknown error'}`, 'Payment Error');
+                                    modal.alert(`Verification failed: ${vData.error || 'Unknown error'}`, 'Payment Error', 'error');
                                     setIsCreatingOrder(false);
                                 }
                             } catch (e) {
                                 console.error(e);
-                                modal.alert('Payment verification connection error.', 'System Error');
+                                modal.alert('Payment verification connection error.', 'System Error', 'error');
                                 setIsCreatingOrder(false);
                             }
                         };
@@ -170,34 +165,43 @@ export default function CartPage() {
                     },
                     onClose: function () {
                         setIsCreatingOrder(false);
-                        modal.alert('Payment cancelled.', 'Cancelled');
+                        modal.alert('Payment cancelled.', 'Action Aborted', 'info');
                     }
                 });
                 handler.openIframe();
             } else {
-                modal.alert(`Order Error: ${data.error}`, 'Order Failed');
+                modal.alert(`Order Error: ${data.error}`, 'Submission Failed', 'error');
                 setIsCreatingOrder(false);
             }
 
         } catch (error) {
             console.error('Checkout Error', error);
-            modal.alert('System connection failed.', 'Error');
+            modal.alert('System connection failed.', 'Network Error', 'error');
             setIsCreatingOrder(false);
         }
     };
 
     return (
         <ProtocolGuard protocol="MARKET_ACTIONS">
-            <div className="min-h-screen bg-[#F5F7FA] dark:bg-background transition-colors duration-300 pb-32">
-                {/* Header */}
-                <div className="bg-white dark:bg-surface border-b border-gray-200 dark:border-surface-border sticky top-16 z-20 shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-black text-gray-900 dark:text-foreground uppercase tracking-tighter">
-                                Shopping Cart
-                            </h1>
-                            <p className="text-xs font-bold text-gray-500 dark:text-foreground/40 uppercase tracking-widest mt-2">
-                                {items.length} Item(s) • <span className="text-green-600 flex items-center inline-flex gap-1"><ShieldIcon className="w-3 h-3" /> SSL Secured</span>
+            <div className="min-h-screen bg-background transition-colors duration-300 pb-32">
+                {/* Header Section */}
+                <div className="bg-surface/50 backdrop-blur-md border-b border-surface-border sticky top-16 z-20">
+                    <div className="max-w-7xl mx-auto px-4 py-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <GoBack fallback="/" />
+                                <h1 className="text-3xl font-black text-foreground uppercase tracking-tighter">
+                                    Shopping <span className="text-primary italic">Vault</span>
+                                </h1>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-foreground/40 uppercase tracking-widest">{items.length} Secure Slots Active</span>
+                                    <div className="w-1 h-1 bg-surface-border rounded-full" />
+                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-[#39FF14] uppercase tracking-widest">
+                                        <Lock className="w-3 h-3" />
+                                        Locked
+                                    </div>
+                                </div>
+                            </div>
                             </p>
                         </div>
                     </div>

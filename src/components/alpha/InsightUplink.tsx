@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
+import { useModal } from '@/context/ModalContext';
 
 export default function InsightUplink() {
     const { user } = useUser();
+    const modal = useModal();
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState('');
     const [content, setContent] = useState('');
@@ -44,7 +46,7 @@ export default function InsightUplink() {
             }
         } catch (e) {
             console.error('Feedback failed', e);
-            alert('Signal Lost: Check internet connection.');
+            modal.alert('The signal was intercepted or lost. Please check your network link.', 'Transmission Interrupted', 'error');
         } finally {
             setSending(false);
         }

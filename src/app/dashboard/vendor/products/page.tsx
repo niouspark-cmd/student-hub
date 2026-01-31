@@ -10,8 +10,12 @@ import {
     Edit, 
     Trash, 
     Package,
-    AlertCircle
+    AlertCircle,
+    ArrowLeft
 } from "lucide-react";
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +31,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export default function VendorProductsPage() {
     const router = useRouter();
+    const modal = useModal();
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +55,8 @@ export default function VendorProductsPage() {
     };
 
     const handleDelete = async (productId: string) => {
-        if (!confirm('Delete this product? This cannot be undone.')) return;
+        const confirmed = await modal.confirm('Delete this product? This action cannot be undone and will remove it from all student carts.', 'Security Confirmation', true);
+        if (!confirmed) return;
 
         try {
             const res = await fetch(`/api/vendor/products/${productId}`, {
@@ -58,13 +64,14 @@ export default function VendorProductsPage() {
             });
 
             if (res.ok) {
+                toast.success('Product successfully purged from marketplace');
                 fetchProducts();
             } else {
-                alert('Failed to delete product');
+                modal.alert('Failed to delete product. It might be linked to active orders.', 'System Restriction', 'error');
             }
         } catch (error) {
             console.error('Delete error:', error);
-            alert('Error deleting product');
+            modal.alert('A network error occurred during the deletion protocol.', 'Communication Error', 'error');
         }
     };
 
@@ -85,7 +92,8 @@ export default function VendorProductsPage() {
         <div className="space-y-8 pb-12">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+                <div className="space-y-2">
+                    <GoBack fallback="/dashboard/vendor" />
                     <h1 className="text-2xl font-bold tracking-tight">My Products</h1>
                     <p className="text-muted-foreground text-sm">Manage your product catalog and inventory.</p>
                 </div>

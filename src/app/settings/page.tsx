@@ -4,27 +4,22 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, User, Bell, Palette, Lock, Key, Smartphone, Save, ArrowLeft, Mail, ShoppingBag, Megaphone, Eye } from 'lucide-react';
-import { motion } from 'framer-motion';
-
-/**
- * Settings Page - Enhanced with real functionality
- * - Account settings with save capability
- * - Security with 2FA/Biometric integration
- * - Notifications preferences
- * - Appearance customization
- */
+import { Shield, User, Bell, Palette, Lock, Key, Smartphone, Save, ArrowLeft, Mail, ShoppingBag, Megaphone, Eye, ChevronRight, Fingerprint, RefreshCcw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
+import { useModal } from '@/context/ModalContext';
 
 export default function SettingsPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const modal = useModal();
   const [activeTab, setActiveTab] = useState<'account' | 'security' | 'notifications' | 'appearance'>('account');
   const [isSaving, setIsSaving] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [securityStatus, setSecurityStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Form states
   const [formData, setFormData] = useState({
     name: '',
     university: '',
@@ -53,7 +48,7 @@ export default function SettingsPage() {
         setUserData(data);
         setFormData({
           name: data.name || user?.fullName || '',
-          university: data.university || '',
+          university: data.university || 'KNUST',
           phoneNumber: data.phoneNumber || '',
           notifications: {
             emailNotifications: true,
@@ -93,543 +88,350 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
-        alert('Settings saved successfully!');
+        toast.success('Settings synchronized with OMNI Cloud');
         await fetchUserData();
       } else {
-        alert('Failed to save settings');
+        toast.error('Failed to synchronize settings');
       }
     } catch (error) {
       console.error('Failed to save:', error);
-      alert('An error occurred while saving');
+      toast.error('Uplink error occurred while saving');
     } finally {
       setIsSaving(false);
     }
   };
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'account':
+        return (
+          <div className="space-y-8">
+            <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-3xl bg-surface-hover border border-white/5 flex items-center justify-center text-4xl overflow-hidden relative group">
+                    {user?.imageUrl ? <img src={user.imageUrl} className="w-full h-full object-cover" /> : '👤'}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                        <CameraIcon className="w-6 h-6 text-white" />
+                    </div>
+                </div>
+                <div>
+                    <h2 className="text-2xl font-black text-foreground uppercase tracking-tight mb-2">Account Profile</h2>
+                    <p className="text-xs text-foreground/40 font-black uppercase tracking-widest">Member since {new Date(user?.createdAt || Date.now()).toLocaleDateString()}</p>
+                </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] ml-2">Operator Name</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-50" />
+                  <input 
+                    type="text" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="w-full bg-surface-hover border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold focus:border-primary/50 outline-none transition-all"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] ml-2">Secure Phone Link</label>
+                <div className="relative">
+                  <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-50" />
+                  <input 
+                    type="tel" 
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                    className="w-full bg-surface-hover border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold focus:border-primary/50 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.2em] ml-2">University Sector</label>
+                <div className="relative">
+                    <ShoppingBag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-50" />
+                    <select 
+                        value={formData.university}
+                        onChange={(e) => setFormData({...formData, university: e.target.value})}
+                        className="w-full bg-surface-hover border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold focus:border-primary/50 outline-none transition-all appearance-none"
+                    >
+                        <option value="KNUST">KNUST</option>
+                        <option value="UG">University of Ghana</option>
+                        <option value="UCC">University of Cape Coast</option>
+                        <option value="UENR">UENR</option>
+                        <option value="UDS">UDS</option>
+                        <option value="UEW">UEW</option>
+                        <option value="UPSA">UPSA</option>
+                    </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'security':
+        return (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight mb-2">Security Protocols</h2>
+              <p className="text-sm text-foreground/40 font-bold uppercase tracking-widest">Hardening your account access</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <SecurityCard 
+                icon={<Fingerprint className="w-6 h-6" />}
+                title="Biometric Matrix"
+                desc="Fast authentication using Face ID or system biometrics"
+                status={securityStatus?.biometricEnabled ? 'ACTIVE' : 'NOT LINKED'}
+                active={securityStatus?.biometricEnabled}
+                onClick={() => router.push('/security-setup')}
+              />
+              <SecurityCard 
+                icon={<Lock className="w-6 h-6" />}
+                title="Two-Factor Link"
+                desc="Time-based OTP verification for high-risk operations"
+                status={securityStatus?.twoFactorEnabled ? 'ACTIVE' : 'NOT LINKED'}
+                active={securityStatus?.twoFactorEnabled}
+                onClick={() => router.push('/security-setup')}
+              />
+            </div>
+          </div>
+        );
+      case 'notifications':
+        return (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight mb-2">Communication Grid</h2>
+              <p className="text-sm text-foreground/40 font-bold uppercase tracking-widest">Configure signal reception</p>
+            </div>
+
+            <div className="space-y-4">
+               <GridToggle 
+                  title="Mission Updates"
+                  desc="Real-time alerts for active orders and delivery status"
+                  active={formData.notifications.orderUpdates}
+                  onChange={(v) => setFormData({...formData, notifications: {...formData.notifications, orderUpdates: v}})}
+               />
+               <GridToggle 
+                  title="Marketplace Incursions"
+                  desc="Notifications for new products and flash sales"
+                  active={formData.notifications.newReleases}
+                  onChange={(v) => setFormData({...formData, notifications: {...formData.notifications, newReleases: v}})}
+               />
+               <GridToggle 
+                  title="Security Hardening"
+                  desc="Alerts for new logins or biometric resets"
+                  active={formData.notifications.securityAlerts}
+                  onChange={(v) => setFormData({...formData, notifications: {...formData.notifications, securityAlerts: v}})}
+               />
+            </div>
+          </div>
+        );
+      case 'appearance':
+        return (
+          <div className="space-y-8">
+             <div>
+              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight mb-2">Visual Core</h2>
+              <p className="text-sm text-foreground/40 font-bold uppercase tracking-widest">Theming and accent overrides</p>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+               {['#FF4B2B', '#7928CA', '#0070F3', '#00DFD8'].map(color => (
+                 <button 
+                    key={color}
+                    className="aspect-square rounded-3xl border-2 border-white/5 hover:border-primary transition-all flex items-center justify-center p-2 relative group"
+                    style={{ background: `${color}10` }}
+                 >
+                    <div className="w-full h-full rounded-2xl" style={{ background: color }} />
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </button>
+               ))}
+            </div>
+          </div>
+        );
+    }
+  };
+
   if (!isLoaded || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-6">
+            <RefreshCcw className="w-12 h-12 text-primary animate-spin" />
+            <p className="text-xs font-black uppercase tracking-[0.4em] animate-pulse">Initializing Terminal...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          {/* Header */}
-          <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-800 dark:to-black p-6 shadow-xl">
+    <div className="min-h-screen bg-background transition-colors duration-300 pb-20 relative overflow-hidden">
+      {/* Decorative Glow */}
+      <div className="absolute top-0 right-0 w-[50vw] h-[50vh] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[40vw] h-[40vh] bg-blue-500/5 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/5 pb-8">
+          <div className="space-y-4">
+            <GoBack fallback="/" />
             <div>
-              <Link href="/profile" className="flex items-center gap-2 text-gray-300 hover:text-white mb-2 transition">
-                <ArrowLeft className="w-4 h-4" />
-                <span className="text-sm">Back to Profile</span>
-              </Link>
-              <h1 className="text-3xl font-bold text-white">Settings</h1>
-              <p className="mt-1 text-gray-300">Manage your account preferences</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">{user?.fullName}</p>
-                <p className="text-xs text-gray-400">{user?.primaryEmailAddress?.emailAddress}</p>
-              </div>
-              {user?.imageUrl && (
-                <img
-                  src={user.imageUrl}
-                  alt="Profile"
-                  className="h-12 w-12 rounded-full border-2 border-white/20"
-                />
-              )}
+              <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">
+                System <span className="text-primary italic">Settings</span>
+              </h1>
+              <p className="text-xs font-black text-foreground/30 uppercase tracking-[0.3em] mt-2">
+                Configuration Terminal • v1.0.4
+              </p>
             </div>
           </div>
+          
+          <button 
+                onClick={handleSave}
+                disabled={isSaving}
+                className="group relative flex items-center justify-center gap-3 bg-primary py-4 px-10 rounded-2xl font-black text-xs uppercase tracking-widest text-primary-foreground omni-glow transition-all active:scale-95 disabled:opacity-50"
+            >
+                {isSaving ? (
+                    <RefreshCcw className="w-4 h-4 animate-spin" />
+                ) : (
+                    <>
+                        <Save className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                        Synchronize Settings
+                    </>
+                )}
+            </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <nav className="space-y-2 sticky top-8">
-              {
-              [
-                { id: 'account', label: 'Account', icon: User },
-                { id: 'security', label: 'Security', icon: Shield },
-                { id: 'notifications', label: 'Notifications', icon: Bell },
-                { id: 'appearance', label: 'Appearance', icon: Palette },
-              ].map(item => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id as any)}
-                    className={`w-full rounded-lg px-4 py-3 text-left font-medium transition-all flex items-center gap-3 ${
-                      activeTab === item.id
-                        ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-200 shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile Tab Scroller / Desktop Sidebar */}
+          <div className="lg:w-80 flex-shrink-0">
+            <div className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide sticky top-24">
+              <NavTab 
+                active={activeTab === 'account'} 
+                onClick={() => setActiveTab('account')} 
+                icon={<User className="w-5 h-5" />} 
+                label="Account" 
+              />
+              <NavTab 
+                active={activeTab === 'security'} 
+                onClick={() => setActiveTab('security')} 
+                icon={<Lock className="w-5 h-5" />} 
+                label="Security" 
+              />
+              <NavTab 
+                active={activeTab === 'notifications'} 
+                onClick={() => setActiveTab('notifications')} 
+                icon={<Bell className="w-5 h-5" />} 
+                label="Alerts" 
+              />
+              <NavTab 
+                active={activeTab === 'appearance'} 
+                onClick={() => setActiveTab('appearance')} 
+                icon={<Palette className="w-5 h-5" />} 
+                label="Visuals" 
+              />
+            </div>
           </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 sm:p-8 shadow-sm"
-            >
-              {/* Account Settings */}
-              {activeTab === 'account' && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Account Settings</h2>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Update your basic account information</p>
-                  </div>
-
-                  <div className="space-y-5">
-                    {/* Email */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
-                      <input
-                        type="email"
-                        value={user?.primaryEmailAddress?.emailAddress || ''}
-                        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
-                        disabled
-                      />
-                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Email is managed through your authentication provider</p>
-                    </div>
-
-                    {/* Full Name */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Your full name"
-                      />
-                    </div>
-
-                    {/* University */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">University</label>
-                      <select
-                        value={formData.university}
-                        onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select your university</option>
-                        <option value="KNUST">KNUST</option>
-                        <option value="UG">University of Ghana</option>
-                        <option value="UCC">University of Cape Coast</option>
-                        <option value="UENR">UE</option>
-                        <option value="UDS">UDS</option>
-                        <option value="UEW">UEW</option>
-                        <option value="AAMUSTED">AAMUSTED</option>
-                        <option value="UMAT">UMAT</option>
-                        <option value="UHAS">UHAS</option>
-                        <option value="OTHER">Other</option>
-                      </select>
-                    </div>
-
-                    {/* Phone */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
-                      <input
-                        type="tel"
-                        value={formData.phoneNumber}
-                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+233123456789"
-                      />
-                    </div>
-                  </div>
+          {/* Configuration Panel */}
+          <div className="flex-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="bg-surface/50 backdrop-blur-3xl rounded-[2.5rem] p-6 sm:p-12 border border-white/5 shadow-2xl min-h-[600px] flex flex-col"
+              >
+                <div className="flex-1">
+                    {renderContent()}
                 </div>
-              )}
-
-              {/* Security Settings */}
-              {activeTab === 'security' && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Security Settings</h2>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage your account security and authentication</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* Security Status Overview */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                      <div className="flex items-start gap-4">
-                        <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-2">Security Status</h3>
-                          <div className="grid grid-cols-2 gap-4 mt-4">
-                            <div className="flex items-center gap-2">
-                              {securityStatus?.has2FA ? (
-                                <>
-                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                  <span className="text-sm text-gray-700 dark:text-gray-300">2FA Enabled</span>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                  <span className="text-sm text-gray-700 dark:text-gray-300">2FA Disabled</span>
-                                </>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {securityStatus?.hasBiometric ? (
-                                <>
-                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                  <span className="text-sm text-gray-700 dark:text-gray-300">Biometric Active</span>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                  <span className="text-sm text-gray-700 dark:text-gray-300">Biometric Inactive</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Two-Factor Authentication */}
-                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                            <Smartphone className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">Two-Factor Authentication</h3>
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                              {securityStatus?.has2FA 
-                                ? 'Your account is protected with 2FA' 
-                                : 'Add an extra layer of security to your account'}
-                            </p>
-                          </div>
-                        </div>
-                        <Link href="/security-setup">
-                          <button className={`px-4 py-2 rounded-lg font-medium transition ${
-                            securityStatus?.has2FA
-                              ? 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}>
-                            {securityStatus?.has2FA ? 'Manage' : 'Enable 2FA'}
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Face Recognition */}
-                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                            <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">Face Recognition</h3>
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                              {securityStatus?.hasBiometric
-                                ? 'Biometric authentication is active'
-                                : 'Set up face recognition for secure login'}
-                            </p>
-                          </div>
-                        </div>
-                        <Link href="/security-setup">
-                          <button className={`px-4 py-2 rounded-lg font-medium transition ${
-                            securityStatus?.hasBiometric
-                              ? 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
-                              : 'bg-purple-600 text-white hover:bg-purple-700'
-                          }`}>
-                            {securityStatus?.hasBiometric ? 'Manage' : 'Setup Face ID'}
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Password */}
-                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                            <Key className="w-6 h-6 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">Password</h3>
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                              Change your password to keep your account secure
-                            </p>
-                          </div>
-                        </div>
-                        <button className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 font-medium transition">
-                          Change Password
+                
+                {/* Visual Feedback Footer */}
+                <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p className="text-[10px] font-black text-foreground/20 uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        Uplink active • Last synced: {new Date().toLocaleTimeString()}
+                    </p>
+                    <div className="flex gap-4">
+                        <button 
+                            onClick={() => router.push('/')}
+                            className="text-[10px] font-black text-foreground/40 uppercase tracking-widest hover:text-foreground transition-colors"
+                        >
+                            Exit Without Saving
                         </button>
-                      </div>
                     </div>
-
-                    {/* Last Security Check */}
-                    {securityStatus?.lastSecurityCheck && (
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Last security verification:{' '}
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {new Date(securityStatus.lastSecurityCheck).toLocaleDateString()}
-                          </span>
-                        </p>
-                        {securityStatus.needsVerification && (
-                          <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
-                            ⚠️ Security re-verification recommended
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
                 </div>
-              )}
-
-              {/* Notification Settings */}
-              {activeTab === 'notifications' && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Notification Preferences</h2>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Choose what notifications you receive</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {
-                    [
-                      { 
-                        key: 'emailNotifications',
-                        title: 'Email Notifications', 
-                        description: 'Receive email updates about your account',
-                        icon: Mail 
-                      },
-                      { 
-                        key: 'orderUpdates',
-                        title: 'Order Updates', 
-                        description: 'Get notified when your order status changes',
-                        icon: Bell 
-                      },
-                      { 
-                        key: 'newReleases',
-                        title: 'New Releases', 
-                        description: 'Alerts when new products are added to marketplace',
-                        icon: ShoppingBag 
-                      },
-                      { 
-                        key: 'marketingEmails',
-                        title: 'Marketing & Promotions', 
-                        description: 'Promotional offers, deals, and campus news',
-                        icon: Megaphone 
-                      },
-                      { 
-                        key: 'securityAlerts',
-                        title: 'Security Alerts', 
-                        description: 'Important security notifications (recommended)',
-                        icon: Shield 
-                      },
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.key} className="flex items-start justify-between rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-6 hover:shadow-md transition">
-                          <div className="flex items-start gap-4 flex-1">
-                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                              <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">{item.title}</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{item.description}</p>
-                            </div>
-                          </div>
-                          <label className="relative inline-flex cursor-pointer items-center">
-                            <input 
-                              type="checkbox" 
-                              className="peer sr-only" 
-                              checked={formData.notifications[item.key as keyof typeof formData.notifications]}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                notifications: {
-                                  ...formData.notifications,
-                                  [item.key]: e.target.checked
-                                }
-                              })}
-                            />
-                            <div className="peer h-6 w-11 rounded-full bg-gray-300 dark:bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500 peer-checked:after:translate-x-full peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800"></div>
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition flex items-center gap-2"
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Preferences
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Appearance Settings */}
-              {activeTab === 'appearance' && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Appearance</h2>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Customize how Student Hub looks to you</p>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Theme Selection */}
-                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Palette className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">Theme Preference</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Select your preferred color scheme</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 mt-4">
-                        {
-                        [
-                          { name: 'Light', icon: '☀️', description: 'Light theme' },
-                          { name: 'Dark', icon: '🌙', description: 'Dark theme' },
-                          { name: 'System', icon: '💻', description: 'Match system' }
-                        ].map((theme) => (
-                          <button
-                            key={theme.name}
-                            className="flex flex-col items-center gap-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-6 text-sm font-medium hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition group"
-                          >
-                            <span className="text-3xl">{theme.icon}</span>
-                            <div className="text-center">
-                              <div className="font-semibold text-gray-900 dark:text-white">{theme.name}</div>
-                              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">{theme.description}</div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Accent Color */}
-                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Palette className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">Accent Color</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Choose your primary accent color</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-4 mt-4">
-                        {
-                        [
-                          { name: 'Blue', color: 'bg-blue-600', hover: 'hover:ring-blue-600' },
-                          { name: 'Purple', color: 'bg-purple-600', hover: 'hover:ring-purple-600' },
-                          { name: 'Green', color: 'bg-green-600', hover: 'hover:ring-green-600' },
-                          { name: 'Red', color: 'bg-red-600', hover: 'hover:ring-red-600' },
-                          { name: 'Orange', color: 'bg-orange-600', hover: 'hover:ring-orange-600' },
-                          { name: 'Pink', color: 'bg-pink-600', hover: 'hover:ring-pink-600' },
-                          { name: 'Teal', color: 'bg-teal-600', hover: 'hover:ring-teal-600' },
-                          { name: 'Indigo', color: 'bg-indigo-600', hover: 'hover:ring-indigo-600' },
-                        ].map((colorOption) => (
-                          <button
-                            key={colorOption.name}
-                            className={`group relative h-14 w-14 rounded-full ${colorOption.color} ${colorOption.hover} hover:scale-110 transition-all duration-200 hover:ring-4 ring-offset-2 dark:ring-offset-gray-700 flex items-center justify-center`}
-                            title={colorOption.name}
-                          >
-                            <span className="opacity-0 group-hover:opacity-100 absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap transition-opacity">
-                              {colorOption.name}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Display Options */}
-                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Eye className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">Display Options</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Customize your viewing experience</p>
-                        </div>
-                      </div>
-                      <div className="space-y-4 mt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Compact Mode</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Reduce spacing for more content</p>
-                          </div>
-                          <label className="relative inline-flex cursor-pointer items-center">
-                            <input type="checkbox" className="peer sr-only" />
-                            <div className="peer h-6 w-11 rounded-full bg-gray-300 dark:bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800"></div>
-                          </label>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Animations</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Enable smooth page transitions</p>
-                          </div>
-                          <label className="relative inline-flex cursor-pointer items-center">
-                            <input type="checkbox" className="peer sr-only" defaultChecked />
-                            <div className="peer h-6 w-11 rounded-full bg-gray-300 dark:bg-gray-600 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800"></div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Save Button */}
-              <div className="mt-8 flex gap-3 border-t border-gray-200 dark:border-gray-700 pt-6">
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-                <button 
-                  onClick={() => router.push('/profile')}
-                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-6 py-2.5 font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+function NavTab({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap min-w-fit lg:w-full relative group overflow-hidden ${
+        active 
+          ? 'bg-primary text-primary-foreground omni-glow shadow-xl shadow-primary/20' 
+          : 'text-foreground/40 hover:bg-white/5 hover:text-foreground'
+      }`}
+    >
+      <span className={`transition-transform duration-500 ${active ? 'scale-110 rotate-3' : 'group-hover:scale-110'}`}>{icon}</span>
+      {label}
+      {active && <ChevronRight className="hidden lg:block w-4 h-4 ml-auto opacity-50" />}
+      {active && <motion.div layoutId="tab-glow" className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-3xl rounded-full" />}
+    </button>
+  );
+}
+
+function SecurityCard({ icon, title, desc, status, active, onClick }: any) {
+    return (
+        <button 
+            onClick={onClick}
+            className="flex items-center gap-6 p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all text-left group"
+        >
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center scale-95 group-hover:scale-100 transition-transform ${active ? 'bg-primary/20 text-primary' : 'bg-white/5 text-foreground/40'}`}>
+                {icon}
+            </div>
+            <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-black text-sm uppercase tracking-tight">{title}</h3>
+                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${active ? 'bg-green-500/20 text-green-500' : 'bg-white/10 text-foreground/20'}`}>
+                        {status}
+                    </span>
+                </div>
+                <p className="text-xs text-foreground/40 font-medium">{desc}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-foreground/20 group-hover:text-primary transition-colors" />
+        </button>
+    );
+}
+
+function GridToggle({ title, desc, active, onChange }: any) {
+    return (
+        <div className="flex items-center justify-between p-6 rounded-3xl bg-white/5 border border-white/5">
+            <div className="flex-1">
+                <h3 className="font-black text-sm uppercase tracking-tight mb-1">{title}</h3>
+                <p className="text-xs text-foreground/40 font-medium">{desc}</p>
+            </div>
+            <button 
+                onClick={() => onChange(!active)}
+                className={`w-12 h-6 rounded-full p-1 transition-colors relative ${active ? 'bg-primary' : 'bg-white/10'}`}
+            >
+                <motion.div 
+                    animate={{ x: active ? 24 : 0 }}
+                    className="w-4 h-4 bg-white rounded-full shadow-sm"
+                />
+            </button>
+        </div>
+    );
+}
+
+function CameraIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+    );
 }

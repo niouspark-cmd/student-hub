@@ -24,6 +24,7 @@ import {
     UserCircleIcon,
     ClockIcon
 } from '@/components/ui/Icons';
+import { Shield, Settings } from 'lucide-react';
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -262,7 +263,20 @@ export default function Navbar() {
                             </Link>
 
                             <div className="hidden lg:block" id="omni-nav-profile">
-                                <UserButton appearance={{ elements: { avatarBox: "w-9 h-9 border-2 border-surface-border" } }} />
+                                <UserButton appearance={{ elements: { avatarBox: "w-9 h-9 border-2 border-surface-border" } }}>
+                                    <UserButton.MenuItems>
+                                        <UserButton.Link
+                                            label="OMNI Security Hub"
+                                            labelIcon={<Shield className="w-4 h-4" />}
+                                            href="/security-setup"
+                                        />
+                                        <UserButton.Link
+                                            label="Account Settings"
+                                            labelIcon={<Settings className="w-4 h-4" />}
+                                            href="/settings"
+                                        />
+                                    </UserButton.MenuItems>
+                                </UserButton>
                             </div>
                         </SignedIn>
 
@@ -432,6 +446,8 @@ export default function Navbar() {
                                         <DrawerLink href="/" icon={<StoreIcon className="w-5 h-5" />} label="Marketplace" setIsOpen={setIsDrawerOpen} active={isActive('/')} />
                                         <DrawerLink href="/cart" icon={<ShoppingCartIcon className="w-5 h-5" />} label="My Cart" setIsOpen={setIsDrawerOpen} badge={itemCount} active={isActive('/cart')} />
                                         <DrawerLink href="/orders" icon={<PackageIcon className="w-5 h-5" />} label="My Orders" setIsOpen={setIsDrawerOpen} active={isActive('/orders')} />
+                                        <DrawerLink href="/security-setup" icon={<Shield className="w-5 h-5 text-blue-500" />} label="OMNI Security" setIsOpen={setIsDrawerOpen} active={isActive('/security-setup')} />
+                                        <DrawerLink href="/settings" icon={<Settings className="w-5 h-5" />} label="Settings" setIsOpen={setIsDrawerOpen} active={isActive('/settings')} />
                                     </div>
 
                                     {/* Specialized Modes */}

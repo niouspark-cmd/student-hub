@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
 
 export default function EarningsPage() {
+    const modal = useModal();
     const [stats, setStats] = useState({
         balance: 0,
         frozenBalance: 0,
@@ -48,7 +52,7 @@ export default function EarningsPage() {
             });
 
             if (res.ok) {
-                alert('✅ Payout request submitted!');
+                modal.alert('✅ Payout request submitted successfully! Funds will be transferred to your Mobile Money account within 24 hours.', 'Vault Request Received', 'success');
                 setShowForm(false);
                 fetchData();
                 setFormData({
@@ -58,11 +62,11 @@ export default function EarningsPage() {
                 });
             } else {
                 const error = await res.json();
-                alert(`❌ ${error.error || 'Failed to request payout'}`);
+                modal.alert(error.error || 'Failed to request payout', 'Vault Security Restriction', 'error');
             }
         } catch (error) {
             console.error('Request error:', error);
-            alert('❌ Something went wrong');
+            modal.alert('Vault communication failed.', 'Network Error', 'error');
         }
     };
 
@@ -79,7 +83,8 @@ export default function EarningsPage() {
             {/* Header */}
             <div className="bg-surface border-b border-surface-border py-6 px-4">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div>
+                    <div className="space-y-2">
+                        <GoBack fallback="/dashboard/vendor" />
                         <h1 className="text-3xl font-black uppercase tracking-tighter">Earnings & Payouts</h1>
                         <p className="text-foreground/60 mt-1">Manage your funds</p>
                     </div>

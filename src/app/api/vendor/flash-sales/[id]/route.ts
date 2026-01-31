@@ -57,9 +57,10 @@ export async function PATCH(
 // DELETE - Delete flash sale
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId } = await auth();
 
         if (!userId) {
@@ -77,7 +78,7 @@ export async function DELETE(
 
         const flashSale = await prisma.flashSale.deleteMany({
             where: {
-                id: params.id,
+                id,
                 product: {
                     vendorId: vendor.id
                 }

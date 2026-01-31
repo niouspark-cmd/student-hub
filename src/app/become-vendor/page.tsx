@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
 
 export default function BecomeVendorPage() {
     const { user, isLoaded } = useUser();
@@ -32,15 +34,15 @@ export default function BecomeVendorPage() {
             });
 
             if (res.ok) {
-                alert('✅ Application Submitted!\n\nYour vendor account is active. Welcome to OMNI!');
+                modal.alert('✅ Application Submitted! Your vendor account is now active. Welcome to the OMNI marketplace.', 'Onboarding Success', 'success');
                 router.push('/dashboard/vendor');
             } else {
                 const error = await res.json();
-                alert(`❌ ${error.error || 'Failed to submit application'}`);
+                modal.alert(error.error || 'Failed to submit application', 'Application Error', 'error');
             }
         } catch (error) {
             console.error('Application failed:', error);
-            alert('❌ Something went wrong. Please try again.');
+            modal.alert('System connection lost during submission.', 'Network Error', 'error');
         } finally {
             setLoading(false);
         }
@@ -59,8 +61,11 @@ export default function BecomeVendorPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Hero Section */}
-            <div className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 text-white pt-32 pb-20 px-4">
+            <div className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 text-white pt-24 pb-20 px-4">
                 <div className="max-w-6xl mx-auto">
+                    <div className="mb-8">
+                        <GoBack fallback="/" className="text-white/80 hover:text-white" />
+                    </div>
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         {/* Left: Text */}
                         <div>

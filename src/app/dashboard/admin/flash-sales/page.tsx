@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 interface FlashSale {
     id: string;
@@ -24,6 +26,7 @@ interface FlashSale {
 
 export default function FlashSalesAdminPage() {
     const router = useRouter();
+    const modal = useModal();
     const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -63,7 +66,8 @@ export default function FlashSalesAdminPage() {
     };
 
     const deleteSale = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this flash sale?')) return;
+        const confirmed = await modal.confirm('Are you sure you want to delete this flash sale? This will immediately remove it from the pulse feed.', 'Delete Flash Sale');
+        if (!confirmed) return;
 
         try {
             const res = await fetch(`/api/admin/flash-sales/${id}`, {
@@ -164,6 +168,7 @@ export default function FlashSalesAdminPage() {
                 {showCreateModal && (
                     <CreateFlashSaleModal
                         onClose={() => setShowCreateModal(false)}
+                        modal={modal}
                         onSuccess={() => {
                             setShowCreateModal(false);
                             fetchFlashSales();
@@ -294,7 +299,7 @@ function FlashSaleCard({ sale, onToggle, onDelete }: any) {
     );
 }
 
-function CreateFlashSaleModal({ onClose, onSuccess }: any) {
+function CreateFlashSaleModal({ onClose, onSuccess, modal }: any) {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -338,14 +343,15 @@ function CreateFlashSaleModal({ onClose, onSuccess }: any) {
             });
 
             if (res.ok) {
+                toast.success('Flash sale campaign initialized! ⚡');
                 onSuccess();
             } else {
-                const error = await res.json();
-                alert(error.error || 'Failed to create flash sale');
+                const data = await res.json();
+                modal.alert(data.error || 'The system rejected the campaign parameters.', 'Protocol Error', 'error');
             }
         } catch (error) {
             console.error('Failed to create flash sale:', error);
-            alert('Failed to create flash sale');
+            modal.alert('A link failure prevented the campaign from going live.', 'Transmission Error', 'error');
         } finally {
             setSubmitting(false);
         }

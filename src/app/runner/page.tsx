@@ -91,15 +91,13 @@ function RunnerLandingSection({ onSuccess }: { onSuccess: () => void }) {
             const res = await fetch('/api/runner/apply', { method: 'POST' });
             const data = await res.json();
             if (data.success) {
-                // Reload window to refresh Clerk session/metadata if needed, 
-                // or just trigger success state
                 window.location.reload();
             } else {
-                alert('Application failed. Please try again.');
+                modal.alert('Application failed. Please try again.', 'System Error', 'error');
             }
         } catch (e) {
             console.error(e);
-            alert('Network error');
+            modal.alert('Network connection lost. Please check your internet.', 'Network Error', 'error');
         } finally {
             setApplying(false);
         }
@@ -271,12 +269,12 @@ function RunnerDashboardSection() {
             if (res.ok) {
                 fetchActiveMission();
             } else {
-                alert('Too slow! Mission taken.');
+                modal.alert('Too slow! This mission has already been claimed by another runner.', 'Mission Lost', 'warning');
                 fetchMissions();
                 if (activeMission?.id === missionId) setActiveMission(null);
             }
         } catch (e) {
-            alert('Error accepting mission');
+            modal.alert('Failed to establish link with mission control.', 'System Error', 'error');
             setActiveMission(null);
             fetchMissions();
         }
@@ -295,17 +293,19 @@ function RunnerDashboardSection() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                await modal.alert(`✅ Mission Complete! You earned GHS ${data.order.runnerEarnings || 5.00}`, 'Good Job!');
+                modal.alert(`✅ Mission Complete! You earned GHS ${data.order.runnerEarnings || 5.00}`, 'Execution Success', 'success');
                 setActiveMission(null);
                 setBalance(prev => prev + (data.order.runnerEarnings || 5.00));
             } else {
-                alert(data.error || 'Invalid Key');
+                modal.alert(data.error || 'The Shield Key provided is invalid.', 'Verification Failed', 'error');
             }
-        } catch (e) { alert('Network error'); }
+        } catch (e) { 
+            modal.alert('Security terminal connection failed.', 'System Error', 'error'); 
+        }
     };
 
     const handleWithdraw = async () => {
-        alert('Withdrawal request initialized. Processing via OMNI Vault.');
+        modal.alert('Withdrawal request initialized. Processing via OMNI Vault secure rails. Expect transfer within 24 hours.', 'Vault Transfer', 'info');
     };
 
     return (

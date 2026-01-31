@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface CheckoutFormProps {
     productId: string;
@@ -49,7 +50,7 @@ export default function CheckoutForm({
             }
         } catch (error) {
             console.error('Final verification failed:', error);
-            alert('Payment received but verification failed. Please contact support.');
+            toast.error('Payment received but verification failed. Please contact support.');
         }
     };
 
@@ -66,7 +67,7 @@ export default function CheckoutForm({
         }).PaystackPop;
 
         if (!PaystackPop) {
-            alert('Payment system (Paystack) not loaded yet. Please wait a moment or refresh.');
+            toast.error('Payment system (Paystack) not loaded yet. Please wait a moment or refresh.');
             return;
         }
 
@@ -110,12 +111,12 @@ export default function CheckoutForm({
                 });
                 handler.openIframe();
             } else {
-                alert(`Failed to initialize order: ${data.error}\n\nDetails: ${data.details || 'No details'}`);
+                toast.error(`Failed to initialize order: ${data.error}`);
                 setIsCreatingOrder(false);
             }
         } catch (error) {
             console.error('Checkout error:', error);
-            alert('Checkout failed. Please try again.');
+            toast.error('Checkout failed. Please try again.');
             setIsCreatingOrder(false);
         }
     };

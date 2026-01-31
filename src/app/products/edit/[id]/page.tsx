@@ -5,9 +5,12 @@ import { useRouter, useParams } from 'next/navigation';
 import { getHotspotsForUniversity } from '@/lib/geo/distance';
 import ImageUpload from '@/components/products/ImageUpload';
 import ProtocolGuard from '@/components/admin/ProtocolGuard';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
 
 export default function EditProductPage() {
     const router = useRouter();
+    const modal = useModal();
     const params = useParams();
     const productId = params?.id as string;
 
@@ -57,7 +60,7 @@ export default function EditProductPage() {
                         imageUrl: p.imageUrl || '',
                     });
                 } else {
-                    alert('Product not found');
+                    modal.alert('The product asset could not be located in the neural link.', 'Data Link Missing', 'error');
                     router.push('/dashboard/vendor/products');
                 }
             } catch (e) {
@@ -83,30 +86,33 @@ export default function EditProductPage() {
             const data = await response.json();
 
             if (data.success) {
+                toast.success('Product updated successfully!');
                 router.push('/dashboard/vendor/products');
             } else {
-                alert(`Error: ${data.error}`);
+                modal.alert(data.error || 'The terminal rejected the configuration update.', 'Update Error', 'error');
             }
         } catch (error) {
             console.error('Failed to update product:', error);
-            alert('Failed to update product');
+            modal.alert('A network disturbance prevented the update synchronization.', 'Link Error', 'error');
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this product? This cannot be undone.')) return;
+        const confirmed = await modal.confirm('Are you sure you want to permanently purge this product asset? This cannot be undone.', 'Purge Protocol');
+        if (!confirmed) return;
         setSubmitting(true);
         try {
             const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
             if (res.ok) {
+                toast.success('Asset Terminated');
                 router.push('/dashboard/vendor/products');
             } else {
-                alert('Failed to delete');
+                modal.alert('Failed to terminate asset', 'Error', 'error');
             }
         } catch (e) {
-            alert('Error deleting');
+            modal.alert('Error communicating with core', 'Connection Error', 'error');
         } finally {
             setSubmitting(false);
         }

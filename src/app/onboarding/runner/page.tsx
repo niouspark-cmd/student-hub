@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ZapIcon, MapPinIcon, ClockIcon } from '@/components/ui/Icons';
 import { useUser } from '@clerk/nextjs';
+import { useModal } from '@/context/ModalContext';
 
 export default function RunnerOnboardingPage() {
     const router = useRouter();
     const { user, isLoaded } = useUser();
+    const modal = useModal();
     const [loading, setLoading] = useState(false);
 
     if (isLoaded && user?.publicMetadata?.role === 'VENDOR') {
@@ -41,12 +43,12 @@ export default function RunnerOnboardingPage() {
                 // We force a refresh so the Navbar updates its state
                 window.location.href = '/runner';
             } else {
-                alert(data.error || 'Failed to join fleet');
+                modal.alert(data.error || 'The fleet registration failed.', 'Activation Error', 'error');
                 setLoading(false);
             }
         } catch (error) {
             console.error('Join error', error);
-            alert('Connection failed');
+            modal.alert('Communication link with fleet command lost.', 'Link Error', 'error');
             setLoading(false);
         }
     };

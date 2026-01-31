@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useModal } from '@/context/ModalContext';
+import { toast } from 'sonner';
+import GoBack from '@/components/navigation/GoBack';
 
 export default function VendorFlashSalesPage() {
+    const modal = useModal();
     const [flashSales, setFlashSales] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -58,7 +62,7 @@ export default function VendorFlashSalesPage() {
             });
 
             if (res.ok) {
-                alert('✅ Flash sale created!');
+                toast.success('Flash sale protocol initialized!');
                 setShowForm(false);
                 fetchFlashSales();
                 setFormData({
@@ -71,11 +75,11 @@ export default function VendorFlashSalesPage() {
                 });
             } else {
                 const error = await res.json();
-                alert(`❌ ${error.error || 'Failed to create flash sale'}`);
+                modal.alert(error.error || 'Failed to create flash sale', 'Submission Error', 'error');
             }
         } catch (error) {
             console.error('Create error:', error);
-            alert('❌ Something went wrong');
+            modal.alert('System uplink failed.', 'Network Error', 'error');
         }
     };
 
@@ -96,7 +100,8 @@ export default function VendorFlashSalesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Delete this flash sale?')) return;
+        const confirmed = await modal.confirm('Delete this flash sale? Any active discounts will be immediately neutralized.', 'Purge Confirmation', true);
+        if (!confirmed) return;
 
         try {
             const res = await fetch(`/api/vendor/flash-sales/${id}`, {
@@ -104,7 +109,7 @@ export default function VendorFlashSalesPage() {
             });
 
             if (res.ok) {
-                alert('✅ Flash sale deleted!');
+                toast.success('Flash sale successfully purged');
                 fetchFlashSales();
             }
         } catch (error) {
@@ -125,7 +130,8 @@ export default function VendorFlashSalesPage() {
             {/* Header */}
             <div className="bg-surface border-b border-surface-border py-6 px-4">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div>
+                    <div className="space-y-2">
+                        <GoBack fallback="/dashboard/vendor" />
                         <h1 className="text-3xl font-black uppercase tracking-tighter">Flash Sales</h1>
                         <p className="text-foreground/60 mt-1">Create limited-time deals</p>
                     </div>

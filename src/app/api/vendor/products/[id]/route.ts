@@ -5,9 +5,10 @@ import { prisma } from '@/lib/db/prisma';
 // GET - Fetch single product
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId } = await auth();
 
         if (!userId) {
@@ -25,7 +26,7 @@ export async function GET(
 
         const product = await prisma.product.findFirst({
             where: {
-                id: params.id,
+                id: id,
                 vendorId: vendor.id
             },
             include: {
@@ -48,9 +49,10 @@ export async function GET(
 // PATCH - Update product
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId } = await auth();
 
         if (!userId) {
@@ -71,7 +73,7 @@ export async function PATCH(
 
         const product = await prisma.product.updateMany({
             where: {
-                id: params.id,
+                id: id,
                 vendorId: vendor.id
             },
             data: {
@@ -102,9 +104,10 @@ export async function PATCH(
 // DELETE - Delete product
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId } = await auth();
 
         if (!userId) {
@@ -122,7 +125,7 @@ export async function DELETE(
 
         const product = await prisma.product.deleteMany({
             where: {
-                id: params.id,
+                id: id,
                 vendorId: vendor.id
             }
         });

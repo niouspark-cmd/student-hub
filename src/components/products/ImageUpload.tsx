@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useModal } from '@/context/ModalContext';
 
 interface ImageUploadProps {
     value?: string;
@@ -11,6 +12,7 @@ interface ImageUploadProps {
 export default function ImageUpload({ value, onChange }: ImageUploadProps) {
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const modal = useModal();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -32,11 +34,11 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
                 onChange(data.url);
             } else {
                 console.error('Upload failed:', data.error);
-                alert('Failed to upload image');
+                modal.alert('The storage nexus rejected the transmission.', 'Upload Error', 'error');
             }
         } catch (error) {
             console.error('Error uploading image:', error);
-            alert('Error uploading image');
+            modal.alert('A network disturbance prevented the image upload.', 'Link Error', 'error');
         } finally {
             setUploading(false);
             // Reset input so the same file can be selected again if needed
