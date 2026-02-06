@@ -416,43 +416,91 @@ export default function SecuritySetupPage() {
             </div>
             
             <div className="relative max-w-2xl mx-auto">
-              <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
+              <div className="aspect-video bg-black rounded-[2rem] overflow-hidden relative group border-2 border-surface-border">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700 transform scale-x-[-1]"
                 />
                 <canvas
                   ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full"
+                  className="absolute top-0 left-0 w-full h-full transform scale-x-[-1] z-20"
                 />
+                
+                {cameraActive && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* Corner Crosshairs */}
+                    <div className="absolute top-6 left-6 w-10 h-10 border-t-2 border-l-2 border-primary/40" />
+                    <div className="absolute top-6 right-6 w-10 h-10 border-t-2 border-r-2 border-primary/40" />
+                    <div className="absolute bottom-6 left-6 w-10 h-10 border-b-2 border-l-2 border-primary/40" />
+                    <div className="absolute bottom-6 right-6 w-10 h-10 border-b-2 border-r-2 border-primary/40" />
+                    
+                    {/* Scanning Line */}
+                    <AnimatePresence>
+                      {faceDetected && !loading && (
+                        <motion.div 
+                          initial={{ top: '0%' }}
+                          animate={{ top: '100%' }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                          className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_15px_var(--primary-glow)] z-10"
+                        />
+                      )}
+                    </AnimatePresence>
+
+                    {/* Hacker HUD Info */}
+                    <div className="absolute bottom-8 left-8 text-left font-mono text-[10px] text-primary/60 space-y-1.5 z-30">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-primary' : 'bg-red-500'} animate-pulse`} />
+                            <span>STATUS: {faceDetected ? 'ENROLLMENT_LOCKED' : 'WAITING_FOR_TARGET'}</span>
+                        </div>
+                        <div>CRYPTO_TOKEN: {user?.id?.slice(0, 12)}...</div>
+                        <div>SAMPLING_RATE: 60FPS</div>
+                    </div>
+                  </div>
+                )}
+
                 {!cameraActive && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-30">
                     <button
                       onClick={startCamera}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+                      className="px-8 py-4 bg-primary text-black rounded-2xl hover:bg-primary/90 transition-all font-black uppercase tracking-widest text-xs shadow-xl active:scale-95"
                     >
                       <Camera className="w-5 h-5 inline mr-2" />
-                      Activate Camera
+                      Initialize Optic Feed
                     </button>
                   </div>
                 )}
+                
+                <div className="absolute inset-0 pointer-events-none border-[30px] border-black/40 rounded-[2rem]"></div>
               </div>
               
-              {faceDetected && (
-                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Face Detected
-                </div>
-              )}
+              <AnimatePresence>
+                {faceDetected && (
+                  <motion.div 
+                    initial={{ scale: 0, x: 20 }}
+                    animate={{ scale: 1, x: 0 }}
+                    exit={{ scale: 0, x: 20 }}
+                    className="absolute top-6 right-6 bg-[#39FF14] text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-[0_0_20px_rgba(57,255,20,0.4)] z-40"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Face Acquired
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
-              {faceDescriptors.length > 0 && (
-                <div className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-                  Captured: {faceDescriptors.length}/3
-                </div>
-              )}
+              <AnimatePresence>
+                {faceDescriptors.length > 0 && (
+                  <motion.div 
+                    initial={{ scale: 0, x: -20 }}
+                    animate={{ scale: 1, x: 0 }}
+                    className="absolute top-6 left-6 bg-white text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest z-40 shadow-xl"
+                  >
+                    Samples: {faceDescriptors.length}/3
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             
             {error && (

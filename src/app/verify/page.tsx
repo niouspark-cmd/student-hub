@@ -285,41 +285,95 @@ export default function VerifyIdentityPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="relative aspect-square bg-black rounded-2xl overflow-hidden mb-6 border-2 border-surface-border">
+                    <div className="relative aspect-square bg-black rounded-3xl overflow-hidden mb-8 border-2 border-surface-border shadow-inner group">
                         {status === 'checking' && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="animate-spin text-4xl">⚙️</span>
+                            <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a]">
+                                <motion.div 
+                                    animate={{ 
+                                        rotate: 360,
+                                        scale: [1, 1.1, 1]
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                    className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full shadow-[0_0_20px_var(--primary-glow)]"
+                                />
                             </div>
                         )}
                         
                         {(status === 'scanning' || status === 'verifying' || status === 'failed') && (
                             <>
-                                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1]" />
-                                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full transform scale-x-[-1]" />
-                                <div className="absolute inset-0 pointer-events-none border-[20px] border-black/50 rounded-2xl"></div>
+                                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1] opacity-60 group-hover:opacity-100 transition-opacity duration-700" />
+                                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full transform scale-x-[-1] z-20" />
+                                
+                                {/* Scanning UI Overlay */}
+                                <div className="absolute inset-0 pointer-events-none">
+                                    {/* Corner Crosshairs */}
+                                    <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-primary/40" />
+                                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-primary/40" />
+                                    <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-primary/40" />
+                                    <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-primary/40" />
+                                    
+                                    {/* Animated Scanning Line */}
+                                    <AnimatePresence>
+                                        {(status === 'scanning' || status === 'verifying') && (
+                                            <motion.div 
+                                                initial={{ top: '0%' }}
+                                                animate={{ top: '100%' }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                                                className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_15px_var(--primary-glow)] z-10"
+                                            />
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Status HUD (Hacker Style) */}
+                                    <div className="absolute bottom-6 left-6 text-left font-mono text-[8px] text-primary/60 space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-1.5 h-1.5 rounded-full ${faceDetected ? 'bg-primary' : 'bg-red-500'} animate-pulse`} />
+                                            <span>TARGET_{faceDetected ? 'LOCKED' : 'SEARCHING'}</span>
+                                        </div>
+                                        <div>LATENCY: 12ms</div>
+                                        <div>BIOMETRIC_ID: AX-772</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="absolute inset-0 pointer-events-none border-[30px] border-black/40 rounded-2xl shadow-inner-lg"></div>
                             </>
                         )}
 
                         {status === 'success' && (
-                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 text-[#39FF14]">
+                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/95 text-[#39FF14]">
                                  <motion.div 
-                                    initial={{ scale: 0 }} 
-                                    animate={{ scale: 1 }}
-                                    className="text-6xl mb-4"
+                                    initial={{ scale: 0, rotate: -45 }} 
+                                    animate={{ scale: 1, rotate: 0 }}
+                                    transition={{ type: "spring", damping: 12 }}
+                                    className="w-24 h-24 bg-[#39FF14]/10 rounded-full flex items-center justify-center mb-6 border border-[#39FF14]/30"
                                  >
-                                     🔓
+                                     <CheckCircle2 className="w-12 h-12" />
                                  </motion.div>
-                                 <p className="font-mono text-sm">REDIRECTING...</p>
+                                 <motion.p 
+                                    animate={{ opacity: [0.3, 1, 0.3] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="font-mono text-[10px] tracking-[0.3em]"
+                                 >
+                                     AUTHENTICATION_SUCCESS
+                                 </motion.p>
                              </div>
                         )}
                     </div>
 
                     {/* Actions */}
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-                            <AlertCircle className="w-4 h-4" /> {error}
-                        </div>
-                    )}
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-bold flex items-center justify-center gap-3"
+                            >
+                                <AlertCircle className="w-4 h-4" /> {error}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {status === 'scanning' && (
                         <button
